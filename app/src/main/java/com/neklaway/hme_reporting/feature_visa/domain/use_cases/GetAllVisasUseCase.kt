@@ -1,0 +1,27 @@
+package com.neklaway.hme_reporting.feature_visa.domain.use_cases
+
+import com.neklaway.hme_reporting.feature_visa.data.entity.toVisa
+import com.neklaway.hme_reporting.feature_visa.domain.model.Visa
+import com.neklaway.hme_reporting.feature_visa.domain.repository.VisaRepository
+import com.neklaway.hme_reporting.utils.Resource
+import java.io.IOException
+import javax.inject.Inject
+
+class GetAllVisasUseCase @Inject constructor(
+    val repo: VisaRepository
+) {
+
+    suspend operator fun invoke(): Resource<List<Visa>> {
+
+        return try {
+            Resource.Success(repo.getAll().map { visaEntity ->
+                visaEntity.toVisa()
+            })
+        } catch (e: IOException) {
+            Resource.Error(e.message ?: "Can't get Visa List")
+        }
+    }
+
+}
+
+
