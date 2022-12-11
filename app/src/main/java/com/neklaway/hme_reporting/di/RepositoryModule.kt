@@ -1,8 +1,10 @@
 package com.neklaway.hme_reporting.di
 
 
+import com.neklaway.hme_reporting.feature_settings.data.repository_impl.BackupRepositoryImpl
 import com.neklaway.hme_reporting.feature_settings.domain.repository.SettingsRepository
 import com.neklaway.hme_reporting.feature_settings.data.repository_impl.SettingsRepositoryImpl
+import com.neklaway.hme_reporting.feature_settings.domain.repository.BackupRepository
 import com.neklaway.hme_reporting.feature_time_sheet.data.repository_impl.*
 import com.neklaway.hme_reporting.feature_time_sheet.domain.repository.*
 import com.neklaway.hme_reporting.feature_visa.data.repository_impl.VisaRepositoryImpl
@@ -44,5 +46,9 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun provideSavedDataRepository(savedDataRepository: SavedDataRepositoryImpl): SavedDataRepository
+
+    @Binds
+    @Singleton
+    abstract fun provideBackupRepository(backupRepositoryImpl: BackupRepositoryImpl): BackupRepository
 
 }

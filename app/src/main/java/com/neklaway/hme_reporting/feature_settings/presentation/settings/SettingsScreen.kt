@@ -21,7 +21,6 @@ import com.neklaway.hme_reporting.common.presentation.common.component.Selector
 import com.neklaway.hme_reporting.feature_signature.presentation.signature.SignatureScreen
 import com.neklaway.hme_reporting.common.ui.theme.HMEReportingTheme
 import com.neklaway.hme_reporting.feature_settings.data.worker.BackupWorker
-import com.neklaway.hme_reporting.feature_time_sheet.data.worker.PDFCreatorWorker
 import com.neklaway.hme_reporting.utils.Constants
 
 
@@ -37,12 +36,12 @@ fun SettingsScreen(
     val userMessage = viewModel.userMessage
 
     LaunchedEffect(key1 = userMessage) {
-        userMessage.collect{
+        userMessage.collect {
             snackbarHostState.showSnackbar(it)
         }
     }
 
-    
+
     HMEReportingTheme {
         Scaffold(
             snackbarHost = {
@@ -123,26 +122,28 @@ fun SettingsScreen(
                     .align(Alignment.CenterHorizontally)
                     .padding(5.dp),
                     onClick = {
-                    val backupWorkRequest = OneTimeWorkRequestBuilder<BackupWorker>()
-                        .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
-                        .build()
+                        val backupWorkRequest = OneTimeWorkRequestBuilder<BackupWorker>()
+                            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+                            .build()
 
-                    workManager.enqueue(
-                        backupWorkRequest
-                    )
+                        workManager.enqueue(
+                            backupWorkRequest
+                        )
 
-                }) {
+                    }) {
                     Text(text = "backup")
                 }
             }
 
 
             AnimatedVisibility(visible = state.showSignaturePad) {
-                SignatureScreen(signatureFileName = Constants.USER_SIGNATURE, signatureUpdatedAtExit = { signedSuccessfully ,_ ->
-                    viewModel.signatureScreenClosed()
-                    if (signedSuccessfully)
-                        viewModel.updateSignature()
-                })
+                SignatureScreen(
+                    signatureFileName = Constants.USER_SIGNATURE,
+                    signatureUpdatedAtExit = { signedSuccessfully, _ ->
+                        viewModel.signatureScreenClosed()
+                        if (signedSuccessfully)
+                            viewModel.updateSignature()
+                    })
             }
         }
     }
