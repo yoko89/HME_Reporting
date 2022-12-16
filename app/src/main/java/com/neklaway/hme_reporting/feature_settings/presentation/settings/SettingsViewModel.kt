@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.neklaway.hme_reporting.domain.use_cases.settings_use_case.ibau_id.SetBreakDurationUseCase
+import com.neklaway.hme_reporting.feature_settings.domain.use_cases.backup.StartBackup
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.break_time.GetBreakDurationUseCase
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.is_auto_clear.GetIsAutoClearUseCase
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.is_auto_clear.SetIsAutoClearUseCase
@@ -35,7 +36,8 @@ class SettingsViewModel @Inject constructor(
     private val setIsAutoClearUseCase: SetIsAutoClearUseCase,
     private val loadBitmapUseCase: LoadBitmapUseCase,
     private val getVisaReminderUseCase: GetVisaReminderUseCase,
-    private val setVisaReminderUseCase: SetVisaReminderUseCase
+    private val setVisaReminderUseCase: SetVisaReminderUseCase,
+    private val startBackup: StartBackup,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SettingsState())
@@ -176,15 +178,21 @@ class SettingsViewModel @Inject constructor(
         val breakString = breakFloat?.toString() ?: ""
         val breakDurationSplit = breakDuration.split(".")
 
-        if (breakString.isNotBlank() && breakDurationSplit.size < 2)
-            _state.update { it.copy(breakDuration = breakDuration) }
-        else
-            _state.update { it.copy(breakDuration = breakString) }
+        if (breakString.isNotBlank() && breakDurationSplit.size < 2) _state.update {
+            it.copy(
+                breakDuration = breakDuration
+            )
+        }
+        else _state.update { it.copy(breakDuration = breakString) }
     }
 
     fun signatureBtnClicked() {
         _state.update { it.copy(showSignaturePad = true) }
         Log.d(TAG, "signatureBtnClicked:  show pad = ${_state.value.showSignaturePad}")
+    }
+
+    fun backupButtonClicked() {
+        startBackup()
     }
 
     private fun getSignature() {

@@ -12,16 +12,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.work.*
 import com.neklaway.hme_reporting.common.presentation.common.component.Selector
-import com.neklaway.hme_reporting.feature_signature.presentation.signature.SignatureScreen
 import com.neklaway.hme_reporting.common.ui.theme.HMEReportingTheme
-import com.neklaway.hme_reporting.feature_settings.data.worker.BackupWorker
-import com.neklaway.hme_reporting.feature_time_sheet.data.worker.PDFCreatorWorker
+import com.neklaway.hme_reporting.feature_signature.presentation.signature.SignatureScreen
 import com.neklaway.hme_reporting.utils.Constants
 
 
@@ -37,12 +34,12 @@ fun SettingsScreen(
     val userMessage = viewModel.userMessage
 
     LaunchedEffect(key1 = userMessage) {
-        userMessage.collect{
+        userMessage.collect {
             snackbarHostState.showSnackbar(it)
         }
     }
 
-    
+
     HMEReportingTheme {
         Scaffold(
             snackbarHost = {
@@ -118,31 +115,23 @@ fun SettingsScreen(
                     Text(text = "Signature")
                 }
 
-                val workManager = WorkManager.getInstance(LocalContext.current)
                 Button(modifier = Modifier
                     .align(Alignment.CenterHorizontally)
                     .padding(5.dp),
-                    onClick = {
-                    val backupWorkRequest = OneTimeWorkRequestBuilder<BackupWorker>()
-                        .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
-                        .build()
-
-                    workManager.enqueue(
-                        backupWorkRequest
-                    )
-
-                }) {
+                    onClick = viewModel::backupButtonClicked) {
                     Text(text = "backup")
                 }
             }
 
 
             AnimatedVisibility(visible = state.showSignaturePad) {
-                SignatureScreen(signatureFileName = Constants.USER_SIGNATURE, signatureUpdatedAtExit = { signedSuccessfully ,_ ->
-                    viewModel.signatureScreenClosed()
-                    if (signedSuccessfully)
-                        viewModel.updateSignature()
-                })
+                SignatureScreen(
+                    signatureFileName = Constants.USER_SIGNATURE,
+                    signatureUpdatedAtExit = { signedSuccessfully, _ ->
+                        viewModel.signatureScreenClosed()
+                        if (signedSuccessfully)
+                            viewModel.updateSignature()
+                    })
             }
         }
     }

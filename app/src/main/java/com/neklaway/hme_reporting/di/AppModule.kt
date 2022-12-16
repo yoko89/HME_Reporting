@@ -1,6 +1,7 @@
 package com.neklaway.hme_reporting.di
 
 import android.app.Application
+import android.content.Context
 import androidx.room.Room
 import com.neklaway.hme_reporting.common.data.RoomData
 import com.neklaway.hme_reporting.feature_time_sheet.data.dao.CustomerDao
@@ -56,6 +57,12 @@ object AppModule {
     @Singleton
     fun provideVisaDao(db: RoomData): VisaDao {
         return db.visaDao
+    }
+
+    @Provides
+    @Singleton
+    fun provideContext(app: Application): Context {
+        return app.applicationContext
     }
 
 
