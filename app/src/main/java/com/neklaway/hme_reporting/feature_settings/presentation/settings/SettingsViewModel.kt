@@ -1,13 +1,11 @@
 package com.neklaway.hme_reporting.feature_settings.presentation.settings
 
-import android.app.Application
-import android.content.Context
 import android.util.Log
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.neklaway.hme_reporting.domain.use_cases.settings_use_case.ibau_id.SetBreakDurationUseCase
+import com.neklaway.hme_reporting.feature_settings.domain.use_cases.backup.StartBackup
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.break_time.GetBreakDurationUseCase
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.is_auto_clear.GetIsAutoClearUseCase
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.is_auto_clear.SetIsAutoClearUseCase
@@ -20,7 +18,6 @@ import com.neklaway.hme_reporting.feature_settings.domain.use_cases.visa_reminde
 import com.neklaway.hme_reporting.feature_signature.domain.use_cases.bitmap_use_case.LoadBitmapUseCase
 import com.neklaway.hme_reporting.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -40,6 +37,7 @@ class SettingsViewModel @Inject constructor(
     private val loadBitmapUseCase: LoadBitmapUseCase,
     private val getVisaReminderUseCase: GetVisaReminderUseCase,
     private val setVisaReminderUseCase: SetVisaReminderUseCase,
+    private val startBackup: StartBackup,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SettingsState())
@@ -180,15 +178,21 @@ class SettingsViewModel @Inject constructor(
         val breakString = breakFloat?.toString() ?: ""
         val breakDurationSplit = breakDuration.split(".")
 
-        if (breakString.isNotBlank() && breakDurationSplit.size < 2)
-            _state.update { it.copy(breakDuration = breakDuration) }
-        else
-            _state.update { it.copy(breakDuration = breakString) }
+        if (breakString.isNotBlank() && breakDurationSplit.size < 2) _state.update {
+            it.copy(
+                breakDuration = breakDuration
+            )
+        }
+        else _state.update { it.copy(breakDuration = breakString) }
     }
 
     fun signatureBtnClicked() {
         _state.update { it.copy(showSignaturePad = true) }
         Log.d(TAG, "signatureBtnClicked:  show pad = ${_state.value.showSignaturePad}")
+    }
+
+    fun backupButtonClicked() {
+        startBackup()
     }
 
     private fun getSignature() {
