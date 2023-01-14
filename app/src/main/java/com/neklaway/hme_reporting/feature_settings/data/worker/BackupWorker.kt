@@ -7,20 +7,21 @@ import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
-import com.neklaway.hme_reporting.feature_time_sheet.domain.model.Customer
-import com.neklaway.hme_reporting.feature_time_sheet.domain.model.HMECode
-import com.neklaway.hme_reporting.feature_time_sheet.domain.model.IBAUCode
-import com.neklaway.hme_reporting.feature_time_sheet.domain.model.TimeSheet
-import com.neklaway.hme_reporting.feature_time_sheet.domain.use_cases.customer_use_cases.GetAllCustomersUseCase
-import com.neklaway.hme_reporting.feature_time_sheet.domain.use_cases.hme_code_use_cases.GetAllHMECodesUseCase
-import com.neklaway.hme_reporting.feature_time_sheet.domain.use_cases.ibau_code_use_cases.GetAllIBAUCodesUseCase
-import com.neklaway.hme_reporting.feature_time_sheet.domain.use_cases.time_sheet_use_cases.GetAllTimeSheetUseCase
-import com.neklaway.hme_reporting.feature_visa.domain.model.Visa
-import com.neklaway.hme_reporting.feature_visa.domain.use_cases.GetAllVisasUseCase
+import com.neklaway.hme_reporting.common.domain.model.Customer
+import com.neklaway.hme_reporting.common.domain.model.HMECode
+import com.neklaway.hme_reporting.common.domain.model.IBAUCode
+import com.neklaway.hme_reporting.common.domain.model.TimeSheet
+import com.neklaway.hme_reporting.common.domain.use_cases.customer_use_cases.GetAllCustomersUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.hme_code_use_cases.GetAllHMECodesUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.ibau_code_use_cases.GetAllIBAUCodesUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.time_sheet_use_cases.GetAllTimeSheetUseCase
+import com.neklaway.hme_reporting.common.domain.model.Visa
+import com.neklaway.hme_reporting.common.domain.visa_use_cases.GetAllVisasUseCase
 import com.neklaway.hme_reporting.utils.Constants
 import com.neklaway.hme_reporting.utils.Resource
 import com.neklaway.hme_reporting.utils.toDate
@@ -66,6 +67,9 @@ class BackupWorker @AssistedInject constructor(
             Environment.DIRECTORY_DOCUMENTS + "/hme_${calendar.toDate()}_${calendar.toTime()}"
         )
 
+        val collection = MediaStore.Files.getContentUri("external")
+
+
         Log.d(TAG, "Started")
 
         getAllCustomersUseCase().run {
@@ -80,7 +84,6 @@ class BackupWorker @AssistedInject constructor(
                         resource.data.orEmpty()
                     )
 
-                    val collection = MediaStore.Files.getContentUri("external")
 
                     val contentValues = ContentValues().apply {
                         put(MediaStore.Files.FileColumns.DISPLAY_NAME, "customers")
@@ -102,6 +105,7 @@ class BackupWorker @AssistedInject constructor(
                             }
                     } catch (e: IOException) {
                         e.printStackTrace()
+                        resultError.add("Customer "+e.message)
                         Log.d(TAG, "Customer: failed ${e.message}")
                     }
 
@@ -124,7 +128,6 @@ class BackupWorker @AssistedInject constructor(
                         resource.data.orEmpty()
                     )
 
-                    val collection = MediaStore.Files.getContentUri("external")
 
                     val contentValues = ContentValues().apply {
                         put(MediaStore.Files.FileColumns.DISPLAY_NAME, "hme")
@@ -146,6 +149,7 @@ class BackupWorker @AssistedInject constructor(
                             }
                     } catch (e: IOException) {
                         e.printStackTrace()
+                        resultError.add("HME "+e.message)
                         Log.d(TAG, "HME: failed ${e.message}")
                     }
                     Log.d(TAG, "writing: stopped")
@@ -166,7 +170,6 @@ class BackupWorker @AssistedInject constructor(
                         resource.data.orEmpty()
                     )
 
-                    val collection = MediaStore.Files.getContentUri("external")
 
                     val contentValues = ContentValues().apply {
                         put(MediaStore.Files.FileColumns.DISPLAY_NAME, "ibau")
@@ -188,7 +191,8 @@ class BackupWorker @AssistedInject constructor(
                             }
                     } catch (e: IOException) {
                         e.printStackTrace()
-                        Log.d(TAG, "Ibau: failed ${e.message}")
+                        resultError.add("IBAU "+e.message)
+                        Log.d(TAG, "IBAU: failed ${e.message}")
                     }
 
                     Log.d(TAG, "writing: stopped")
@@ -213,7 +217,6 @@ class BackupWorker @AssistedInject constructor(
                         resource.data.orEmpty()
                     )
 
-                    val collection = MediaStore.Files.getContentUri("external")
 
                     val contentValues = ContentValues().apply {
                         put(MediaStore.Files.FileColumns.DISPLAY_NAME, "timesheet")
@@ -235,6 +238,7 @@ class BackupWorker @AssistedInject constructor(
                             }
                     } catch (e: IOException) {
                         e.printStackTrace()
+                        resultError.add("TimeSheet "+e.message)
                         Log.d(TAG, "TimeSheet: failed ${e.message}")
                     }
 
@@ -258,7 +262,6 @@ class BackupWorker @AssistedInject constructor(
                         resource.data.orEmpty()
                     )
 
-                    val collection = MediaStore.Files.getContentUri("external")
 
                     val contentValues = ContentValues().apply {
                         put(MediaStore.Files.FileColumns.DISPLAY_NAME, "visa")
@@ -280,6 +283,7 @@ class BackupWorker @AssistedInject constructor(
                             }
                     } catch (e: IOException) {
                         e.printStackTrace()
+                        resultError.add("Visa "+e.message)
                         Log.d(TAG, "Visa: failed ${e.message}")
                     }
 
@@ -290,10 +294,121 @@ class BackupWorker @AssistedInject constructor(
             Log.d(TAG, "get all Visa")
         }
 
+        val internalStorageFiles = applicationContext.filesDir.listFiles()
 
-        //TODO("Not yet implemented")
+        //Backup signatures and datastore
+            internalStorageFiles?.filter { it.name.equals(Constants.SIGNATURES_FOLDER) or it.name.equals("datastore") }
+            ?.onEach { files ->
+                files.listFiles()?.onEach { file ->
+
+                    val contentValues = ContentValues().apply {
+                        put(MediaStore.Files.FileColumns.DISPLAY_NAME, file.name)
+                        when (files.name) {
+                            Constants.SIGNATURES_FOLDER -> {
+                                put(MediaStore.Files.FileColumns.MIME_TYPE, "image/png")
+                                put(
+                                    folderPath.first,
+                                    folderPath.second + "/" + Constants.SIGNATURES_FOLDER
+                                )
+                            }
+
+                            "datastore" -> {
+                                put(MediaStore.Files.FileColumns.MIME_TYPE, "*/*")
+                                put(folderPath.first, folderPath.second + "/datastore")
+                            }
+                        }
+
+                    }
+
+
+
+                    try {
+                        Log.d(TAG, "backup: File writing started")
+                        applicationContext.contentResolver.insert(collection, contentValues)
+                            ?.also { uri ->
+                                applicationContext.contentResolver.openOutputStream(uri)
+                                    .use { outputStream ->
+                                        outputStream?.write(file.readBytes())
+                                        Log.d(TAG, "File: ${file.name}")
+                                        outputStream?.flush()
+                                        outputStream?.close()
+                                    }
+                                Log.d(TAG, "doWork: resolver use closed")
+                            }
+                    } catch (e: IOException) {
+                        e.printStackTrace()
+                        resultError.add("File "+e.message)
+                        Log.d(TAG, "File: failed ${file.name} ${e.message}")
+                    }
+                }
+
+                Log.d(TAG, "writing: stopped")
+
+            }
+
+        //Backup rest of files
+            internalStorageFiles?.filter { !it.name.equals(Constants.SIGNATURES_FOLDER) or !it.name.equals("datastore") }
+            ?.onEach { files ->
+                files.listFiles()?.onEach { file ->
+
+                    val contentValues = ContentValues().apply {
+                        put(MediaStore.Files.FileColumns.DISPLAY_NAME, file.name)
+
+                                put(MediaStore.Files.FileColumns.MIME_TYPE, "application/pdf")
+                                put(
+                                    folderPath.first,
+                                    folderPath.second + "/" + files.name
+                                )
+
+
+                    }
+
+
+
+                    try {
+                        Log.d(TAG, "backup: File writing started")
+                        applicationContext.contentResolver.insert(collection, contentValues)
+                            ?.also { uri ->
+                                applicationContext.contentResolver.openOutputStream(uri)
+                                    .use { outputStream ->
+                                        outputStream?.write(file.readBytes())
+                                        Log.d(TAG, "File: ${file.name}")
+                                        outputStream?.flush()
+                                        outputStream?.close()
+                                    }
+                                Log.d(TAG, "doWork: resolver use closed")
+                            }
+                    } catch (e: IOException) {
+                        e.printStackTrace()
+                        resultError.add("File "+e.message)
+                        Log.d(TAG, "File: failed ${file.name} ${e.message}")
+                    }
+                }
+
+                Log.d(TAG, "writing: stopped")
+
+            }
+
+        // Notification when done
+        val notificationBuilder =
+            NotificationCompat.Builder(applicationContext, Constants.BACKUP_CHANNEL_ID)
+                .setSmallIcon(R.drawable.hb_logo)
+                .setContentTitle("BackUp is done")
+                .setAutoCancel(true)
+
+        if (resultError.isNotEmpty()) {
+            notificationBuilder.setContentText(resultError.toString())
+        } else {
+            notificationBuilder.setContentText("Backup Successful")
+
+        }
+
+        NotificationManagerCompat.from(applicationContext)
+            .notify(Constants.BACKUP_NOTIFICATION_ID, notificationBuilder.build())
+
+
         Log.d(TAG, "doWork: closed")
-        //val data = workDataOf(Pair("error",resultError))
+
         return if (resultError.isNotEmpty()) Result.failure() else Result.success()
     }
 }

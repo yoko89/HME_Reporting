@@ -2,12 +2,7 @@
 
 package com.neklaway.hme_reporting.feature_time_sheet.presentation.time_sheet
 
-import android.Manifest
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.os.Build
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.*
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -27,21 +22,22 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.neklaway.hme_reporting.common.presentation.Screen
 import com.neklaway.hme_reporting.common.presentation.common.component.DropDown
 import com.neklaway.hme_reporting.common.presentation.common.component.ListDialog
-import com.neklaway.hme_reporting.feature_time_sheet.presentation.edit_time_sheet.EditTimeSheetViewModel
+import com.neklaway.hme_reporting.common.ui.theme.HMEReportingTheme
 import com.neklaway.hme_reporting.feature_signature.presentation.signature.SignatureScreen
+import com.neklaway.hme_reporting.feature_time_sheet.presentation.edit_time_sheet.EditTimeSheetViewModel
 import com.neklaway.hme_reporting.feature_time_sheet.presentation.time_sheet.component.TimeSheetHeader
 import com.neklaway.hme_reporting.feature_time_sheet.presentation.time_sheet.component.TimeSheetItemCard
-import com.neklaway.hme_reporting.common.ui.theme.HMEReportingTheme
+import com.neklaway.hme_reporting.utils.NotificationPermissionRequest
 import java.io.File
 
 private const val TAG = "TimeSheetScreen"
+
 
 @Composable
 fun TimeSheetScreen(
@@ -50,29 +46,12 @@ fun TimeSheetScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
-
+    var requestPermission by remember {
+        mutableStateOf(false)
+    }
     val events = viewModel.event
 
     val context = LocalContext.current
-
-
-    var hasNotificationPermission by remember {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            mutableStateOf(
-                ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.POST_NOTIFICATIONS
-                ) == PackageManager.PERMISSION_GRANTED
-            )
-        } else mutableStateOf(true)
-    }
-
-    val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission(),
-        onResult = { isGranted ->
-            hasNotificationPermission = isGranted
-        }
-    )
 
     LaunchedEffect(
         key1 = events, key2 = state
@@ -131,21 +110,20 @@ fun TimeSheetScreen(
                                     contentDescription = "Sign TimeSheet",
                                 )
                             }
+
                             Spacer(modifier = Modifier.width(5.dp))
-                            FloatingActionButton(onClick = {
 
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                    if (!hasNotificationPermission) {
-                                        permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                                    }
+                            AnimatedVisibility(visible = state.timeSheets.any { it.selected }) {
+                                FloatingActionButton(onClick = {
+
+                                    requestPermission = true
+                                    viewModel.createTimeSheet()
+                                }) {
+                                    Icon(
+                                        imageVector = Icons.Default.PictureAsPdf,
+                                        contentDescription = "Create TimeSheet PDF",
+                                    )
                                 }
-
-                                viewModel.createTimeSheet()
-                            }) {
-                                Icon(
-                                    imageVector = Icons.Default.PictureAsPdf,
-                                    contentDescription = "Create TimeSheet PDF",
-                                )
                             }
                             Spacer(modifier = Modifier.width(5.dp))
                             FloatingActionButton(onClick = { viewModel.openTimeSheets() }) {
@@ -281,8 +259,15 @@ fun TimeSheetScreen(
                         viewModel.fileSelectionCanceled()
                     })
             }
+
+            if (requestPermission) {
+                NotificationPermissionRequest(context = context)
+                requestPermission = false
+            }
         }
     }
+
+
 }
 
 

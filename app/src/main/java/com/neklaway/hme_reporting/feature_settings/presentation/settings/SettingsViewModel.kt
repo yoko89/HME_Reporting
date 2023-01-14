@@ -1,11 +1,16 @@
 package com.neklaway.hme_reporting.feature_settings.presentation.settings
 
+import android.Manifest
+import android.net.Uri
+import android.os.Build
 import android.util.Log
+import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.neklaway.hme_reporting.domain.use_cases.settings_use_case.ibau_id.SetBreakDurationUseCase
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.backup.StartBackup
+import com.neklaway.hme_reporting.feature_settings.domain.use_cases.backup.StartRestore
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.break_time.GetBreakDurationUseCase
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.is_auto_clear.GetIsAutoClearUseCase
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.is_auto_clear.SetIsAutoClearUseCase
@@ -38,6 +43,7 @@ class SettingsViewModel @Inject constructor(
     private val getVisaReminderUseCase: GetVisaReminderUseCase,
     private val setVisaReminderUseCase: SetVisaReminderUseCase,
     private val startBackup: StartBackup,
+    private val startRestore: StartRestore,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SettingsState())
@@ -195,6 +201,12 @@ class SettingsViewModel @Inject constructor(
         startBackup()
     }
 
+
+    fun restoreFolderSelected(uri: Uri) {
+        startRestore(uri)
+    }
+
+
     private fun getSignature() {
         viewModelScope.launch {
             when (val signatureResource =
@@ -219,6 +231,5 @@ class SettingsViewModel @Inject constructor(
     fun updateSignature() {
         getSignature()
     }
-
 
 }

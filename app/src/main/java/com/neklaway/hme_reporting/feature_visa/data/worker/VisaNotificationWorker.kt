@@ -11,7 +11,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.visa_reminder.GetVisaReminderUseCase
-import com.neklaway.hme_reporting.feature_visa.domain.use_cases.GetAllVisasUseCase
+import com.neklaway.hme_reporting.common.domain.visa_use_cases.GetAllVisasUseCase
 import com.neklaway.hme_reporting.utils.Constants
 import com.neklaway.hme_reporting.utils.Resource
 import com.neklaway.hme_reporting.utils.toDate

@@ -1,9 +1,7 @@
 package com.neklaway.hme_reporting.feature_visa.presentation
 
-import com.neklaway.hme_reporting.feature_time_sheet.domain.model.Customer
-import com.neklaway.hme_reporting.feature_time_sheet.domain.model.HMECode
-import com.neklaway.hme_reporting.feature_visa.domain.model.Visa
-import java.util.Calendar
+import com.neklaway.hme_reporting.common.domain.model.Visa
+import java.util.*
 
 data class VisaState(
     val visas: List<Visa> = emptyList(),
@@ -12,5 +10,5 @@ data class VisaState(
     val country: String = "",
     val date: Calendar? = null,
     val showDatePicker: Boolean = false,
-    val warningDays:Int = 0
-    )
+    val warningDays: Int = 0
+)

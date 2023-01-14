@@ -1,14 +1,16 @@
 package com.neklaway.hme_reporting.di
 
 
+import com.neklaway.hme_reporting.common.data.repository_impl.*
+import com.neklaway.hme_reporting.common.domain.repository.*
 import com.neklaway.hme_reporting.feature_settings.data.repository_impl.BackupRepositoryImpl
-import com.neklaway.hme_reporting.feature_settings.domain.repository.SettingsRepository
+import com.neklaway.hme_reporting.feature_settings.data.repository_impl.RestoreRepositoryImpl
 import com.neklaway.hme_reporting.feature_settings.data.repository_impl.SettingsRepositoryImpl
 import com.neklaway.hme_reporting.feature_settings.domain.repository.BackupRepository
-import com.neklaway.hme_reporting.feature_time_sheet.data.repository_impl.*
-import com.neklaway.hme_reporting.feature_time_sheet.domain.repository.*
-import com.neklaway.hme_reporting.feature_visa.data.repository_impl.VisaRepositoryImpl
-import com.neklaway.hme_reporting.feature_visa.domain.repository.VisaRepository
+import com.neklaway.hme_reporting.feature_settings.domain.repository.RestoreRepository
+import com.neklaway.hme_reporting.feature_settings.domain.repository.SettingsRepository
+import com.neklaway.hme_reporting.common.data.repository_impl.VisaRepositoryImpl
+import com.neklaway.hme_reporting.common.domain.repository.VisaRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -50,5 +52,9 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun provideBackupRepository(backupRepositoryImpl: BackupRepositoryImpl): BackupRepository
+
+    @Binds
+    @Singleton
+    abstract fun provideRestoreRepository(restoreRepositoryImpl: RestoreRepositoryImpl): RestoreRepository
 
 }

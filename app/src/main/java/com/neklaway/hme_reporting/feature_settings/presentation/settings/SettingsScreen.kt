@@ -1,5 +1,11 @@
 package com.neklaway.hme_reporting.feature_settings.presentation.settings
 
+import android.app.Activity.RESULT_OK
+import android.content.Intent
+import android.net.Uri
+import android.provider.DocumentsContract
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
@@ -12,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -20,6 +27,7 @@ import com.neklaway.hme_reporting.common.presentation.common.component.Selector
 import com.neklaway.hme_reporting.common.ui.theme.HMEReportingTheme
 import com.neklaway.hme_reporting.feature_signature.presentation.signature.SignatureScreen
 import com.neklaway.hme_reporting.utils.Constants
+import com.neklaway.hme_reporting.utils.NotificationPermissionRequest
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -33,11 +41,29 @@ fun SettingsScreen(
 
     val userMessage = viewModel.userMessage
 
+    var requestPermission by remember {
+        mutableStateOf(false)
+    }
+
+    val context = LocalContext.current
+
+
+
     LaunchedEffect(key1 = userMessage) {
         userMessage.collect {
             snackbarHostState.showSnackbar(it)
         }
     }
+
+    val activityResult =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult(),
+            onResult = { activityResult ->
+                if (activityResult.resultCode == RESULT_OK) {
+                    activityResult.data?.data?.also { uri ->
+                        viewModel.restoreFolderSelected(uri)
+                    }
+                }
+            })
 
 
     HMEReportingTheme {
@@ -105,34 +131,61 @@ fun SettingsScreen(
                             .align(Alignment.CenterHorizontally)
                             .clip(RoundedCornerShape(10.dp))
                     )
+                    Spacer(modifier = Modifier.height(5.dp))
                 }
 
                 Button(
                     modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
-                        .padding(5.dp),
+                        .align(Alignment.CenterHorizontally),
                     onClick = { viewModel.signatureBtnClicked() }) {
                     Text(text = "Signature")
                 }
 
-                Button(modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .padding(5.dp),
-                    onClick = viewModel::backupButtonClicked) {
-                    Text(text = "backup")
+                Button(
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally),
+                    onClick = {
+                        requestPermission = true
+                    }) {
+                    Text(text = "Backup")
+                }
+
+                Button(
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally),
+                    onClick = {
+                        requestPermission = true
+                        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
+                            putExtra(
+                                DocumentsContract.EXTRA_INITIAL_URI,
+                                Uri.decode("/storage/emulated/0/Documents")
+                            )
+                        }
+
+                        activityResult.launch(intent)
+
+                    }
+                ) {
+                    Text(text = "Restore")
                 }
             }
-
-
-            AnimatedVisibility(visible = state.showSignaturePad) {
-                SignatureScreen(
-                    signatureFileName = Constants.USER_SIGNATURE,
-                    signatureUpdatedAtExit = { signedSuccessfully, _ ->
-                        viewModel.signatureScreenClosed()
-                        if (signedSuccessfully)
-                            viewModel.updateSignature()
-                    })
-            }
         }
+
+
+        AnimatedVisibility(visible = state.showSignaturePad) {
+            SignatureScreen(
+                signatureFileName = Constants.USER_SIGNATURE,
+                signatureUpdatedAtExit = { signedSuccessfully, _ ->
+                    viewModel.signatureScreenClosed()
+                    if (signedSuccessfully)
+                        viewModel.updateSignature()
+                })
+        }
+
+        if (requestPermission) {
+            NotificationPermissionRequest(context = context)
+            requestPermission = false
+        }
+
     }
 }

@@ -1,7 +1,7 @@
 package com.neklaway.hme_reporting.feature_time_sheet.presentation.hme_code
 
-import com.neklaway.hme_reporting.feature_time_sheet.domain.model.Customer
-import com.neklaway.hme_reporting.feature_time_sheet.domain.model.HMECode
+import com.neklaway.hme_reporting.common.domain.model.Customer
+import com.neklaway.hme_reporting.common.domain.model.HMECode
 
 data class HMECodeState(
     val customers: List<Customer> = emptyList(),

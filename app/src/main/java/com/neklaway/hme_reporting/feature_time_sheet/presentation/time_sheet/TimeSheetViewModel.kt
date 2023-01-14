@@ -1,27 +1,30 @@
 package com.neklaway.hme_reporting.feature_time_sheet.presentation.time_sheet
 
+import android.Manifest
+import android.os.Build
 import android.util.Log
+import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.neklaway.hme_reporting.feature_time_sheet.domain.model.Customer
-import com.neklaway.hme_reporting.feature_time_sheet.domain.model.HMECode
-import com.neklaway.hme_reporting.feature_time_sheet.domain.model.IBAUCode
-import com.neklaway.hme_reporting.feature_time_sheet.domain.model.TimeSheet
+import com.neklaway.hme_reporting.common.domain.model.Customer
+import com.neklaway.hme_reporting.common.domain.model.HMECode
+import com.neklaway.hme_reporting.common.domain.model.IBAUCode
+import com.neklaway.hme_reporting.common.domain.model.TimeSheet
 import com.neklaway.hme_reporting.feature_signature.domain.use_cases.bitmap_use_case.LoadBitmapUseCase
-import com.neklaway.hme_reporting.feature_time_sheet.domain.use_cases.customer_use_cases.GetAllCustomersFlowUseCase
-import com.neklaway.hme_reporting.feature_time_sheet.domain.use_cases.hme_code_use_cases.GetHMECodeByCustomerIdUseCase
-import com.neklaway.hme_reporting.feature_time_sheet.domain.use_cases.hme_code_use_cases.UpdateHMECodeUseCase
-import com.neklaway.hme_reporting.feature_time_sheet.domain.use_cases.ibau_code_use_cases.GetIBAUCodeByHMECodeIdUseCase
-import com.neklaway.hme_reporting.feature_time_sheet.domain.use_cases.pdf_worker_use_case.PDFWorkerUseCase
-import com.neklaway.hme_reporting.feature_time_sheet.domain.use_cases.saved_data_use_case.customer_id.GetCustomerIdUseCase
-import com.neklaway.hme_reporting.feature_time_sheet.domain.use_cases.saved_data_use_case.customer_id.SetCustomerIdUseCase
-import com.neklaway.hme_reporting.feature_time_sheet.domain.use_cases.saved_data_use_case.hme_id.GetHMEIdUseCase
-import com.neklaway.hme_reporting.feature_time_sheet.domain.use_cases.saved_data_use_case.hme_id.SetHMEIdUseCase
-import com.neklaway.hme_reporting.feature_time_sheet.domain.use_cases.saved_data_use_case.ibau_id.GetIBAUIdUseCase
-import com.neklaway.hme_reporting.feature_time_sheet.domain.use_cases.saved_data_use_case.ibau_id.SetIBAUIdUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.customer_use_cases.GetAllCustomersFlowUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.hme_code_use_cases.GetHMECodeByCustomerIdUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.hme_code_use_cases.UpdateHMECodeUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.ibau_code_use_cases.GetIBAUCodeByHMECodeIdUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.pdf_worker_use_case.PDFWorkerUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.customer_id.GetCustomerIdUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.customer_id.SetCustomerIdUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.hme_id.GetHMEIdUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.hme_id.SetHMEIdUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.ibau_id.GetIBAUIdUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.ibau_id.SetIBAUIdUseCase
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.is_ibau.GetIsIbauUseCase
-import com.neklaway.hme_reporting.feature_time_sheet.domain.use_cases.time_sheet_use_cases.GetTimeSheetByHMECodeIdUseCase
-import com.neklaway.hme_reporting.feature_time_sheet.domain.use_cases.time_sheet_use_cases.GetTimeSheetByIBAUCodeIdUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.time_sheet_use_cases.GetTimeSheetByHMECodeIdUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.time_sheet_use_cases.GetTimeSheetByIBAUCodeIdUseCase
 import com.neklaway.hme_reporting.utils.Constants
 import com.neklaway.hme_reporting.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -398,5 +401,6 @@ class TimeSheetViewModel @Inject constructor(
     fun fileSelectionCanceled() {
         _state.update { it.copy(showFileList = false) }
     }
+
 
 }

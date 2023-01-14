@@ -3,11 +3,11 @@ package com.neklaway.hme_reporting.feature_time_sheet.presentation.customer
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.neklaway.hme_reporting.feature_time_sheet.domain.model.Customer
-import com.neklaway.hme_reporting.feature_time_sheet.domain.use_cases.customer_use_cases.DeleteCustomerUseCase
-import com.neklaway.hme_reporting.feature_time_sheet.domain.use_cases.customer_use_cases.GetAllCustomersFlowUseCase
-import com.neklaway.hme_reporting.feature_time_sheet.domain.use_cases.customer_use_cases.InsertCustomerUseCase
-import com.neklaway.hme_reporting.feature_time_sheet.domain.use_cases.customer_use_cases.UpdateCustomerUseCase
+import com.neklaway.hme_reporting.common.domain.model.Customer
+import com.neklaway.hme_reporting.common.domain.use_cases.customer_use_cases.DeleteCustomerUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.customer_use_cases.GetAllCustomersFlowUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.customer_use_cases.InsertCustomerUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.customer_use_cases.UpdateCustomerUseCase
 import com.neklaway.hme_reporting.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*

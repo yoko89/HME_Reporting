@@ -1,6 +1,6 @@
 package com.neklaway.hme_reporting.feature_time_sheet.presentation.customer
 
-import com.neklaway.hme_reporting.feature_time_sheet.domain.model.Customer
+import com.neklaway.hme_reporting.common.domain.model.Customer
 
 data class CustomerState(
     val customers: List<Customer> = emptyList(),

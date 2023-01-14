@@ -1,9 +1,9 @@
 package com.neklaway.hme_reporting.feature_time_sheet.presentation.time_sheet
 
-import com.neklaway.hme_reporting.feature_time_sheet.domain.model.Customer
-import com.neklaway.hme_reporting.feature_time_sheet.domain.model.HMECode
-import com.neklaway.hme_reporting.feature_time_sheet.domain.model.IBAUCode
-import com.neklaway.hme_reporting.feature_time_sheet.domain.model.TimeSheet
+import com.neklaway.hme_reporting.common.domain.model.Customer
+import com.neklaway.hme_reporting.common.domain.model.HMECode
+import com.neklaway.hme_reporting.common.domain.model.IBAUCode
+import com.neklaway.hme_reporting.common.domain.model.TimeSheet
 
 data class TimeSheetState(
     val isLoading: Boolean = false,

@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.neklaway.hme_reporting.feature_time_sheet.domain.model.TimeSheet
+import com.neklaway.hme_reporting.common.domain.model.TimeSheet
 import com.neklaway.hme_reporting.utils.toDate
 import com.neklaway.hme_reporting.utils.toTime
 

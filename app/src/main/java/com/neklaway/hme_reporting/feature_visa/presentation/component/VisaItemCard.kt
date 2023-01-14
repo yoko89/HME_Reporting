@@ -13,7 +13,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.neklaway.hme_reporting.feature_visa.domain.model.Visa
+import com.neklaway.hme_reporting.common.domain.model.Visa
 import com.neklaway.hme_reporting.utils.toDate
 import java.time.temporal.ChronoUnit
 import java.util.*

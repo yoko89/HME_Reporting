@@ -4,10 +4,10 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.neklaway.hme_reporting.feature_time_sheet.domain.model.TimeSheet
-import com.neklaway.hme_reporting.feature_time_sheet.domain.use_cases.time_sheet_use_cases.DeleteTimeSheetUseCase
-import com.neklaway.hme_reporting.feature_time_sheet.domain.use_cases.time_sheet_use_cases.GetTimeSheetByIdUseCase
-import com.neklaway.hme_reporting.feature_time_sheet.domain.use_cases.time_sheet_use_cases.UpdateTimeSheetUseCase
+import com.neklaway.hme_reporting.common.domain.model.TimeSheet
+import com.neklaway.hme_reporting.common.domain.use_cases.time_sheet_use_cases.DeleteTimeSheetUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.time_sheet_use_cases.GetTimeSheetByIdUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.time_sheet_use_cases.UpdateTimeSheetUseCase
 import com.neklaway.hme_reporting.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Deferred

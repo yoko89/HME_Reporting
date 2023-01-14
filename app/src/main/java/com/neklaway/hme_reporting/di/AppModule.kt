@@ -4,11 +4,11 @@ import android.app.Application
 import android.content.Context
 import androidx.room.Room
 import com.neklaway.hme_reporting.common.data.RoomData
-import com.neklaway.hme_reporting.feature_time_sheet.data.dao.CustomerDao
-import com.neklaway.hme_reporting.feature_time_sheet.data.dao.HMECodeDao
-import com.neklaway.hme_reporting.feature_time_sheet.data.dao.IBAUCodeDao
-import com.neklaway.hme_reporting.feature_time_sheet.data.dao.TimeSheetDao
-import com.neklaway.hme_reporting.feature_visa.data.dao.VisaDao
+import com.neklaway.hme_reporting.common.data.dao.CustomerDao
+import com.neklaway.hme_reporting.common.data.dao.HMECodeDao
+import com.neklaway.hme_reporting.common.data.dao.IBAUCodeDao
+import com.neklaway.hme_reporting.common.data.dao.TimeSheetDao
+import com.neklaway.hme_reporting.common.data.dao.VisaDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

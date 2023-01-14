@@ -3,9 +3,13 @@ package com.neklaway.hme_reporting.feature_visa.presentation
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.neklaway.hme_reporting.common.domain.model.Visa
+import com.neklaway.hme_reporting.common.domain.visa_use_cases.DeleteVisaUseCase
+import com.neklaway.hme_reporting.common.domain.visa_use_cases.GetAllVisasFlowUseCase
+import com.neklaway.hme_reporting.common.domain.visa_use_cases.InsertVisaUseCase
+import com.neklaway.hme_reporting.common.domain.visa_use_cases.UpdateVisaUseCase
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.visa_reminder.GetVisaReminderUseCase
-import com.neklaway.hme_reporting.feature_visa.domain.model.Visa
-import com.neklaway.hme_reporting.feature_visa.domain.use_cases.*
+import com.neklaway.hme_reporting.feature_visa.domain.use_cases.VisaReminderWorkerUseCase
 import com.neklaway.hme_reporting.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
@@ -64,8 +68,8 @@ class VisaViewModel @Inject constructor(
 
     }
 
-    private fun getVisaReminder(){
-        viewModelScope.launch{
+    private fun getVisaReminder() {
+        viewModelScope.launch {
             _state.update { it.copy(warningDays = getVisaReminderUseCase()) }
         }
     }
@@ -189,25 +193,25 @@ class VisaViewModel @Inject constructor(
     }
 
     fun visaSelected(visa: Visa, checked: Boolean) {
-            updateVisaUseCase(
-                country = visa.country,
-                date = visa.date,
-                checked = checked,
-                id = visa.id
-            ).onEach { result ->
-                when (result) {
-                    is Resource.Error -> {
-                        _userMessage.emit(result.message ?: "Can't update Visa")
-                        _state.update { it.copy(loading = false) }
-                    }
-                    is Resource.Loading -> _state.update { it.copy(loading = true) }
-                    is Resource.Success -> {
-                        _state.update {
-                            it.copy(loading = false)
-                        }
+        updateVisaUseCase(
+            country = visa.country,
+            date = visa.date,
+            checked = checked,
+            id = visa.id
+        ).onEach { result ->
+            when (result) {
+                is Resource.Error -> {
+                    _userMessage.emit(result.message ?: "Can't update Visa")
+                    _state.update { it.copy(loading = false) }
+                }
+                is Resource.Loading -> _state.update { it.copy(loading = true) }
+                is Resource.Success -> {
+                    _state.update {
+                        it.copy(loading = false)
                     }
                 }
-            }.launchIn(viewModelScope)
+            }
+        }.launchIn(viewModelScope)
     }
 
 }
