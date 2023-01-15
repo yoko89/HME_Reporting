@@ -1,9 +1,12 @@
 package com.neklaway.hme_reporting.feature_settings.data.worker
 
+import android.Manifest
 import android.app.Notification
 import android.content.Context
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.util.Log
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.documentfile.provider.DocumentFile
@@ -33,8 +36,8 @@ private const val TAG = "RestoreWorker"
 
 @HiltWorker
 class RestoreWorker @AssistedInject constructor(
-    @Assisted appContext: Context,
-    @Assisted workerParameters: WorkerParameters,
+    @Assisted val appContext: Context,
+    @Assisted val workerParameters: WorkerParameters,
     val insertCustomerListUseCase: InsertCustomerListUseCase,
     val insertHMECodeListUseCase: InsertHMECodeListUseCase,
     val insertIBAUCodeListUseCase: InsertIBAUCodeListUseCase,
@@ -148,7 +151,7 @@ class RestoreWorker @AssistedInject constructor(
                 }
 
                 else -> {
-                    if(files.name == null) return@forEach
+                    if (files.name == null) return@forEach
                     val internalStorageFiles = applicationContext.filesDir.listFiles()
                     val backedFolder = File(applicationContext.filesDir, files.name!!)
                     Log.d(TAG, "doWork: $backedFolder")
@@ -162,7 +165,8 @@ class RestoreWorker @AssistedInject constructor(
                     files.listFiles().forEach { file ->
 
                         val backupInputStreamFile =
-                            applicationContext.contentResolver.openInputStream(file.uri) ?: return@forEach
+                            applicationContext.contentResolver.openInputStream(file.uri)
+                                ?: return@forEach
                         val restoreFile = File(backedFolder, file.name!!)
                         Log.d(TAG, "doWork: ${file.name}")
 
@@ -182,6 +186,7 @@ class RestoreWorker @AssistedInject constructor(
                 .setContentTitle("Restore is done")
                 .setAutoCancel(true)
 
+
         if (filesRestored.values.any { !it }) {
             notificationBuilder.setContentText(filesRestored.toString())
         } else {
@@ -189,11 +194,20 @@ class RestoreWorker @AssistedInject constructor(
 
         }
 
-        NotificationManagerCompat.from(applicationContext)
-            .notify(Constants.RESTORE_NOTIFICATION_ID, notificationBuilder.build())
+        if (ActivityCompat.checkSelfPermission(
+                appContext,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            NotificationManagerCompat.from(applicationContext)
+                .notify(Constants.RESTORE_NOTIFICATION_ID, notificationBuilder.build())
+        }
 
 
         Log.d(TAG, "doWork: closed")
+
+
+
 
         return if (filesRestored.values.any {
                 !it

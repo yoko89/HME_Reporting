@@ -2,6 +2,7 @@ package com.neklaway.hme_reporting.common.data.entity
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.ForeignKey.Companion.CASCADE
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.neklaway.hme_reporting.common.domain.model.TimeSheet
@@ -13,8 +14,8 @@ import com.neklaway.hme_reporting.utils.toCalender
         entity = HMECodeEntity::class,
         parentColumns = ["id"],
         childColumns = ["HMEId"],
-        onDelete = ForeignKey.CASCADE,
-        onUpdate = ForeignKey.CASCADE
+        onDelete = CASCADE,
+        onUpdate = CASCADE
     )],
     tableName = "timeSheetTable"
 )
