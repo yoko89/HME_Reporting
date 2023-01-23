@@ -182,6 +182,8 @@ fun SettingsScreen(
                 })
         }
 
+
+
         if (requestPermission) {
             NotificationPermissionRequest(context = context)
             requestPermission = false

@@ -19,7 +19,6 @@
         <activity
             android:name="com.neklaway.hme_reporting.common.presentation.MainActivity"
             android:exported="true"
-            android:label="@string/app_name"
             android:theme="@style/Theme.HMEReporting"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
@@ -28,11 +27,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <receiver
+            android:name="com.neklaway.hme_reporting.feature_settings.data.broadcast.RestartReceiver"
+            android:exported="false" />
 
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"
-            tools:node="remove"></provider>
+            tools:node="remove" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

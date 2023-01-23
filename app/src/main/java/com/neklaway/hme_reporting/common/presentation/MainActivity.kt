@@ -22,6 +22,7 @@ import com.neklaway.hme_reporting.common.ui.theme.HMEReportingTheme
 import com.neklaway.hme_reporting.feature_settings.presentation.settings.SettingsScreen
 import com.neklaway.hme_reporting.feature_time_sheet.presentation.main.TimeSheetMainScreen
 import com.neklaway.hme_reporting.feature_visa.presentation.VisaScreen
+import com.neklaway.hmereporting.BuildConfig
 import com.neklaway.hmereporting.R
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -94,8 +95,14 @@ class MainActivity @Inject constructor(
                                             navController.popBackStack()
                                             navController.navigate(item.route)
                                         },
-                                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding).padding(vertical = 5.dp)
+                                        modifier = Modifier
+                                            .padding(NavigationDrawerItemDefaults.ItemPadding)
+                                            .padding(vertical = 5.dp)
                                     )
+                                }
+                                Spacer(modifier = Modifier.weight(1f))
+                                Row(modifier = Modifier.fillMaxWidth().padding(all = 5.dp), horizontalArrangement = Arrangement.End){
+                                    Text(text = BuildConfig.VERSION_NAME)
                                 }
                             }
                         },

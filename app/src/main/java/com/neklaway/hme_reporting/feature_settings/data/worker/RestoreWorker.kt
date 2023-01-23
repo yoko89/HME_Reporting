@@ -2,7 +2,9 @@ package com.neklaway.hme_reporting.feature_settings.data.worker
 
 import android.Manifest
 import android.app.Notification
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.util.Log
@@ -20,6 +22,7 @@ import com.neklaway.hme_reporting.common.domain.use_cases.hme_code_use_cases.Ins
 import com.neklaway.hme_reporting.common.domain.use_cases.ibau_code_use_cases.InsertIBAUCodeListUseCase
 import com.neklaway.hme_reporting.common.domain.use_cases.time_sheet_use_cases.InsertTimeSheetListUseCase
 import com.neklaway.hme_reporting.common.domain.visa_use_cases.InsertVisaListUseCase
+import com.neklaway.hme_reporting.feature_settings.data.broadcast.RestartReceiver
 import com.neklaway.hme_reporting.utils.Constants
 import com.neklaway.hme_reporting.utils.Resource
 import com.neklaway.hme_reporting.utils.copyFiles
@@ -180,19 +183,26 @@ class RestoreWorker @AssistedInject constructor(
         Log.d(TAG, "doWork: $filesRestored")
 
         // Notification when done
+
+        // Intent
+        val intent = Intent(appContext,RestartReceiver::class.java)
+        val pendingIntent =PendingIntent.getBroadcast(appContext,123456,intent,PendingIntent.FLAG_IMMUTABLE)
         val notificationBuilder =
             NotificationCompat.Builder(applicationContext, Constants.RESTORE_CHANNEL_ID)
                 .setSmallIcon(R.drawable.hb_logo)
                 .setContentTitle("Restore is done")
+                .addAction(R.drawable.hb_logo,"Restart App",pendingIntent)
                 .setAutoCancel(true)
 
 
-        if (filesRestored.values.any { !it }) {
-            notificationBuilder.setContentText(filesRestored.toString())
+        var notificationText = if (filesRestored.values.any { !it }) {
+            filesRestored.toString()
         } else {
-            notificationBuilder.setContentText("Restore Successful")
-
+            "Restore Successful"
         }
+        notificationText += "\n App must restart"
+
+        notificationBuilder.setContentText(notificationText)
 
         if (ActivityCompat.checkSelfPermission(
                 appContext,
