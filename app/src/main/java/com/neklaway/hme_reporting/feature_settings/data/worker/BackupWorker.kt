@@ -1,11 +1,14 @@
 package com.neklaway.hme_reporting.feature_settings.data.worker
 
+import android.Manifest
 import android.app.Notification
 import android.content.ContentValues
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.hilt.work.HiltWorker
@@ -38,7 +41,7 @@ private const val TAG = "BackupWorker"
 
 @HiltWorker
 class BackupWorker @AssistedInject constructor(
-    @Assisted appContext: Context,
+    @Assisted val appContext: Context,
     @Assisted workerParameters: WorkerParameters,
     val getAllCustomersUseCase: GetAllCustomersUseCase,
     val getAllHMECodesUseCase: GetAllHMECodesUseCase,
@@ -52,7 +55,7 @@ class BackupWorker @AssistedInject constructor(
     }
 
     private fun createNotification(): Notification {
-        return NotificationCompat.Builder(applicationContext, Constants.BACKUP_CHANNEL_ID)
+        return NotificationCompat.Builder(appContext, Constants.BACKUP_CHANNEL_ID)
             .setSmallIcon(R.drawable.hb_logo)
             .setContentTitle("BackUp on going")
             .setContentText("BackUp is under preparation")
@@ -92,9 +95,9 @@ class BackupWorker @AssistedInject constructor(
                     }
                     try {
                         Log.d(TAG, "backup: Customer file writing started")
-                        applicationContext.contentResolver.insert(collection, contentValues)
+                        appContext.contentResolver.insert(collection, contentValues)
                             ?.also { uri ->
-                                applicationContext.contentResolver.openOutputStream(uri)
+                                appContext.contentResolver.openOutputStream(uri)
                                     .use { outputStream ->
                                         outputStream?.write(serializedCustomer.toByteArray())
                                         Log.d(TAG, "customer serialized: $serializedCustomer")
@@ -105,7 +108,7 @@ class BackupWorker @AssistedInject constructor(
                             }
                     } catch (e: IOException) {
                         e.printStackTrace()
-                        resultError.add("Customer "+e.message)
+                        resultError.add("Customer " + e.message)
                         Log.d(TAG, "Customer: failed ${e.message}")
                     }
 
@@ -136,9 +139,9 @@ class BackupWorker @AssistedInject constructor(
                     }
                     try {
                         Log.d(TAG, "backup: HME file writing started")
-                        applicationContext.contentResolver.insert(collection, contentValues)
+                        appContext.contentResolver.insert(collection, contentValues)
                             ?.also { uri ->
-                                applicationContext.contentResolver.openOutputStream(uri)
+                                appContext.contentResolver.openOutputStream(uri)
                                     .use { outputStream ->
                                         outputStream?.write(serializedHme.toByteArray())
                                         Log.d(TAG, "HME serialized: $serializedHme")
@@ -149,7 +152,7 @@ class BackupWorker @AssistedInject constructor(
                             }
                     } catch (e: IOException) {
                         e.printStackTrace()
-                        resultError.add("HME "+e.message)
+                        resultError.add("HME " + e.message)
                         Log.d(TAG, "HME: failed ${e.message}")
                     }
                     Log.d(TAG, "writing: stopped")
@@ -178,9 +181,9 @@ class BackupWorker @AssistedInject constructor(
                     }
                     try {
                         Log.d(TAG, "backup: IBAU file writing started")
-                        applicationContext.contentResolver.insert(collection, contentValues)
+                        appContext.contentResolver.insert(collection, contentValues)
                             ?.also { uri ->
-                                applicationContext.contentResolver.openOutputStream(uri)
+                                appContext.contentResolver.openOutputStream(uri)
                                     .use { outputStream ->
                                         outputStream?.write(serializedIbau.toByteArray())
                                         Log.d(TAG, "Ibau serialized: $serializedIbau")
@@ -191,7 +194,7 @@ class BackupWorker @AssistedInject constructor(
                             }
                     } catch (e: IOException) {
                         e.printStackTrace()
-                        resultError.add("IBAU "+e.message)
+                        resultError.add("IBAU " + e.message)
                         Log.d(TAG, "IBAU: failed ${e.message}")
                     }
 
@@ -225,9 +228,9 @@ class BackupWorker @AssistedInject constructor(
                     }
                     try {
                         Log.d(TAG, "backup: TimeSheet file writing started")
-                        applicationContext.contentResolver.insert(collection, contentValues)
+                        appContext.contentResolver.insert(collection, contentValues)
                             ?.also { uri ->
-                                applicationContext.contentResolver.openOutputStream(uri)
+                                appContext.contentResolver.openOutputStream(uri)
                                     .use { outputStream ->
                                         outputStream?.write(serializedTimeSheet.toByteArray())
                                         Log.d(TAG, "Ibau serialized: $serializedTimeSheet")
@@ -238,7 +241,7 @@ class BackupWorker @AssistedInject constructor(
                             }
                     } catch (e: IOException) {
                         e.printStackTrace()
-                        resultError.add("TimeSheet "+e.message)
+                        resultError.add("TimeSheet " + e.message)
                         Log.d(TAG, "TimeSheet: failed ${e.message}")
                     }
 
@@ -270,9 +273,9 @@ class BackupWorker @AssistedInject constructor(
                     }
                     try {
                         Log.d(TAG, "backup: Visa file writing started")
-                        applicationContext.contentResolver.insert(collection, contentValues)
+                        appContext.contentResolver.insert(collection, contentValues)
                             ?.also { uri ->
-                                applicationContext.contentResolver.openOutputStream(uri)
+                                appContext.contentResolver.openOutputStream(uri)
                                     .use { outputStream ->
                                         outputStream?.write(serializedVisa.toByteArray())
                                         Log.d(TAG, "Visa serialized: $serializedVisa")
@@ -283,7 +286,7 @@ class BackupWorker @AssistedInject constructor(
                             }
                     } catch (e: IOException) {
                         e.printStackTrace()
-                        resultError.add("Visa "+e.message)
+                        resultError.add("Visa " + e.message)
                         Log.d(TAG, "Visa: failed ${e.message}")
                     }
 
@@ -294,10 +297,14 @@ class BackupWorker @AssistedInject constructor(
             Log.d(TAG, "get all Visa")
         }
 
-        val internalStorageFiles = applicationContext.filesDir.listFiles()
+        val internalStorageFiles = appContext.filesDir.listFiles()
 
         //Backup signatures and datastore
-            internalStorageFiles?.filter { it.name.equals(Constants.SIGNATURES_FOLDER) or it.name.equals("datastore") }
+        internalStorageFiles?.filter {
+            it.name.equals(Constants.SIGNATURES_FOLDER) or it.name.equals(
+                "datastore"
+            )
+        }
             ?.onEach { files ->
                 files.listFiles()?.onEach { file ->
 
@@ -324,9 +331,9 @@ class BackupWorker @AssistedInject constructor(
 
                     try {
                         Log.d(TAG, "backup: File writing started")
-                        applicationContext.contentResolver.insert(collection, contentValues)
+                        appContext.contentResolver.insert(collection, contentValues)
                             ?.also { uri ->
-                                applicationContext.contentResolver.openOutputStream(uri)
+                                appContext.contentResolver.openOutputStream(uri)
                                     .use { outputStream ->
                                         outputStream?.write(file.readBytes())
                                         Log.d(TAG, "File: ${file.name}")
@@ -337,7 +344,7 @@ class BackupWorker @AssistedInject constructor(
                             }
                     } catch (e: IOException) {
                         e.printStackTrace()
-                        resultError.add("File "+e.message)
+                        resultError.add("File " + e.message)
                         Log.d(TAG, "File: failed ${file.name} ${e.message}")
                     }
                 }
@@ -347,18 +354,22 @@ class BackupWorker @AssistedInject constructor(
             }
 
         //Backup rest of files
-            internalStorageFiles?.filter { !it.name.equals(Constants.SIGNATURES_FOLDER) or !it.name.equals("datastore") }
+        internalStorageFiles?.filter {
+            !it.name.equals(Constants.SIGNATURES_FOLDER) or !it.name.equals(
+                "datastore"
+            )
+        }
             ?.onEach { files ->
                 files.listFiles()?.onEach { file ->
 
                     val contentValues = ContentValues().apply {
                         put(MediaStore.Files.FileColumns.DISPLAY_NAME, file.name)
 
-                                put(MediaStore.Files.FileColumns.MIME_TYPE, "application/pdf")
-                                put(
-                                    folderPath.first,
-                                    folderPath.second + "/" + files.name
-                                )
+                        put(MediaStore.Files.FileColumns.MIME_TYPE, "*/*")
+                        put(
+                            folderPath.first,
+                            folderPath.second + "/" + files.name
+                        )
 
 
                     }
@@ -367,9 +378,9 @@ class BackupWorker @AssistedInject constructor(
 
                     try {
                         Log.d(TAG, "backup: File writing started")
-                        applicationContext.contentResolver.insert(collection, contentValues)
+                        appContext.contentResolver.insert(collection, contentValues)
                             ?.also { uri ->
-                                applicationContext.contentResolver.openOutputStream(uri)
+                                appContext.contentResolver.openOutputStream(uri)
                                     .use { outputStream ->
                                         outputStream?.write(file.readBytes())
                                         Log.d(TAG, "File: ${file.name}")
@@ -380,7 +391,7 @@ class BackupWorker @AssistedInject constructor(
                             }
                     } catch (e: IOException) {
                         e.printStackTrace()
-                        resultError.add("File "+e.message)
+                        resultError.add("File " + e.message)
                         Log.d(TAG, "File: failed ${file.name} ${e.message}")
                     }
                 }
@@ -391,7 +402,7 @@ class BackupWorker @AssistedInject constructor(
 
         // Notification when done
         val notificationBuilder =
-            NotificationCompat.Builder(applicationContext, Constants.BACKUP_CHANNEL_ID)
+            NotificationCompat.Builder(appContext, Constants.BACKUP_CHANNEL_ID)
                 .setSmallIcon(R.drawable.hb_logo)
                 .setContentTitle("BackUp is done")
                 .setAutoCancel(true)
@@ -403,9 +414,15 @@ class BackupWorker @AssistedInject constructor(
 
         }
 
-        NotificationManagerCompat.from(applicationContext)
-            .notify(Constants.BACKUP_NOTIFICATION_ID, notificationBuilder.build())
-
+        if (ActivityCompat.checkSelfPermission(
+                appContext,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            NotificationManagerCompat.from(appContext)
+                .notify(Constants.BACKUP_NOTIFICATION_ID, notificationBuilder.build())
+        }
+    
 
         Log.d(TAG, "doWork: closed")
 

@@ -1,17 +1,14 @@
 package com.neklaway.hme_reporting.feature_settings.presentation.settings
 
-import android.Manifest
 import android.net.Uri
-import android.os.Build
 import android.util.Log
-import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.neklaway.hme_reporting.domain.use_cases.settings_use_case.ibau_id.SetBreakDurationUseCase
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.backup.StartBackup
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.backup.StartRestore
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.break_time.GetBreakDurationUseCase
+import com.neklaway.hme_reporting.feature_settings.domain.use_cases.break_time.SetBreakDurationUseCase
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.is_auto_clear.GetIsAutoClearUseCase
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.is_auto_clear.SetIsAutoClearUseCase
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.is_ibau.GetIsIbauUseCase
@@ -27,7 +24,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-private const val TAG = "Settings ViewModel"
+private const val TAG = "Settings_ViewModel"
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
@@ -158,15 +155,31 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun breakDurationChanged(breakDuration: String) {
+
         var breakFloat: Float?
 
         if (breakDuration == ".") {
             _state.update { it.copy(breakDuration = "") }
             return
         }
+        Log.d(TAG, "breakDurationChanged: clicked")
 
         try {
             breakFloat = breakDuration.toFloat()
+
+            viewModelScope.launch {
+                breakFloat?.let {
+                    Log.d(TAG, "breakDurationChanged: breakFloat sent to use case $breakFloat")
+                    setBreakDurationUseCase(it).collect{ resource ->
+                        when (resource){
+                            is Resource.Error -> _userMessage.emit(resource.message?:"error")
+                            else -> Unit
+                        }
+
+                    }
+                }
+            }
+
         } catch (e: NumberFormatException) {
             e.printStackTrace()
             breakFloat = null
@@ -176,11 +189,8 @@ class SettingsViewModel @Inject constructor(
                 }
             }
         }
-        breakFloat?.let {
-            viewModelScope.launch {
-                setBreakDurationUseCase(it)
-            }
-        }
+        Log.d(TAG, "breakDurationChanged: breakFloat $breakFloat")
+
         val breakString = breakFloat?.toString() ?: ""
         val breakDurationSplit = breakDuration.split(".")
 

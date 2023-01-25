@@ -1,10 +1,12 @@
 package com.neklaway.hme_reporting.feature_settings.data.repository_impl
 
+import android.util.Log
 import com.neklaway.hme_reporting.feature_settings.data.Settings
 import com.neklaway.hme_reporting.feature_settings.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
+private const val TAG = "settingsRepo"
 class SettingsRepositoryImpl @Inject constructor(
     private val settings: Settings
 ) : SettingsRepository {
@@ -34,6 +36,7 @@ class SettingsRepositoryImpl @Inject constructor(
     }
 
     override suspend fun setBreakDuration(breakTime: Float) {
+        Log.d(TAG, "setBreakDuration: $breakTime")
         settings.setBreakDuration(breakTime)
     }
 

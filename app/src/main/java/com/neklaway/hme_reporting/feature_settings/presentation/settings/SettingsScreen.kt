@@ -99,9 +99,7 @@ fun SettingsScreen(
 
                 OutlinedTextField(
                     value = state.breakDuration,
-                    onValueChange = {
-                        viewModel.breakDurationChanged(it)
-                    },
+                    onValueChange = viewModel::breakDurationChanged,
                     label = { Text(text = "Break Duration") },
                     modifier = Modifier
                         .fillMaxWidth(),
@@ -146,6 +144,7 @@ fun SettingsScreen(
                         .align(Alignment.CenterHorizontally),
                     onClick = {
                         requestPermission = true
+                        viewModel.backupButtonClicked()
                     }) {
                     Text(text = "Backup")
                 }
