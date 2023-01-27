@@ -1,7 +1,7 @@
 package com.neklaway.hme_reporting.feature_signature.presentation.signature
 
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Path
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import com.neklaway.hme_reporting.feature_signature.domain.use_cases.bitmap_use_case.CreateBitmapFromPathUseCase
@@ -57,8 +57,9 @@ class SignatureViewModel @Inject constructor(
     fun pathLineTo(x: Float, y: Float) {
         val path = state.value.path
         path.lineTo(x, y)
-        _state.update { it.copy(path = path, drawLine = Offset(x, y)
-        ) }
+        val newPath = Path()
+        newPath.addPath(path)
+        _state.update { it.copy(path = newPath) }
     }
 
 
@@ -71,10 +72,8 @@ class SignatureViewModel @Inject constructor(
     }
 
     fun clearSignature() {
-        _state.value.path.reset()
-        _state.update {
-            it.copy(path = _state.value.path, drawLine = Offset(0f, 0f))
-        }
+            val newPath = Path()
+            _state.update { it.copy(path = newPath) }
     }
 
     fun exit() {

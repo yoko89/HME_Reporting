@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.neklaway.hme_reporting.feature_signature.presentation.signature
 
 import android.view.MotionEvent
@@ -21,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.input.pointer.pointerInteropFilter
@@ -30,13 +33,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.neklaway.hme_reporting.common.ui.theme.HMEReportingTheme
 
 
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun SignatureScreen(
     signatureFileName: String,
-    requireSignerName: Boolean = false,
-    signatureUpdatedAtExit: (signed: Boolean, signerName: String?) -> Unit,
     modifier: Modifier = Modifier,
+    signatureUpdatedAtExit: (signed: Boolean, signerName: String?) -> Unit,
+    requireSignerName: Boolean = false,
     viewModel: SignatureViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -81,44 +83,17 @@ fun SignatureScreen(
                             .clickable { viewModel.exit() }, contentDescription = "Close"
                     )
                     Spacer(modifier = Modifier.height(5.dp))
-                    Canvas(
-                        modifier = Modifier
-                            .fillMaxWidth(0.9f)
-                            .height(200.dp)
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(Color.LightGray)
-                            .border(
-                                width = 2.dp,
-                                color = Color.Black,
-                                shape = RoundedCornerShape(10.dp)
-                            )
-                            .pointerInteropFilter {
-                                when (it.action) {
-                                    MotionEvent.ACTION_DOWN -> {
-                                        viewModel.pathMoveTo(it.x, it.y)
-                                    }
-                                    MotionEvent.ACTION_MOVE -> {
-                                        viewModel.pathLineTo(it.x, it.y)
-                                    }
-                                    else -> {
-                                    }
-                                }
-                                true
-                            }) {
-                        canvasSize = this.size
-                        clipRect {
-                            state.drawLine?.let {
-                                drawPath(state.path, color = Color.Blue, style = Stroke(2f))
-                            }
-                        }
-                    }
+
+                    Signature(viewModel = viewModel, path = state.path,
+                        canvasSize = {
+                        canvasSize = it })
 
                     AnimatedVisibility(visible = requireSignerName) {
 
                         OutlinedTextField(value = state.signerName,
                             label = { Text(text = "Signer Name") },
                             modifier = Modifier.padding(5.dp),
-                            isError =  state.errorSignerName,
+                            isError = state.errorSignerName,
                             onValueChange = {
                                 viewModel.signerNameChanged(it)
                             })
@@ -131,7 +106,7 @@ fun SignatureScreen(
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
 
-                        Button(onClick = { viewModel.clearSignature() }) {
+                        Button(onClick = viewModel::clearSignature) {
                             Text(text = "Clear")
                         }
 
@@ -143,6 +118,44 @@ fun SignatureScreen(
 
                 }
             }
+        }
+    }
+}
+
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+fun Signature(
+    viewModel: SignatureViewModel,
+    path: Path,
+    modifier: Modifier = Modifier,
+    canvasSize: (Size) -> Unit,
+) {
+    Canvas(
+        modifier = modifier
+            .fillMaxWidth(0.9f)
+            .height(200.dp)
+            .clip(RoundedCornerShape(10.dp))
+            .background(Color.LightGray)
+            .border(
+                width = 2.dp,
+                color = Color.Black,
+                shape = RoundedCornerShape(10.dp)
+            )
+            .pointerInteropFilter {
+                when (it.action) {
+                    MotionEvent.ACTION_DOWN -> {
+                        viewModel.pathMoveTo(it.x, it.y)
+                    }
+                    MotionEvent.ACTION_MOVE -> {
+                        viewModel.pathLineTo(it.x, it.y)
+                    }
+                    else -> Unit
+                }
+                true
+            }) {
+        canvasSize(this.size)
+        clipRect {
+            drawPath(path, color = Color.Blue, style = Stroke(2f))
         }
     }
 }

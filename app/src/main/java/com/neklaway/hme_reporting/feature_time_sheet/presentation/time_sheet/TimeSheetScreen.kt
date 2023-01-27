@@ -234,7 +234,8 @@ fun TimeSheetScreen(
                 state.selectedHMECode?.id?.let {
 
                     AnimatedVisibility(visible = state.showSignaturePad) {
-                        SignatureScreen(signatureFileName = it.toString(), requireSignerName = true,
+                        SignatureScreen(
+                            signatureFileName = it.toString(),
                             signatureUpdatedAtExit = { signedSuccessfully, signerName ->
                                 if (signedSuccessfully) {
                                     viewModel.signatureDone(signerName)
@@ -242,7 +243,9 @@ fun TimeSheetScreen(
                                     viewModel.signatureCanceled()
                                 }
 
-                            })
+                            },
+                            requireSignerName = true
+                        )
                     }
                 }
             }
