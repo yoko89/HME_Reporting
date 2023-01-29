@@ -6,7 +6,6 @@ import android.content.Intent
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
-@AndroidEntryPoint
 class RestartReceiver @Inject constructor() : BroadcastReceiver() {
 
     override fun onReceive(context: Context?, intent: Intent?) {
