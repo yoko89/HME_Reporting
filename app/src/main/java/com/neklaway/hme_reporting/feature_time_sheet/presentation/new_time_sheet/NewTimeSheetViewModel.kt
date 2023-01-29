@@ -35,10 +35,10 @@ import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.wo
 import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.work_end.SetWorkEndUseCase
 import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.work_start.GetWorkStartUseCase
 import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.work_start.SetWorkStartUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.time_sheet_use_cases.InsertTimeSheetUseCase
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.break_time.GetBreakDurationUseCase
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.is_auto_clear.GetIsAutoClearUseCase
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.is_ibau.GetIsIbauUseCase
-import com.neklaway.hme_reporting.common.domain.use_cases.time_sheet_use_cases.InsertTimeSheetUseCase
 import com.neklaway.hme_reporting.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -106,7 +106,7 @@ class NewTimeSheetViewModel @Inject constructor(
             val workEnd = getWorkEndUseCase()
             val travelStart = getTravelStartUseCase()
             val travelEnd = getTravelEndUseCase()
-            val breakDuration = getSavedBreakDurationUseCase()?.toString()?:""
+            val breakDuration = getSavedBreakDurationUseCase()?.toString()?:getBreakDurationUseCase()
             val travelDistance = getTravelDistanceUseCase()?.toString()?:""
             val isOverTime = getIsOverTimeUseCase()
 
