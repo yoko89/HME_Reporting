@@ -5,8 +5,8 @@ import java.util.*
 
 fun Long.toCalender(): Calendar {
     val cal = Calendar.getInstance()
-        cal.timeInMillis = this
-        return cal
+    cal.timeInMillis = this
+    return cal
 }
 
 fun Calendar?.toDate(): String {
@@ -24,6 +24,7 @@ fun Calendar?.toDate(): String {
 
 }
 
+
 fun Calendar?.toTime(): String {
     val formatter = DateFormat.getTimeInstance(DateFormat.SHORT, Locale.getDefault())
 
@@ -36,6 +37,4 @@ fun Calendar?.toTime(): String {
         }
     }
     return "N/A"
-
-
 }

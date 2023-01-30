@@ -39,7 +39,7 @@ class EditTimeSheetViewModel @Inject constructor(
     val event: SharedFlow<EditTimeSheetEvents> = _event
 
     private val timeSheetId: Long
-    var timeSheet:Deferred<TimeSheet?>
+    private var timeSheet: Deferred<TimeSheet?>
 
     init {
 
@@ -49,7 +49,7 @@ class EditTimeSheetViewModel @Inject constructor(
         _state.update { it.copy(timeSheetId = timeSheetId) }
         Log.d(TAG, ": ${state.value.timeSheetId}")
 
-       timeSheet = viewModelScope.async(Dispatchers.IO) {
+        timeSheet = viewModelScope.async(Dispatchers.IO) {
             var returnedTimesheet: TimeSheet? = null
             getTimeSheetByIdUseCase(timeSheetId).collect { result ->
                 Log.d(TAG, "TimeSheet: $result")
@@ -73,8 +73,8 @@ class EditTimeSheetViewModel @Inject constructor(
                                 workEnd = result.data?.workEnd,
                                 traveledDistance = result.data?.traveledDistance?.toString() ?: "",
                                 breakDuration = result.data?.breakDuration?.toString() ?: "",
-                                travelDay = result.data?.travelDay?:false,
-                                noWorkday = result.data?.noWorkDay?:false,
+                                travelDay = result.data?.travelDay ?: false,
+                                noWorkday = result.data?.noWorkDay ?: false,
                                 overTimeDay = result.data?.overTimeDay ?: false,
                                 loading = false
                             )
@@ -83,44 +83,48 @@ class EditTimeSheetViewModel @Inject constructor(
                     }
                 }
             }
-                return@async returnedTimesheet
+            return@async returnedTimesheet
         }
     }
 
 
     fun updateTimeSheet() {
-viewModelScope.launch {
-    val timeSheet = timeSheet.await()
-    updateTimeSheetUseCase.invoke(
-        HMEId = timeSheet?.HMEId,
-        IBAUId = timeSheet?.IBAUId,
-        date = state.value.date,
-        travelStart = state.value.travelStart,
-        workStart = state.value.workStart,
-        workEnd = state.value.workEnd,
-        travelEnd = state.value.travelEnd,
-        breakDuration = state.value.breakDuration.toFloatOrNull(),
-        traveledDistance = state.value.traveledDistance.toIntOrNull(),
-        overTimeDay = state.value.overTimeDay,
-        travelDay = state.value.travelDay,
-        noWorkDay = state.value.noWorkday,
-        id = state.value.timeSheetId,
-        created = false
-    ).collect{ result ->
-        when(result){
-            is Resource.Error -> {
-                _event.emit(EditTimeSheetEvents.UserMessage(result.message ?: "Error can't update"))
-                _state.update { it.copy(loading = false) }
-            }
-            is Resource.Loading -> _state.update { it.copy(loading = true) }
-            is Resource.Success -> {
-                _state.update { it.copy(loading = false) }
-                _event.emit(EditTimeSheetEvents.PopBackStack)
+        viewModelScope.launch {
+            val timeSheet = timeSheet.await()
+            updateTimeSheetUseCase.invoke(
+                HMEId = timeSheet?.HMEId,
+                IBAUId = timeSheet?.IBAUId,
+                date = state.value.date,
+                travelStart = state.value.travelStart,
+                workStart = state.value.workStart,
+                workEnd = state.value.workEnd,
+                travelEnd = state.value.travelEnd,
+                breakDuration = state.value.breakDuration.toFloatOrNull(),
+                traveledDistance = state.value.traveledDistance.toIntOrNull(),
+                overTimeDay = state.value.overTimeDay,
+                travelDay = state.value.travelDay,
+                noWorkDay = state.value.noWorkday,
+                id = state.value.timeSheetId,
+                created = false
+            ).collect { result ->
+                when (result) {
+                    is Resource.Error -> {
+                        _event.emit(
+                            EditTimeSheetEvents.UserMessage(
+                                result.message ?: "Error can't update"
+                            )
+                        )
+                        _state.update { it.copy(loading = false) }
+                    }
+                    is Resource.Loading -> _state.update { it.copy(loading = true) }
+                    is Resource.Success -> {
+                        _state.update { it.copy(loading = false) }
+                        _event.emit(EditTimeSheetEvents.PopBackStack)
+                    }
+                }
+
             }
         }
-
-    }
-}
     }
 
     fun dateClicked() {
@@ -138,7 +142,7 @@ viewModelScope.launch {
             0,
             0
         )
-        date.set(Calendar.MILLISECOND,0)
+        date.set(Calendar.MILLISECOND, 0)
         _state.update { it.copy(date = date, showDatePicker = false) }
     }
 
@@ -206,11 +210,6 @@ viewModelScope.launch {
     fun breakDurationChanged(breakDuration: String) {
         var breakFloat: Float?
 
-        if (breakDuration == ".") {
-            _state.update { it.copy(breakDuration = "") }
-            return
-        }
-
         try {
             breakFloat = breakDuration.toFloat()
         } catch (e: NumberFormatException) {
@@ -223,13 +222,7 @@ viewModelScope.launch {
                 _state.update { it.copy(loading = false) }
             }
         }
-
-        val breakString = breakFloat?.toString() ?: ""
-        val breakDurationSplit = breakDuration.split(".")
-        if (breakDurationSplit.size < 2)
-            _state.update { it.copy(breakDuration = breakDuration) }
-        else
-            _state.update { it.copy(breakDuration = breakString) }
+        _state.update { it.copy(breakDuration = if (breakFloat == null) "" else breakDuration) }
     }
 
     fun travelDistanceChanged(travelDistance: String) {
@@ -267,8 +260,8 @@ viewModelScope.launch {
         viewModelScope.launch {
             val timeSheet = timeSheet.await()
             timeSheet?.let {
-                deleteTimeSheetUseCase(timeSheet).collect{result ->
-                    when(result){
+                deleteTimeSheetUseCase(timeSheet).collect { result ->
+                    when (result) {
                         is Resource.Error -> {
                             _event.emit(
                                 EditTimeSheetEvents.UserMessage(

@@ -165,11 +165,11 @@ class RestoreWorker @AssistedInject constructor(
                         }
                     }
                     Log.d(TAG, "doWork: ${files.listFiles().map { it.name }}")
-                    files.listFiles().forEach { file ->
+                    files.listFiles().forEach listForeach@ { file ->
 
                         val backupInputStreamFile =
                             applicationContext.contentResolver.openInputStream(file.uri)
-                                ?: return@forEach
+                                ?: return@listForeach
                         val restoreFile = File(backedFolder, file.name!!)
                         Log.d(TAG, "doWork: ${file.name}")
 

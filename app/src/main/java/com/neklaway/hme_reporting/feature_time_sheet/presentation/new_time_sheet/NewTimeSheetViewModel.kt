@@ -407,14 +407,14 @@ class NewTimeSheetViewModel @Inject constructor(
     fun breakDurationChanged(breakDuration: String) {
         var breakFloat: Float?
 
-        if (breakDuration == ".") {
-            _state.update { it.copy(breakDuration = "") }
-            return
-        }
+
 
         try {
             breakFloat = breakDuration.toFloat()
 
+            viewModelScope.launch {
+                setSavedBreakDurationUseCase(breakFloat)
+            }
         } catch (e: NumberFormatException) {
             e.printStackTrace()
             breakFloat = null
@@ -424,16 +424,7 @@ class NewTimeSheetViewModel @Inject constructor(
                 }
             }
         }
-        viewModelScope.launch {
-            setSavedBreakDurationUseCase(breakFloat)
-        }
-        val breakString = breakFloat?.toString() ?: ""
-        val breakDurationSplit = breakDuration.split(".")
-
-        if (breakString.isNotBlank() && breakDurationSplit.size < 2)
-            _state.update { it.copy(breakDuration = breakDuration) }
-        else
-            _state.update { it.copy(breakDuration = breakString) }
+        _state.update { it.copy(breakDuration = if(breakFloat == null) "" else breakDuration) }
     }
 
     fun travelDistanceChanged(travelDistance: String) {

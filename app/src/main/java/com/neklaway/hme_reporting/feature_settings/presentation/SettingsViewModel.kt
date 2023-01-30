@@ -1,4 +1,4 @@
-package com.neklaway.hme_reporting.feature_settings.presentation.settings
+package com.neklaway.hme_reporting.feature_settings.presentation
 
 import android.net.Uri
 import android.util.Log
@@ -157,11 +157,6 @@ class SettingsViewModel @Inject constructor(
     fun breakDurationChanged(breakDuration: String) {
 
         var breakFloat: Float?
-
-        if (breakDuration == ".") {
-            _state.update { it.copy(breakDuration = "") }
-            return
-        }
         Log.d(TAG, "breakDurationChanged: clicked")
 
         try {
@@ -170,12 +165,11 @@ class SettingsViewModel @Inject constructor(
             viewModelScope.launch {
                 breakFloat?.let {
                     Log.d(TAG, "breakDurationChanged: breakFloat sent to use case $breakFloat")
-                    setBreakDurationUseCase(it).collect{ resource ->
-                        when (resource){
-                            is Resource.Error -> _userMessage.emit(resource.message?:"error")
+                    setBreakDurationUseCase(it).collect { resource ->
+                        when (resource) {
+                            is Resource.Error -> _userMessage.emit(resource.message ?: "error")
                             else -> Unit
                         }
-
                     }
                 }
             }
@@ -191,15 +185,8 @@ class SettingsViewModel @Inject constructor(
         }
         Log.d(TAG, "breakDurationChanged: breakFloat $breakFloat")
 
-        val breakString = breakFloat?.toString() ?: ""
-        val breakDurationSplit = breakDuration.split(".")
+        _state.update { it.copy(breakDuration = if (breakFloat == null) "" else breakDuration) }
 
-        if (breakString.isNotBlank() && breakDurationSplit.size < 2) _state.update {
-            it.copy(
-                breakDuration = breakDuration
-            )
-        }
-        else _state.update { it.copy(breakDuration = breakString) }
     }
 
     fun signatureBtnClicked() {

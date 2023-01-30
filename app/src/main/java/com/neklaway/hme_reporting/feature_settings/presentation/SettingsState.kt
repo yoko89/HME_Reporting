@@ -1,7 +1,6 @@
-package com.neklaway.hme_reporting.feature_settings.presentation.settings
+package com.neklaway.hme_reporting.feature_settings.presentation
 
 import androidx.compose.ui.graphics.ImageBitmap
-import java.io.File
 
 data class SettingsState(
     val isIbauUser: Boolean = false,
@@ -11,5 +10,5 @@ data class SettingsState(
     val isLoading: Boolean = false,
     val showSignaturePad: Boolean = false,
     val signature: ImageBitmap? = null,
-    val visaReminder:String = "",
+    val visaReminder: String = "",
 )
