@@ -13,10 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -39,9 +36,14 @@ fun SignatureScreen(
     modifier: Modifier = Modifier,
     signatureUpdatedAtExit: (signed: Boolean, signerName: String?) -> Unit,
     requireSignerName: Boolean = false,
-    viewModel: SignatureViewModel = hiltViewModel()
 ) {
-    val state by viewModel.state.collectAsState()
+
+    val viewModel = hiltViewModel<SignatureViewModel>()
+
+    val state by remember {
+        viewModel.state
+    }.collectAsState()
+
     var canvasSize: Size? = null
 
     LaunchedEffect(Unit) {
@@ -86,7 +88,8 @@ fun SignatureScreen(
 
                     Signature(viewModel = viewModel, path = state.path,
                         canvasSize = {
-                        canvasSize = it })
+                            canvasSize = it
+                        })
 
                     AnimatedVisibility(visible = requireSignerName) {
 
