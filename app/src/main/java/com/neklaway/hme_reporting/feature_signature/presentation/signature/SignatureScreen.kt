@@ -40,9 +40,7 @@ fun SignatureScreen(
 
     val viewModel = hiltViewModel<SignatureViewModel>()
 
-    val state by remember {
-        viewModel.state
-    }.collectAsState()
+    val state by viewModel.state.collectAsState()
 
     var canvasSize: Size? = null
 
