@@ -223,15 +223,14 @@ class TimeSheetViewModel @Inject constructor(
                                         { it.travelStart })
                                 )
                                 Log.d(TAG, "get timesheet by HME: collect $timeSheetList ")
-                                val timeSheetListWithOverlapping = updateTimesheetListWithOverlapping(timeSheetsListSorted)
+                                val timeSheetListWithOverlapping =
+                                    updateTimesheetListWithOverlapping(timeSheetsListSorted)
 
-                                val checkBoxAllSelected = timeSheetList.all { it.selected }
-
+                                allCheckBoxSelected(timeSheetList)
                                 _state.update {
                                     it.copy(
-                                        timeSheets = timeSheetListWithOverlapping ,
+                                        timeSheets = timeSheetListWithOverlapping,
                                         loading = false,
-                                        selectAll = checkBoxAllSelected
                                     )
                                 }
                             }
@@ -269,15 +268,15 @@ class TimeSheetViewModel @Inject constructor(
                                 timeSheetList.sortedWith(compareBy({ it.date }, { it.travelStart }))
                             Log.d(TAG, "get timesheet by ibau: collect $timeSheetList ")
 
-                            val timeSheetListWithOverlapping = updateTimesheetListWithOverlapping(timeSheetsListSorted)
+                            val timeSheetListWithOverlapping =
+                                updateTimesheetListWithOverlapping(timeSheetsListSorted)
 
-                            val checkBoxAllSelected = timeSheetList.all { it.selected }
+                            allCheckBoxSelected(timeSheetList)
 
                             _state.update {
                                 it.copy(
                                     timeSheets = timeSheetListWithOverlapping,
                                     loading = false,
-                                    selectAll = checkBoxAllSelected
                                 )
                             }
 
@@ -295,6 +294,8 @@ class TimeSheetViewModel @Inject constructor(
             newTimeSheets[index] = newTimeSheets[index].copy(selected = selected)
             _state.update { it.copy(timeSheets = newTimeSheets) }
         }
+        allCheckBoxSelected(state.value.timeSheets)
+
     }
 
     fun timesheetClicked(timeSheet: TimeSheet) {
@@ -404,11 +405,17 @@ class TimeSheetViewModel @Inject constructor(
         val timeSheetCollectedByDate = timeSheetList.groupBy { it.date }
 
         timeSheetList.forEach {
-            if (((timeSheetCollectedByDate[it.date]?.size ?: 1) > 1)){
-                it.overLap =true
-                }
+            if ((timeSheetCollectedByDate[it.date]?.size ?: 1) > 1) {
+                it.overLap = true
+            }
         }
+
         return timeSheetList
+    }
+
+    private fun allCheckBoxSelected(timeSheetList: List<TimeSheet>) {
+        val checkBoxAllSelected = timeSheetList.all { it.selected }
+        _state.update { it.copy(selectAll = checkBoxAllSelected) }
     }
 
 

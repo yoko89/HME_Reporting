@@ -32,7 +32,7 @@ fun TimeSheetItemCard(
     val cardColor = if (timeSheet.overLap) infiniteTransition.animateColor(
         initialValue = createdCardColor.value,
         targetValue = Color.Yellow,
-        animationSpec = infiniteRepeatable(animation = tween(durationMillis = 200, delayMillis = 1000, easing = LinearEasing) , repeatMode = RepeatMode.Reverse)
+        animationSpec = infiniteRepeatable(animation = tween(durationMillis = 500, delayMillis = 1000, easing = LinearEasing) , repeatMode = RepeatMode.Reverse)
     )
     else createdCardColor
 
