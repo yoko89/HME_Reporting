@@ -106,8 +106,9 @@ class NewTimeSheetViewModel @Inject constructor(
             val workEnd = getWorkEndUseCase()
             val travelStart = getTravelStartUseCase()
             val travelEnd = getTravelEndUseCase()
-            val breakDuration = getSavedBreakDurationUseCase()?.toString()?:getBreakDurationUseCase()
-            val travelDistance = getTravelDistanceUseCase()?.toString()?:""
+            val breakDuration =
+                getSavedBreakDurationUseCase()?.toString() ?: getBreakDurationUseCase()
+            val travelDistance = getTravelDistanceUseCase()?.toString() ?: ""
             val isOverTime = getIsOverTimeUseCase()
 
             _state.update {
@@ -285,19 +286,28 @@ class NewTimeSheetViewModel @Inject constructor(
                                     breakDuration = getBreakDurationUseCase.invoke()
                                 )
                             }
-                        }
-                        viewModelScope.launch(Dispatchers.IO) {
-                            setTravelDistanceUseCase(null)
-                            setIsOverTimeUseCase(false)
-                            setDateUseCase(null)
-                            setIsSavedTravelDayUseCase(false)
-                            setIsWeekendUseCase(false)
-                            setTravelEndUseCase(null)
-                            setTravelStartUseCase(null)
-                            setWorkEndUseCase(null)
-                            setWorkStartUseCase(null)
-                            setSavedBreakDurationUseCase(null)
-                            setIsOverTimeUseCase(false)
+                            viewModelScope.launch(Dispatchers.IO) {
+                                setTravelDistanceUseCase(null)
+                                setIsOverTimeUseCase(false)
+                                setDateUseCase(null)
+                                setIsSavedTravelDayUseCase(false)
+                                setIsWeekendUseCase(false)
+                                setTravelEndUseCase(null)
+                                setTravelStartUseCase(null)
+                                setWorkEndUseCase(null)
+                                setWorkStartUseCase(null)
+                                setSavedBreakDurationUseCase(null)
+                                setIsOverTimeUseCase(false)
+                            }
+                        } else {
+                            _state.update {
+                                it.copy(
+                                    date = null,
+                                )
+                            }
+                            viewModelScope.launch(Dispatchers.IO) {
+                                setDateUseCase(null)
+                            }
                         }
                     }
                 }
@@ -424,7 +434,7 @@ class NewTimeSheetViewModel @Inject constructor(
                 }
             }
         }
-        _state.update { it.copy(breakDuration = if(breakFloat == null) "" else breakDuration) }
+        _state.update { it.copy(breakDuration = if (breakFloat == null) "" else breakDuration) }
     }
 
     fun travelDistanceChanged(travelDistance: String) {

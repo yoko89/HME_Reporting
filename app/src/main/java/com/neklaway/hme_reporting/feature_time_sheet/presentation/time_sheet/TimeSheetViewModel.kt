@@ -1,16 +1,12 @@
 package com.neklaway.hme_reporting.feature_time_sheet.presentation.time_sheet
 
-import android.Manifest
-import android.os.Build
 import android.util.Log
-import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.neklaway.hme_reporting.common.domain.model.Customer
 import com.neklaway.hme_reporting.common.domain.model.HMECode
 import com.neklaway.hme_reporting.common.domain.model.IBAUCode
 import com.neklaway.hme_reporting.common.domain.model.TimeSheet
-import com.neklaway.hme_reporting.feature_signature.domain.use_cases.bitmap_use_case.LoadBitmapUseCase
 import com.neklaway.hme_reporting.common.domain.use_cases.customer_use_cases.GetAllCustomersFlowUseCase
 import com.neklaway.hme_reporting.common.domain.use_cases.hme_code_use_cases.GetHMECodeByCustomerIdUseCase
 import com.neklaway.hme_reporting.common.domain.use_cases.hme_code_use_cases.UpdateHMECodeUseCase
@@ -22,9 +18,10 @@ import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.hm
 import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.hme_id.SetHMEIdUseCase
 import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.ibau_id.GetIBAUIdUseCase
 import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.ibau_id.SetIBAUIdUseCase
-import com.neklaway.hme_reporting.feature_settings.domain.use_cases.is_ibau.GetIsIbauUseCase
 import com.neklaway.hme_reporting.common.domain.use_cases.time_sheet_use_cases.GetTimeSheetByHMECodeIdUseCase
 import com.neklaway.hme_reporting.common.domain.use_cases.time_sheet_use_cases.GetTimeSheetByIBAUCodeIdUseCase
+import com.neklaway.hme_reporting.feature_settings.domain.use_cases.is_ibau.GetIsIbauUseCase
+import com.neklaway.hme_reporting.feature_signature.domain.use_cases.bitmap_use_case.LoadBitmapUseCase
 import com.neklaway.hme_reporting.utils.Constants
 import com.neklaway.hme_reporting.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -220,19 +217,19 @@ class TimeSheetViewModel @Inject constructor(
                         is Resource.Loading -> _state.update { it.copy(loading = true) }
                         is Resource.Success -> {
                             Log.d(TAG, "get timesheet by HME: success ")
-                            var timeSheets: List<TimeSheet>?
                             result.data?.collect { timeSheetList ->
-                                timeSheets = timeSheetList.sortedWith(
+                                val timeSheetsListSorted = timeSheetList.sortedWith(
                                     compareBy({ it.date },
                                         { it.travelStart })
                                 )
                                 Log.d(TAG, "get timesheet by HME: collect $timeSheetList ")
+                                val timeSheetListWithOverlapping = updateTimesheetListWithOverlapping(timeSheetsListSorted)
 
                                 val checkBoxAllSelected = timeSheetList.all { it.selected }
 
                                 _state.update {
                                     it.copy(
-                                        timeSheets = timeSheets ?: emptyList(),
+                                        timeSheets = timeSheetListWithOverlapping ,
                                         loading = false,
                                         selectAll = checkBoxAllSelected
                                     )
@@ -267,17 +264,18 @@ class TimeSheetViewModel @Inject constructor(
                     is Resource.Loading -> _state.update { it.copy(loading = true) }
                     is Resource.Success -> {
                         Log.d(TAG, "get timesheet by ibau: success ")
-                        var timeSheets: List<TimeSheet>?
                         result.data?.collect { timeSheetList ->
-                            timeSheets =
+                            val timeSheetsListSorted =
                                 timeSheetList.sortedWith(compareBy({ it.date }, { it.travelStart }))
                             Log.d(TAG, "get timesheet by ibau: collect $timeSheetList ")
+
+                            val timeSheetListWithOverlapping = updateTimesheetListWithOverlapping(timeSheetsListSorted)
 
                             val checkBoxAllSelected = timeSheetList.all { it.selected }
 
                             _state.update {
                                 it.copy(
-                                    timeSheets = timeSheets ?: emptyList(),
+                                    timeSheets = timeSheetListWithOverlapping,
                                     loading = false,
                                     selectAll = checkBoxAllSelected
                                 )
@@ -400,6 +398,17 @@ class TimeSheetViewModel @Inject constructor(
 
     fun fileSelectionCanceled() {
         _state.update { it.copy(showFileList = false) }
+    }
+
+    private fun updateTimesheetListWithOverlapping(timeSheetList: List<TimeSheet>): List<TimeSheet> {
+        val timeSheetCollectedByDate = timeSheetList.groupBy { it.date }
+
+        timeSheetList.forEach {
+            if (((timeSheetCollectedByDate[it.date]?.size ?: 1) > 1)){
+                it.overLap =true
+                }
+        }
+        return timeSheetList
     }
 
 

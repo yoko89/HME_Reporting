@@ -1,6 +1,8 @@
 package com.neklaway.hme_reporting.feature_time_sheet.presentation.time_sheet.component
 
+import androidx.compose.animation.animateColor
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -21,7 +23,19 @@ fun TimeSheetItemCard(
     onCheckedChanged: (checked: Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val cardColor = animateColorAsState(targetValue = if(timeSheet.created) Color.LightGray else MaterialTheme.colorScheme.surfaceVariant)
+    val createdCardColor = animateColorAsState(
+        targetValue = if (timeSheet.created) MaterialTheme.colorScheme.inverseSurface
+        else MaterialTheme.colorScheme.surfaceVariant
+    )
+
+    val infiniteTransition = rememberInfiniteTransition()
+    val cardColor = if (timeSheet.overLap) infiniteTransition.animateColor(
+        initialValue = createdCardColor.value,
+        targetValue = Color.Yellow,
+        animationSpec = infiniteRepeatable(animation = tween(durationMillis = 200, delayMillis = 1000, easing = LinearEasing) , repeatMode = RepeatMode.Reverse)
+    )
+    else createdCardColor
+
 
     Card(
         modifier = modifier
@@ -29,7 +43,7 @@ fun TimeSheetItemCard(
             .clickable {
                 cardClicked()
             },
-        colors = CardDefaults.cardColors(containerColor = cardColor.value)
+        colors = CardDefaults.cardColors(containerColor = cardColor.value),
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,

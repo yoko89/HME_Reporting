@@ -32,12 +32,13 @@ data class TimeSheet(
     val noWorkDay: Boolean = false,
     val selected: Boolean = !created,
     val id: Long? = null,
+    var overLap: Boolean = false,
 ) {
     companion object {
         val listSerializer: KSerializer<List<TimeSheet>> = ListSerializer(serializer())
     }
 
-    val workTimeTotal = if (!noWorkDay) {
+    private val workTimeTotal = if (!noWorkDay) {
         if ((workEnd != null) && (workStart != null)) {
             Log.d(
                 TAG,
