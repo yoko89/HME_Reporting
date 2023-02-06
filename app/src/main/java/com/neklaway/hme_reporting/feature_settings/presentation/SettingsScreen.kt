@@ -48,8 +48,6 @@ fun SettingsScreen(
 
     val context = LocalContext.current
 
-
-
     LaunchedEffect(key1 = userMessage) {
         userMessage.collect {
             snackbarHostState.showSnackbar(it)
@@ -65,7 +63,6 @@ fun SettingsScreen(
                     }
                 }
             })
-
 
     HMEReportingTheme {
         Scaffold(

@@ -4,10 +4,10 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.neklaway.hme_reporting.common.domain.model.Visa
-import com.neklaway.hme_reporting.common.domain.visa_use_cases.DeleteVisaUseCase
-import com.neklaway.hme_reporting.common.domain.visa_use_cases.GetAllVisasFlowUseCase
-import com.neklaway.hme_reporting.common.domain.visa_use_cases.InsertVisaUseCase
-import com.neklaway.hme_reporting.common.domain.visa_use_cases.UpdateVisaUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.visa_use_cases.DeleteVisaUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.visa_use_cases.GetAllVisasFlowUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.visa_use_cases.InsertVisaUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.visa_use_cases.UpdateVisaUseCase
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.visa_reminder.GetVisaReminderUseCase
 import com.neklaway.hme_reporting.feature_visa.domain.use_cases.VisaReminderWorkerUseCase
 import com.neklaway.hme_reporting.utils.Resource
@@ -88,17 +88,20 @@ class VisaViewModel @Inject constructor(
                     _state.update { it.copy(loading = false) }
                 }
                 is Resource.Loading -> _state.update { it.copy(loading = true) }
-                is Resource.Success -> {
-                    _state.update {
-                        it.copy(
-                            loading = false,
-                            country = "",
-                            date = null,
-                        )
-                    }
-                }
+                is Resource.Success -> clearState()
+
             }
         }.launchIn(viewModelScope)
+    }
+
+    private fun clearState() {
+        _state.update {
+            it.copy(
+                loading = false,
+                country = "",
+                date = null,
+            )
+        }
     }
 
 
@@ -121,11 +124,7 @@ class VisaViewModel @Inject constructor(
                         _state.update { it.copy(loading = false) }
                     }
                     is Resource.Loading -> _state.update { it.copy(loading = true) }
-                    is Resource.Success -> {
-                        _state.update {
-                            it.copy(loading = false)
-                        }
-                    }
+                    is Resource.Success -> clearState()
                 }
             }.launchIn(viewModelScope)
         }
@@ -141,12 +140,7 @@ class VisaViewModel @Inject constructor(
                     _state.update { it.copy(loading = false) }
                 }
                 is Resource.Loading -> _state.update { it.copy(loading = true) }
-                is Resource.Success -> {
-                    _state.update {
-                        it.copy(loading = false)
-                    }
-
-                }
+                is Resource.Success -> clearState()
             }
         }.launchIn(viewModelScope)
     }

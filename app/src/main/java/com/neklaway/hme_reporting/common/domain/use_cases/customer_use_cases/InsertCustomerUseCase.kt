@@ -13,30 +13,35 @@ class InsertCustomerUseCase @Inject constructor(
     val repo: CustomerRepository
 ) {
 
-    operator fun invoke(name:String , city:String,country:String): Flow<Resource<Boolean>> = flow {
-        emit(Resource.Loading())
+    operator fun invoke(name: String, city: String, country: String): Flow<Resource<Boolean>> =
+        flow {
+            emit(Resource.Loading())
 
-        if(name.trim().isBlank()){
-            emit(Resource.Error("Customer name can't be blank"))
-        }
-        else if(city.trim().isBlank()){
-            emit(Resource.Error("Customer city can't be blank"))
-        }
-        else if(country.trim().isBlank()){
-            emit(Resource.Error("Customer country can't be blank"))
-        }else{
+            if (name.trim().isBlank()) {
+                emit(Resource.Error("Customer name can't be blank"))
+                return@flow
+            }
+            if (city.trim().isBlank()) {
+                emit(Resource.Error("Customer city can't be blank"))
+                return@flow
+            }
+            if (country.trim().isBlank()) {
+                emit(Resource.Error("Customer country can't be blank"))
+                return@flow
+            }
+
             try {
-            val customer = Customer(country.trim(),city.trim(),name.trim())
-            val result = repo.insert(customer.toCustomerEntity())
-            if(result > 0){
-                emit(Resource.Success(true))
-            }else{
-                emit(Resource.Error("Error: Can't insert customer"))
-            }
-        }catch (e: SQLiteConstraintException){
+                val customer = Customer(country.trim(), city.trim(), name.trim())
+                val result = repo.insert(customer.toCustomerEntity())
+                if (result > 0) {
+                    emit(Resource.Success(true))
+                } else {
+                    emit(Resource.Error("Error: Can't insert customer"))
+                }
+            } catch (e: SQLiteConstraintException) {
                 e.printStackTrace()
-                emit(Resource.Error(e.message?:"Error: Can't Insert Customer"))
+                emit(Resource.Error(e.message ?: "Error: Can't Insert Customer"))
             }
+
         }
-    }
 }

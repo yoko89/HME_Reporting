@@ -24,7 +24,7 @@ import com.neklaway.hme_reporting.common.domain.use_cases.hme_code_use_cases.Get
 import com.neklaway.hme_reporting.common.domain.use_cases.ibau_code_use_cases.GetAllIBAUCodesUseCase
 import com.neklaway.hme_reporting.common.domain.use_cases.time_sheet_use_cases.GetAllTimeSheetUseCase
 import com.neklaway.hme_reporting.common.domain.model.Visa
-import com.neklaway.hme_reporting.common.domain.visa_use_cases.GetAllVisasUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.visa_use_cases.GetAllVisasUseCase
 import com.neklaway.hme_reporting.utils.Constants
 import com.neklaway.hme_reporting.utils.Resource
 import com.neklaway.hme_reporting.utils.toDate
@@ -326,8 +326,6 @@ class BackupWorker @AssistedInject constructor(
                         }
 
                     }
-
-
 
                     try {
                         Log.d(TAG, "backup: File writing started")

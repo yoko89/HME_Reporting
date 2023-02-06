@@ -205,28 +205,28 @@ class NewTimeSheetViewModel @Inject constructor(
                 )
             }
 
-            viewModelScope.launch(Dispatchers.IO) {
+            viewModelScope.launch(Dispatchers.IO) hmeSelectedScope@{
                 setHMEIdUseCase(hmeCode.id!!)
 
-                if (getIsIBAUUseCase()) {
-                    getIBAUCodeByHMECodeIdUseCase(hmeCode.id).collect { result ->
-                        when (result) {
-                            is Resource.Error -> {
-                                _userMessage.emit(result.message ?: "Can't get IBAU codes")
-                                _state.update { it.copy(loading = false) }
-                            }
-                            is Resource.Loading -> _state.update { it.copy(loading = true) }
-                            is Resource.Success -> {
-                                val savedSelectedIbauId = getIBAUIdUseCase()
-                                val savedSelectedIbau =
-                                    result.data?.find { it.id == savedSelectedIbauId }
-                                _state.update {
-                                    it.copy(
-                                        ibauCodes = result.data.orEmpty(),
-                                        loading = false,
-                                        selectedIBAUCode = savedSelectedIbau
-                                    )
-                                }
+                if (!getIsIBAUUseCase()) return@hmeSelectedScope
+
+                getIBAUCodeByHMECodeIdUseCase(hmeCode.id).collect { result ->
+                    when (result) {
+                        is Resource.Error -> {
+                            _userMessage.emit(result.message ?: "Can't get IBAU codes")
+                            _state.update { it.copy(loading = false) }
+                        }
+                        is Resource.Loading -> _state.update { it.copy(loading = true) }
+                        is Resource.Success -> {
+                            val savedSelectedIbauId = getIBAUIdUseCase()
+                            val savedSelectedIbau =
+                                result.data?.find { it.id == savedSelectedIbauId }
+                            _state.update {
+                                it.copy(
+                                    ibauCodes = result.data.orEmpty(),
+                                    loading = false,
+                                    selectedIBAUCode = savedSelectedIbau
+                                )
                             }
                         }
                     }
@@ -274,32 +274,7 @@ class NewTimeSheetViewModel @Inject constructor(
                     is Resource.Success -> {
                         _userMessage.emit("TimeSheet Saved")
                         _state.update { it.copy(loading = false) }
-                        if (getIsAutoClearUseCase.invoke()) {
-                            _state.update {
-                                it.copy(
-                                    date = null,
-                                    travelStart = null,
-                                    travelEnd = null,
-                                    workStart = null,
-                                    workEnd = null,
-                                    traveledDistance = "",
-                                    breakDuration = getBreakDurationUseCase.invoke()
-                                )
-                            }
-                            viewModelScope.launch(Dispatchers.IO) {
-                                setTravelDistanceUseCase(null)
-                                setIsOverTimeUseCase(false)
-                                setDateUseCase(null)
-                                setIsSavedTravelDayUseCase(false)
-                                setIsWeekendUseCase(false)
-                                setTravelEndUseCase(null)
-                                setTravelStartUseCase(null)
-                                setWorkEndUseCase(null)
-                                setWorkStartUseCase(null)
-                                setSavedBreakDurationUseCase(null)
-                                setIsOverTimeUseCase(false)
-                            }
-                        } else {
+                        if (!getIsAutoClearUseCase.invoke()) {
                             _state.update {
                                 it.copy(
                                     date = null,
@@ -308,10 +283,44 @@ class NewTimeSheetViewModel @Inject constructor(
                             viewModelScope.launch(Dispatchers.IO) {
                                 setDateUseCase(null)
                             }
+                            return@collect
                         }
+
+                        clearState()
+                        clearSavedData()
                     }
                 }
             }
+        }
+    }
+
+    private fun clearSavedData() {
+        viewModelScope.launch(Dispatchers.IO) {
+            setTravelDistanceUseCase(null)
+            setIsOverTimeUseCase(false)
+            setDateUseCase(null)
+            setIsSavedTravelDayUseCase(false)
+            setIsWeekendUseCase(false)
+            setTravelEndUseCase(null)
+            setTravelStartUseCase(null)
+            setWorkEndUseCase(null)
+            setWorkStartUseCase(null)
+            setSavedBreakDurationUseCase(null)
+            setIsOverTimeUseCase(false)
+        }
+    }
+
+    private suspend fun clearState() {
+        _state.update {
+            it.copy(
+                date = null,
+                travelStart = null,
+                travelEnd = null,
+                workStart = null,
+                workEnd = null,
+                traveledDistance = "",
+                breakDuration = getBreakDurationUseCase.invoke()
+            )
         }
     }
 
@@ -416,9 +425,6 @@ class NewTimeSheetViewModel @Inject constructor(
 
     fun breakDurationChanged(breakDuration: String) {
         var breakFloat: Float?
-
-
-
         try {
             breakFloat = breakDuration.toFloat()
 

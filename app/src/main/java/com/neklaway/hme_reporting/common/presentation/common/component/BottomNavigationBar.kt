@@ -59,5 +59,4 @@ fun BottomNavigationBar(
             )
         }
     }
-
 }

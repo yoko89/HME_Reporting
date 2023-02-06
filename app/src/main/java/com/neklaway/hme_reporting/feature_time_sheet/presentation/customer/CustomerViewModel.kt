@@ -67,14 +67,7 @@ class CustomerViewModel @Inject constructor(
                     _state.update { it.copy(loading = false) }
                 }
                 is Resource.Loading -> _state.update { it.copy(loading = true) }
-                is Resource.Success -> _state.update {
-                    it.copy(
-                        loading = false,
-                        customerName = "",
-                        customerCity = "",
-                        customerCountry = ""
-                    )
-                }
+                is Resource.Success -> clearState()
             }
         }.launchIn(viewModelScope)
     }
@@ -87,18 +80,19 @@ class CustomerViewModel @Inject constructor(
 
         val selectedCustomer = state.value.selectedCustomer
 
-        if (selectedCustomer?.id != null) {
-            updateCustomerUseCase(name, city, country, selectedCustomer.id).onEach { result ->
-                when (result) {
-                    is Resource.Error -> {
-                        _userMessage.emit(result.message ?: "Can't save customers")
-                        _state.update { it.copy(loading = false) }
-                    }
-                    is Resource.Loading -> _state.update { it.copy(loading = true) }
-                    is Resource.Success -> _state.update { it.copy(loading = false) }
+        if (selectedCustomer?.id == null) return
+
+        updateCustomerUseCase(name, city, country, selectedCustomer.id).onEach { result ->
+            when (result) {
+                is Resource.Error -> {
+                    _userMessage.emit(result.message ?: "Can't save customers")
+                    _state.update { it.copy(loading = false) }
                 }
-            }.launchIn(viewModelScope)
-        }
+                is Resource.Loading -> _state.update { it.copy(loading = true) }
+                is Resource.Success -> clearState()
+            }
+        }.launchIn(viewModelScope)
+
     }
 
     fun customerSelected(customer: Customer) {
@@ -137,6 +131,18 @@ class CustomerViewModel @Inject constructor(
                 is Resource.Success -> _state.update { it.copy(loading = false) }
             }
         }.launchIn(viewModelScope)
+    }
+
+    private fun clearState(){
+        _state.update {
+            it.copy(
+                loading = false,
+                customerName = "",
+                customerCity = "",
+                customerCountry = "",
+                selectedCustomer = null
+                )
+        }
     }
 
 }

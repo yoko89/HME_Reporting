@@ -1,4 +1,4 @@
-package com.neklaway.hme_reporting.common.domain.visa_use_cases
+package com.neklaway.hme_reporting.common.domain.use_cases.visa_use_cases
 
 import android.database.sqlite.SQLiteConstraintException
 import android.util.Log
@@ -27,27 +27,31 @@ class UpdateVisaUseCase @Inject constructor(
 
         if (country.trim().isBlank()) {
             emit(Resource.Error("Visa Country can't be blank"))
-        } else if (date == null) {
+            return@flow
+        }
+        if (date == null) {
             emit(Resource.Error("Visa Date can't be blank"))
-        } else if (id == null) {
+            return@flow
+        }
+        if (id == null) {
             emit(Resource.Error("Visa Date can't be updated"))
-        } else {
-            try {
-                val visa = Visa(country.trim(), date, checked, id)
-                val result = repo.update(visa.toVisaEntity())
-                if (result > 0) {
-                    emit(Resource.Success(true))
-                } else {
-                    emit(Resource.Error("Error: Can't Update Visa"))
-                    Log.d(TAG, "invoke: error $result")
-                }
-            } catch (e: SQLiteConstraintException) {
-                e.printStackTrace()
-                emit(Resource.Error(e.message ?: "Error: Can't Update Visa"))
-                Log.d(TAG, "invoke: error ${e.message}")
+            return@flow
+        }
 
+        try {
+            val visa = Visa(country.trim(), date, checked, id)
+            val result = repo.update(visa.toVisaEntity())
+            if (result > 0) {
+                emit(Resource.Success(true))
+            } else {
+                emit(Resource.Error("Error: Can't Update Visa"))
+                Log.d(TAG, "invoke: error $result")
             }
+        } catch (e: SQLiteConstraintException) {
+            e.printStackTrace()
+            emit(Resource.Error(e.message ?: "Error: Can't Update Visa"))
+            Log.d(TAG, "invoke: error ${e.message}")
+
         }
     }
-
 }

@@ -43,9 +43,7 @@ class EditTimeSheetViewModel @Inject constructor(
 
     init {
 
-        timeSheetId =
-            savedStateHandle[TIME_SHEET_ID]
-                ?: -1
+        timeSheetId = savedStateHandle[TIME_SHEET_ID] ?: -1
         _state.update { it.copy(timeSheetId = timeSheetId) }
         Log.d(TAG, ": ${state.value.timeSheetId}")
 
@@ -91,9 +89,13 @@ class EditTimeSheetViewModel @Inject constructor(
     fun updateTimeSheet() {
         viewModelScope.launch {
             val timeSheet = timeSheet.await()
+            if (timeSheet == null) {
+                _event.emit(EditTimeSheetEvents.UserMessage("Can't retrieve TimeSheet"))
+                return@launch
+            }
             updateTimeSheetUseCase.invoke(
-                HMEId = timeSheet?.HMEId,
-                IBAUId = timeSheet?.IBAUId,
+                HMEId = timeSheet.HMEId,
+                IBAUId = timeSheet.IBAUId,
                 date = state.value.date,
                 travelStart = state.value.travelStart,
                 workStart = state.value.workStart,
@@ -259,24 +261,28 @@ class EditTimeSheetViewModel @Inject constructor(
     fun deleteTimeSheet() {
         viewModelScope.launch {
             val timeSheet = timeSheet.await()
-            timeSheet?.let {
-                deleteTimeSheetUseCase(timeSheet).collect { result ->
-                    when (result) {
-                        is Resource.Error -> {
-                            _event.emit(
-                                EditTimeSheetEvents.UserMessage(
-                                    result.message ?: "Error can't delete TimeSheet"
-                                )
-                            )
-                            _state.update { it.copy(loading = false) }
-                        }
-                        is Resource.Loading -> _state.update { it.copy(loading = true) }
-                        is Resource.Success -> {
-                            _event.emit(EditTimeSheetEvents.UserMessage("TimeSheet Deleted"))
-                            _event.emit(EditTimeSheetEvents.PopBackStack)
-                            _state.update { it.copy(loading = false) }
 
-                        }
+            if (timeSheet == null) {
+                _event.emit(EditTimeSheetEvents.UserMessage("Can't retrieve TimeSheet"))
+                return@launch
+            }
+
+            deleteTimeSheetUseCase(timeSheet).collect { result ->
+                when (result) {
+                    is Resource.Error -> {
+                        _event.emit(
+                            EditTimeSheetEvents.UserMessage(
+                                result.message ?: "Error can't delete TimeSheet"
+                            )
+                        )
+                        _state.update { it.copy(loading = false) }
+                    }
+                    is Resource.Loading -> _state.update { it.copy(loading = true) }
+                    is Resource.Success -> {
+                        _event.emit(EditTimeSheetEvents.UserMessage("TimeSheet Deleted"))
+                        _event.emit(EditTimeSheetEvents.PopBackStack)
+                        _state.update { it.copy(loading = false) }
+
                     }
                 }
             }

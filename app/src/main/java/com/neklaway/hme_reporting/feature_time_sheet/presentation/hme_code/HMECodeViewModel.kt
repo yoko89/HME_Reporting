@@ -57,7 +57,7 @@ class HMECodeViewModel @Inject constructor(
 
         getAllCustomersFlowUseCase().onEach { result ->
             when (result) {
-                is Resource.Error ->{
+                is Resource.Error -> {
                     _userMessage.emit(result.message ?: "Can't get customers")
                     _state.update { it.copy(loading = false) }
                 }
@@ -81,9 +81,7 @@ class HMECodeViewModel @Inject constructor(
                     }
                 }
             }
-
         }.launchIn(viewModelScope)
-
     }
 
 
@@ -93,36 +91,45 @@ class HMECodeViewModel @Inject constructor(
         val machineType: String = state.value.machineType
         val workDescription: String = state.value.workDescription
 
-        insertHMECodeUseCase(
-            customerId = state.value.selectedCustomer?.id,
-            hmeCode,
-            machineType,
-            machineNumber,
-            workDescription
-        ).onEach { result ->
-            when (result) {
-                is Resource.Error ->{
-                    _userMessage.emit(result.message ?: "Can't save HME Code")
-                    _state.update { it.copy(loading = false) }
-                }
-                is Resource.Loading -> _state.update { it.copy(loading = true) }
-                is Resource.Success -> {
-                    _state.update {
-                        it.copy(
-                            loading = false,
-                            hmeCode = "",
-                            machineNumber = "",
-                            machineType = "",
-                            workDescription = ""
-                        )
-                    }
 
-                    state.value.selectedCustomer?.let {
-                        getHMEsByCustomerId(it.id!!)
+        state.value.selectedCustomer?.let { selectedCustomer ->
+            insertHMECodeUseCase(
+                customerId = selectedCustomer.id,
+                hmeCode,
+                machineType,
+                machineNumber,
+                workDescription
+            ).onEach { result ->
+                when (result) {
+                    is Resource.Error -> {
+                        _userMessage.emit(result.message ?: "Can't save HME Code")
+                        _state.update { it.copy(loading = false) }
+                    }
+                    is Resource.Loading -> _state.update { it.copy(loading = true) }
+                    is Resource.Success -> {
+                        clearState()
+                        getHMEsByCustomerId(selectedCustomer.id!!)
                     }
                 }
+            }.launchIn(viewModelScope)
+        } ?: {
+            viewModelScope.launch {
+                _userMessage.emit("Please Select Customer First")
             }
-        }.launchIn(viewModelScope)
+        }
+    }
+
+    private fun clearState() {
+        _state.update {
+            it.copy(
+                loading = false,
+                hmeCode = "",
+                machineNumber = "",
+                machineType = "",
+                workDescription = "",
+                selectedHMECode = null
+            )
+        }
     }
 
 
@@ -132,37 +139,33 @@ class HMECodeViewModel @Inject constructor(
         val machineType: String = state.value.machineType
         val workDescription: String = state.value.workDescription
 
-        val selectedHMECode = state.value.selectedHMECode
+        val selectedHMECode = state.value.selectedHMECode ?: return
 
-        if (selectedHMECode != null) {
-            updateHMECodeUseCase(
-                selectedHMECode.id!!,
-                selectedHMECode.customerId,
-                hmeCode,
-                machineType,
-                machineNumber,
-                workDescription,
-                selectedHMECode.fileNumber,
-                selectedHMECode.signerName,
-                selectedHMECode.signatureDate
-            ).onEach { result ->
-                when (result) {
-                    is Resource.Error -> {
-                        _userMessage.emit(result.message ?: "Can't save HME Code")
-                        _state.update { it.copy(loading = false) }
-                    }
-                    is Resource.Loading -> _state.update { it.copy(loading = true) }
-                    is Resource.Success -> {
-                        _state.update {
-                            it.copy(loading = false)
-                        }
-                        state.value.selectedCustomer?.let {
-                            getHMEsByCustomerId(it.id!!)
-                        }
+        updateHMECodeUseCase(
+            selectedHMECode.id!!,
+            selectedHMECode.customerId,
+            hmeCode,
+            machineType,
+            machineNumber,
+            workDescription,
+            selectedHMECode.fileNumber,
+            selectedHMECode.signerName,
+            selectedHMECode.signatureDate
+        ).onEach { result ->
+            when (result) {
+                is Resource.Error -> {
+                    _userMessage.emit(result.message ?: "Can't save HME Code")
+                    _state.update { it.copy(loading = false) }
+                }
+                is Resource.Loading -> _state.update { it.copy(loading = true) }
+                is Resource.Success -> {
+                    clearState()
+                    state.value.selectedCustomer?.let {
+                        getHMEsByCustomerId(it.id!!)
                     }
                 }
-            }.launchIn(viewModelScope)
-        }
+            }
+        }.launchIn(viewModelScope)
     }
 
 
@@ -201,7 +204,6 @@ class HMECodeViewModel @Inject constructor(
     }
 
     fun deleteHMECode(hmeCode: HMECode) {
-
 
         deleteHMECodeUseCase(hmeCode).onEach { result ->
             when (result) {

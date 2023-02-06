@@ -21,7 +21,7 @@ import com.neklaway.hme_reporting.common.domain.use_cases.customer_use_cases.Ins
 import com.neklaway.hme_reporting.common.domain.use_cases.hme_code_use_cases.InsertHMECodeListUseCase
 import com.neklaway.hme_reporting.common.domain.use_cases.ibau_code_use_cases.InsertIBAUCodeListUseCase
 import com.neklaway.hme_reporting.common.domain.use_cases.time_sheet_use_cases.InsertTimeSheetListUseCase
-import com.neklaway.hme_reporting.common.domain.visa_use_cases.InsertVisaListUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.visa_use_cases.InsertVisaListUseCase
 import com.neklaway.hme_reporting.feature_settings.data.broadcast.RestartReceiver
 import com.neklaway.hme_reporting.utils.Constants
 import com.neklaway.hme_reporting.utils.Resource

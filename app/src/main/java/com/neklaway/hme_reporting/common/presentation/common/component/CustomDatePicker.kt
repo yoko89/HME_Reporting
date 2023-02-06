@@ -30,6 +30,5 @@ fun CustomDatePicker(
     datePicker.setOnCancelListener {
         canceled()
     }
-
     datePicker.show()
 }

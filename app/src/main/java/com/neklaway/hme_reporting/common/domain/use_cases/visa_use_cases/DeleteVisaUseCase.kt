@@ -1,4 +1,4 @@
-package com.neklaway.hme_reporting.common.domain.visa_use_cases
+package com.neklaway.hme_reporting.common.domain.use_cases.visa_use_cases
 
 import com.neklaway.hme_reporting.common.domain.model.Visa
 import com.neklaway.hme_reporting.common.domain.model.toVisaEntity

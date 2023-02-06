@@ -104,15 +104,7 @@ class IBAUCodeViewModel @Inject constructor(
                     it.copy(loading = true)
                 }
                 is Resource.Success -> {
-                    _state.update {
-                        it.copy(
-                            loading = false,
-                            ibauCode = "",
-                            machineNumber = "",
-                            machineType = "",
-                            workDescription = ""
-                        )
-                    }
+                    clearState()
                     state.value.selectedHMECode?.let {
                         getIBAUsByHMECodeId(it.id!!)
 
@@ -120,6 +112,19 @@ class IBAUCodeViewModel @Inject constructor(
                 }
             }
         }.launchIn(viewModelScope)
+    }
+
+    private fun clearState() {
+        _state.update {
+            it.copy(
+                loading = false,
+                ibauCode = "",
+                machineNumber = "",
+                machineType = "",
+                workDescription = "",
+                selectedIBAUCode = null
+            )
+        }
     }
 
     fun updateIBAUCode() {
@@ -145,9 +150,7 @@ class IBAUCodeViewModel @Inject constructor(
                     }
                     is Resource.Loading -> _state.update { it.copy(loading = true) }
                     is Resource.Success -> {
-                        _state.update {
-                            it.copy(loading = false)
-                        }
+                        clearState()
                         state.value.selectedCustomer?.let {
                             getHMEsByCustomerId(it.id!!)
                         }

@@ -60,7 +60,7 @@ fun TimeSheetMainScreen(
                 BottomNavigationBar(
                     screenList = screens, navController = navController
                 ) {
-                    viewModel.ScreenSelected(it.route)
+                    viewModel.screenSelected(it.route)
                     navController.popBackStack()
                     navController.navigate(it.route)
                 }

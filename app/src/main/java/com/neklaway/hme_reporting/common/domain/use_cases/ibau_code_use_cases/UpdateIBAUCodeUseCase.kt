@@ -24,25 +24,40 @@ class UpdateIBAUCodeUseCase @Inject constructor(
 
         if (code.trim().isBlank()) {
             emit(Resource.Error("IBAU Code can't be blank"))
-        } else if (machineType.trim().isBlank()) {
+            return@flow
+        }
+        if (machineType.trim().isBlank()) {
             emit(Resource.Error("Machine Type can't be blank"))
-        } else if (machineNumber.trim().isBlank()) {
+            return@flow
+        }
+        if (machineNumber.trim().isBlank()) {
             emit(Resource.Error("Machine number can't be blank"))
-        } else if (workDescription.trim().isBlank()) {
+            return@flow
+        }
+        if (workDescription.trim().isBlank()) {
             emit(Resource.Error("Work Description can't be blank"))
-        } else {
-            val ibauCode = IBAUCode(hmeId, code.trim(), machineType.trim(), machineNumber.trim(), workDescription.trim(), id)
-            try {
-                val result = repo.update(ibauCode.toIBAUCodeEntity())
-                if (result > 0) {
-                    emit(Resource.Success(true))
-                } else {
-                    emit(Resource.Error("Error: Can't update IBAU Code"))
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                emit(Resource.Error(e.message ?: "Error: Can't update IBAU Code"))
+            return@flow
+        }
+
+        val ibauCode = IBAUCode(
+            hmeId,
+            code.trim(),
+            machineType.trim(),
+            machineNumber.trim(),
+            workDescription.trim(),
+            id
+        )
+
+        try {
+            val result = repo.update(ibauCode.toIBAUCodeEntity())
+            if (result > 0) {
+                emit(Resource.Success(true))
+            } else {
+                emit(Resource.Error("Error: Can't update IBAU Code"))
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emit(Resource.Error(e.message ?: "Error: Can't update IBAU Code"))
         }
     }
 }

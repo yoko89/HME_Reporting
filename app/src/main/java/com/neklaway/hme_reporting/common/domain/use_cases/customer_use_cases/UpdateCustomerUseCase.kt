@@ -23,26 +23,27 @@ class UpdateCustomerUseCase @Inject constructor(
 
         if (name.trim().isBlank()) {
             emit(Resource.Error("Customer name can't be blank"))
+            return@flow
         }
-        else if (city.trim().isBlank()) {
+        if (city.trim().isBlank()) {
             emit(Resource.Error("Customer city can't be blank"))
+            return@flow
         }
-        else if (country.trim().isBlank()) {
+        if (country.trim().isBlank()) {
             emit(Resource.Error("Customer country can't be blank"))
-        }else{
-            val customer = Customer(country.trim(), city.trim(), name.trim(),id)
-            try {
+            return@flow
+        }
+        val customer = Customer(country.trim(), city.trim(), name.trim(), id)
+        try {
             val result = repo.update(customer.toCustomerEntity())
             if (result > 0) {
                 emit(Resource.Success(true))
             } else {
                 emit(Resource.Error("Error: Can't update customer"))
             }
-            }catch (e: SQLiteConstraintException){
-                e.printStackTrace()
-                emit(Resource.Error(e.message?:"Error: Can't update customer"))
-            }
+        } catch (e: SQLiteConstraintException) {
+            e.printStackTrace()
+            emit(Resource.Error(e.message ?: "Error: Can't update customer"))
         }
     }
-
 }

@@ -24,31 +24,44 @@ class InsertIBAUCodeUseCase @Inject constructor(
 
         if (code.trim().isBlank()) {
             emit(Resource.Error("IBAU Code can't be blank"))
-        } else if (machineType.trim().isBlank()) {
+            return@flow
+        }
+        if (machineType.trim().isBlank()) {
             emit(Resource.Error("Machine Type can't be blank"))
-        } else if (machineNumber.trim().isBlank()) {
+            return@flow
+        }
+        if (machineNumber.trim().isBlank()) {
             emit(Resource.Error("Machine number can't be blank"))
-        } else if (workDescription.trim().isBlank()) {
+            return@flow
+        }
+        if (workDescription.trim().isBlank()) {
             emit(Resource.Error("Work Description can't be blank"))
-        } else if (hmeId == null) {
+            return@flow
+        }
+        if (hmeId == null) {
             emit(Resource.Error("HME Must be selected First"))
+            return@flow
         }
 
-        if (code.isNotBlank() and machineNumber.isNotBlank() and machineType.isNotBlank() and workDescription.isNotBlank() and (hmeId != null)) {
-            val ibauCode =
-                IBAUCode(hmeId!!, code.trim(), machineType.trim(), machineNumber.trim(), workDescription.trim(), null)
-            try {
-                val result = repo.insert(ibauCode.toIBAUCodeEntity())
-                if (result > 0) {
-                    emit(Resource.Success(true))
-                } else {
-                    emit(Resource.Error("Error: Can't Insert IBAU Code"))
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                emit(Resource.Error(e.message ?: "Error: Can't Insert IBAU Code"))
+        val ibauCode =
+            IBAUCode(
+                hmeId,
+                code.trim(),
+                machineType.trim(),
+                machineNumber.trim(),
+                workDescription.trim(),
+                null
+            )
+        try {
+            val result = repo.insert(ibauCode.toIBAUCodeEntity())
+            if (result > 0) {
+                emit(Resource.Success(true))
+            } else {
+                emit(Resource.Error("Error: Can't Insert IBAU Code"))
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emit(Resource.Error(e.message ?: "Error: Can't Insert IBAU Code"))
         }
     }
-
 }

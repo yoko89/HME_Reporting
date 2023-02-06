@@ -103,41 +103,24 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun setVisaReminder(reminder: String) {
-        var reminderInt: Int? = null
-        if (reminder.isBlank()) {
+        var reminderInt: Int?
+
+        try {
+            reminderInt = reminder.toInt()
+
             viewModelScope.launch {
-                launch {
-                    _userMessage.emit("Visa reminders can't be Blank")
-                }
-
-                launch {
-                    _state.update { it.copy(visaReminder = "0") }
-                }
-                launch {
-                    setVisaReminderUseCase(0)
-                }
+                setVisaReminderUseCase(reminderInt!!)
             }
-            return
-        }
-
-        if (reminder.isNotBlank()) {
-            try {
-                reminderInt = reminder.toInt()
-            } catch (e: NumberFormatException) {
-                e.printStackTrace()
+        } catch (e: NumberFormatException) {
+            e.printStackTrace()
+            reminderInt = null
+            if (reminder.isNotBlank())
                 viewModelScope.launch {
-                    _userMessage.emit(e.message ?: "Error in Visa Reminder Days")
+                    _userMessage.emit("Visa Reminder Date Error: ${e.message}")
                 }
-            }
-        }
-        reminderInt?.let {
-            viewModelScope.launch {
-                setVisaReminderUseCase(it)
-            }
-            _state.update { it.copy(visaReminder = it.toString()) }
         }
 
-
+        _state.update { it.copy(visaReminder = reminderInt?.toString() ?: "") }
     }
 
     fun setIsIbau(isIbau: Boolean) {

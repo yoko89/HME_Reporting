@@ -32,37 +32,42 @@ class UpdateHMECodeUseCase @Inject constructor(
         val notIbau = !settingsRepository.isIbauUser().first()
         if (notIbau && code.trim().isBlank()) {
             emit(Resource.Error("HME Code can't be blank"))
-        } else if (notIbau && machineType?.trim()?.isBlank() == true) {
+            return@flow
+        }
+        if (notIbau && machineType?.trim()?.isBlank() == true) {
             emit(Resource.Error("Machine Type can't be blank"))
-        } else if (notIbau && machineNumber?.trim()?.isBlank() == true) {
+            return@flow
+        }
+        if (notIbau && machineNumber?.trim()?.isBlank() == true) {
             emit(Resource.Error("Machine number can't be blank"))
-        } else if (notIbau && workDescription?.trim()?.isBlank() == true) {
+            return@flow
+        }
+        if (notIbau && workDescription?.trim()?.isBlank() == true) {
             emit(Resource.Error("Work Description can't be blank"))
-        } else {
-            val hmeCode =
-                HMECode(
-                    customerId,
-                    code.trim(),
-                    machineType?.trim(),
-                    machineNumber?.trim(),
-                    workDescription?.trim(),
-                    fileNumber,
-                    signerName?.trim(),
-                    signatureDate,
-                    id
-                )
-            try {
-
-                val result = repo.update(hmeCode.toHMECodeEntity())
-                if (result > 0) {
-                    emit(Resource.Success(true))
-                } else {
-                    emit(Resource.Error("Error: Can't update HME Code"))
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                emit(Resource.Error(e.message ?: "Error: Can't update HME Code"))
+            return@flow
+        }
+        val hmeCode =
+            HMECode(
+                customerId,
+                code.trim(),
+                machineType?.trim(),
+                machineNumber?.trim(),
+                workDescription?.trim(),
+                fileNumber,
+                signerName?.trim(),
+                signatureDate,
+                id
+            )
+        try {
+            val result = repo.update(hmeCode.toHMECodeEntity())
+            if (result > 0) {
+                emit(Resource.Success(true))
+            } else {
+                emit(Resource.Error("Error: Can't update HME Code"))
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emit(Resource.Error(e.message ?: "Error: Can't update HME Code"))
         }
     }
 }

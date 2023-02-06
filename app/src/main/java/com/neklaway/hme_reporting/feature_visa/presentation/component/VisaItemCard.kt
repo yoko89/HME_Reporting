@@ -44,9 +44,12 @@ fun VisaItemCard(
             },
         colors = CardDefaults.cardColors(
             containerColor =
-            if (days < 0) Color(red = 255, green = 0, blue = 0, alpha = 150)
-            else if (days < visaReminderWarning) Color.Yellow
-            else Color.Green
+            if (!visa.selected) MaterialTheme.colorScheme.inverseSurface
+            else {
+                if (days < 0) Color(red = 255, green = 0, blue = 0, alpha = 150)
+                else if (days < visaReminderWarning) Color.Yellow
+                else Color.Green
+            }
         )
     ) {
         Row(

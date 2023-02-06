@@ -1,4 +1,4 @@
-package com.neklaway.hme_reporting.common.domain.visa_use_cases
+package com.neklaway.hme_reporting.common.domain.use_cases.visa_use_cases
 
 import android.database.sqlite.SQLiteConstraintException
 import com.neklaway.hme_reporting.common.domain.model.Visa
@@ -7,7 +7,6 @@ import com.neklaway.hme_reporting.common.domain.repository.VisaRepository
 import com.neklaway.hme_reporting.utils.Resource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import java.util.*
 import javax.inject.Inject
 
 class InsertVisaListUseCase @Inject constructor(
