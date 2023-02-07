@@ -20,6 +20,8 @@ sealed class Screen(
     object SettingsScreen : Screen("Settings", "settings_screen", Icons.Default.Settings)
     object TimeSheetMainScreen : Screen("Timesheet", "time_sheet_main_screen", Icons.Default.Note)
     object VisaScreen : Screen("Visa","visa_screen",Icons.Default.AirplaneTicket)
+    object CarMileageScreen : Screen("Car","car_mileage",Icons.Default.DirectionsCar)
+
 }
 
 

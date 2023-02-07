@@ -19,6 +19,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.neklaway.hme_reporting.common.ui.theme.HMEReportingTheme
+import com.neklaway.hme_reporting.feature_car_mileage.presentation.CarMileageScreen
 import com.neklaway.hme_reporting.feature_settings.presentation.settings.SettingsScreen
 import com.neklaway.hme_reporting.feature_time_sheet.presentation.main.TimeSheetMainScreen
 import com.neklaway.hme_reporting.feature_visa.presentation.VisaScreen
@@ -53,7 +54,7 @@ class MainActivity @Inject constructor(
                     val scope = rememberCoroutineScope()
 
                     val items =
-                        listOf(Screen.TimeSheetMainScreen, Screen.VisaScreen, Screen.SettingsScreen)
+                        listOf(Screen.TimeSheetMainScreen, Screen.VisaScreen,Screen.CarMileageScreen, Screen.SettingsScreen)
                     val selectedItem = remember {
                         mutableStateOf(items.find { it.route == navController.currentDestination?.route }
                             ?: items[0])
@@ -137,6 +138,10 @@ fun Navigation(
 
         composable(route = Screen.SettingsScreen.route) {
             SettingsScreen()
+        }
+
+        composable(route = Screen.CarMileageScreen.route) {
+            CarMileageScreen()
         }
 
     }

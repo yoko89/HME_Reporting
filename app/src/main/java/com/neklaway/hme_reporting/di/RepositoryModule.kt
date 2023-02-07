@@ -57,4 +57,8 @@ abstract class RepositoryModule {
     @Singleton
     abstract fun provideRestoreRepository(restoreRepositoryImpl: RestoreRepositoryImpl): RestoreRepository
 
+    @Binds
+    @Singleton
+    abstract fun provideCarMileageRepository(carMileageRepositoryImpl: CarMileageRepositoryImpl): CarMileageRepository
+
 }
