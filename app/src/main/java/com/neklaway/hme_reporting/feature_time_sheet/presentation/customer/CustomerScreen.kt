@@ -48,7 +48,7 @@ fun CustomerScreen(
                         enter = slideInVertically(initialOffsetY = { it }),
                         exit = slideOutVertically(targetOffsetY = { it })
                     ) {
-                        Row() {
+                        Row {
                             FloatingActionButton(onClick = {
                                 viewModel.updateCustomer()
                             }) {
