@@ -29,6 +29,12 @@ class SavedData @Inject constructor(@ApplicationContext context: Context) {
         val weekend = booleanPreferencesKey("weekend")
         val travel_day = booleanPreferencesKey("travel_day")
         val timesheet_route = stringPreferencesKey("timesheet_route")
+        val car_mileage_start_date = longPreferencesKey("car_mileage_start_date")
+        val car_mileage_start_time = longPreferencesKey("car_mileage_start_time")
+        val car_mileage_start_mileage = longPreferencesKey("car_mileage_start_mileage")
+        val car_mileage_end_date = longPreferencesKey("car_mileage_end_date")
+        val car_mileage_end_time = longPreferencesKey("car_mileage_end_time")
+        val car_mileage_end_mileage = longPreferencesKey("car_mileage_end_mileage")
     }
 
     suspend fun setCustomerId(customerId: Long) {
@@ -83,29 +89,29 @@ class SavedData @Inject constructor(@ApplicationContext context: Context) {
 
     suspend fun setWorkStart(workStartInMills: Long?) {
         savedDataDataStore.edit { settings ->
-            settings[work_start] = workStartInMills?:-1L
+            settings[work_start] = workStartInMills ?: -1L
         }
     }
 
     val getWorkStart: Flow<Long?> = savedDataDataStore.data.map { settings ->
         settings[work_start].let {
-            when (it){
-            -1L -> null
-            else -> it
-        }
+            when (it) {
+                -1L -> null
+                else -> it
+            }
 
         }
     }
 
     suspend fun setTravelStart(travelStartInMills: Long?) {
         savedDataDataStore.edit { settings ->
-            settings[travel_start] = travelStartInMills?:-1L
+            settings[travel_start] = travelStartInMills ?: -1L
         }
     }
 
     val getTravelStart: Flow<Long?> = savedDataDataStore.data.map { settings ->
         settings[travel_start].let {
-            when (it){
+            when (it) {
                 -1L -> null
                 else -> it
             }
@@ -115,13 +121,13 @@ class SavedData @Inject constructor(@ApplicationContext context: Context) {
 
     suspend fun setWorkEnd(workEndInMills: Long?) {
         savedDataDataStore.edit { settings ->
-            settings[work_end] = workEndInMills?:-1L
+            settings[work_end] = workEndInMills ?: -1L
         }
     }
 
     val getWorkEnd: Flow<Long?> = savedDataDataStore.data.map { settings ->
         settings[work_end].let {
-            when (it){
+            when (it) {
                 -1L -> null
                 else -> it
             }
@@ -130,13 +136,13 @@ class SavedData @Inject constructor(@ApplicationContext context: Context) {
 
     suspend fun setTravelEnd(travelEndInMills: Long?) {
         savedDataDataStore.edit { settings ->
-            settings[travel_end] = travelEndInMills?:-1L
+            settings[travel_end] = travelEndInMills ?: -1L
         }
     }
 
     val getTravelEnd: Flow<Long?> = savedDataDataStore.data.map { settings ->
         settings[travel_end].let {
-            when (it){
+            when (it) {
                 -1L -> null
                 else -> it
             }
@@ -145,13 +151,13 @@ class SavedData @Inject constructor(@ApplicationContext context: Context) {
 
     suspend fun setDate(dateInMills: Long?) {
         savedDataDataStore.edit { settings ->
-            settings[date] = dateInMills?:-1L
+            settings[date] = dateInMills ?: -1L
         }
     }
 
     val getDate: Flow<Long?> = savedDataDataStore.data.map { settings ->
         settings[date].let {
-            when (it){
+            when (it) {
                 -1L -> null
                 else -> it
             }
@@ -160,13 +166,13 @@ class SavedData @Inject constructor(@ApplicationContext context: Context) {
 
     suspend fun setBreakDuration(breakTime: Float?) {
         savedDataDataStore.edit { settings ->
-            settings[break_duration] = breakTime?:-1F
+            settings[break_duration] = breakTime ?: -1F
         }
     }
 
     val getBreakDuration: Flow<Float?> = savedDataDataStore.data.map { settings ->
         settings[break_duration].let {
-            when (it){
+            when (it) {
                 -1F -> null
                 else -> it
             }
@@ -175,13 +181,13 @@ class SavedData @Inject constructor(@ApplicationContext context: Context) {
 
     suspend fun setTraveledDistance(distance: Int?) {
         savedDataDataStore.edit { settings ->
-            settings[traveled_distance] = distance?:-1
+            settings[traveled_distance] = distance ?: -1
         }
     }
 
     val getTraveledDistance: Flow<Int?> = savedDataDataStore.data.map { settings ->
         settings[traveled_distance].let {
-            when (it){
+            when (it) {
                 -1 -> null
                 else -> it
             }
@@ -209,5 +215,96 @@ class SavedData @Inject constructor(@ApplicationContext context: Context) {
         settings[timesheet_route]
     }
 
+    suspend fun setCarMileageStartDate(carMileageStartDateInMills: Long?) {
+        savedDataDataStore.edit { settings ->
+            settings[car_mileage_start_date] = carMileageStartDateInMills ?: -1L
+        }
+    }
+
+    val getCarMileageStartDate: Flow<Long?> = savedDataDataStore.data.map { settings ->
+        settings[car_mileage_start_date].let {
+            when (it) {
+                -1L -> null
+                else -> it
+            }
+        }
+    }
+
+    suspend fun setCarMileageStartTime(carMileageStartTimeInMills: Long?) {
+        savedDataDataStore.edit { settings ->
+            settings[car_mileage_start_time] = carMileageStartTimeInMills ?: -1L
+        }
+    }
+
+    val getCarMileageStartTime: Flow<Long?> = savedDataDataStore.data.map { settings ->
+        settings[car_mileage_start_time].let {
+            when (it) {
+                -1L -> null
+                else -> it
+            }
+        }
+    }
+
+    suspend fun setCarMileageStartMileage(carMileageStartMileage: Long?) {
+        savedDataDataStore.edit { settings ->
+            settings[car_mileage_start_mileage] = carMileageStartMileage ?: -1L
+        }
+    }
+
+    val getCarMileageStartMileage: Flow<Long?> = savedDataDataStore.data.map { settings ->
+        settings[car_mileage_start_mileage].let {
+            when (it) {
+                -1L -> null
+                else -> it
+            }
+        }
+    }
+
+    suspend fun setCarMileageEndDate(carMileageEndDateInMills: Long?) {
+        savedDataDataStore.edit { settings ->
+            settings[car_mileage_end_date] = carMileageEndDateInMills ?: -1L
+        }
+    }
+
+    val getCarMileageEndDate: Flow<Long?> = savedDataDataStore.data.map { settings ->
+        settings[car_mileage_end_date].let {
+            when (it) {
+                -1L -> null
+                else -> it
+            }
+        }
+    }
+
+    suspend fun setCarMileageEndTime(carMileageEndTimeInMills: Long?) {
+        savedDataDataStore.edit { settings ->
+            settings[car_mileage_end_time] = carMileageEndTimeInMills ?: -1L
+        }
+    }
+
+    val getCarMileageEndTime: Flow<Long?> = savedDataDataStore.data.map { settings ->
+        settings[car_mileage_end_time].let {
+            when (it) {
+                -1L -> null
+                else -> it
+            }
+        }
+    }
+
+    suspend fun setCarMileageEndMileage(carMileageEndMileage: Long?) {
+        savedDataDataStore.edit { settings ->
+            settings[car_mileage_end_mileage] = carMileageEndMileage ?: -1L
+        }
+    }
+
+    val getCarMileageEndMileage: Flow<Long?> = savedDataDataStore.data.map { settings ->
+        settings[car_mileage_end_mileage].let {
+            when (it) {
+                -1L -> null
+                else -> it
+            }
+        }
+    }
 
 }
+
+

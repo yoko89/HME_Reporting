@@ -60,5 +60,28 @@ interface SavedDataRepository {
 
     fun getTimeSheetRoute(): Flow<String?>
 
+    suspend fun setCarMileageStartDate(carMileageStartDateInMills: Long?)
+
+    fun getCarMileageStartDate(): Flow<Long?>
+
+    suspend fun setCarMileageStartTime(carMileageStartTimeInMills: Long?)
+
+    fun getCarMileageStartTime(): Flow<Long?>
+
+    suspend fun setCarMileageStartMileage(carMileageStartMileage: Long?)
+
+    fun getCarMileageStartMileage(): Flow<Long?>
+
+    suspend fun setCarMileageEndDate(carMileageEndDateInMills: Long?)
+
+    fun getCarMileageEndDate(): Flow<Long?>
+
+    suspend fun setCarMileageEndTime(carMileageEndTimeInMills: Long?)
+
+    fun getCarMileageEndTime(): Flow<Long?>
+
+    suspend fun setCarMileageEndMileage(carMileageEndMileage: Long?)
+
+    fun getCarMileageEndMileage(): Flow<Long?>
 
 }

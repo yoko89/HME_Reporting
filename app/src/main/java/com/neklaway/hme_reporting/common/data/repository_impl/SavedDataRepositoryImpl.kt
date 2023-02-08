@@ -120,4 +120,50 @@ class SavedDataRepositoryImpl @Inject constructor(
     override fun getTimeSheetRoute(): Flow<String?> {
         return savedData.getTimeSheetRoute
     }
+
+    override suspend fun setCarMileageStartDate(carMileageStartDateInMills: Long?) {
+        savedData.setCarMileageStartDate(carMileageStartDateInMills)
+    }
+
+    override fun getCarMileageStartDate(): Flow<Long?> {
+        return savedData.getCarMileageStartDate
+    }
+
+    override suspend fun setCarMileageStartTime(carMileageStartTimeInMills: Long?) {
+        savedData.setCarMileageStartTime(carMileageStartTimeInMills)
+    }
+
+    override fun getCarMileageStartTime(): Flow<Long?> {
+        return savedData.getCarMileageStartTime
+    }
+    override suspend fun setCarMileageStartMileage(carMileageStartMileage: Long?) {
+        savedData.setCarMileageStartMileage(carMileageStartMileage)
+    }
+
+    override fun getCarMileageStartMileage(): Flow<Long?> {
+        return savedData.getCarMileageStartMileage
+    }
+    override suspend fun setCarMileageEndDate(carMileageEndDateInMills: Long?) {
+        savedData.setCarMileageEndDate(carMileageEndDateInMills)
+    }
+
+    override fun getCarMileageEndDate(): Flow<Long?> {
+        return savedData.getCarMileageEndDate
+    }
+
+    override suspend fun setCarMileageEndTime(carMileageEndTimeInMills: Long?) {
+        savedData.setCarMileageEndTime(carMileageEndTimeInMills)
+    }
+
+    override fun getCarMileageEndTime(): Flow<Long?> {
+        return savedData.getCarMileageEndTime
+    }
+    override suspend fun setCarMileageEndMileage(carMileageEndMileage: Long?) {
+        savedData.setCarMileageEndMileage(carMileageEndMileage)
+    }
+
+    override fun getCarMileageEndMileage(): Flow<Long?> {
+        return savedData.getCarMileageEndMileage
+    }
+
 }

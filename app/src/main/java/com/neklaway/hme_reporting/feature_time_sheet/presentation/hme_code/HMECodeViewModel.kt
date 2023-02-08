@@ -10,8 +10,8 @@ import com.neklaway.hme_reporting.common.domain.use_cases.hme_code_use_cases.Del
 import com.neklaway.hme_reporting.common.domain.use_cases.hme_code_use_cases.GetHMECodeByCustomerIdUseCase
 import com.neklaway.hme_reporting.common.domain.use_cases.hme_code_use_cases.InsertHMECodeUseCase
 import com.neklaway.hme_reporting.common.domain.use_cases.hme_code_use_cases.UpdateHMECodeUseCase
-import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.customer_id.GetCustomerIdUseCase
-import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.customer_id.SetCustomerIdUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.time_sheet.customer_id.GetCustomerIdUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.time_sheet.customer_id.SetCustomerIdUseCase
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.is_ibau.GetIsIbauUseCase
 import com.neklaway.hme_reporting.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel

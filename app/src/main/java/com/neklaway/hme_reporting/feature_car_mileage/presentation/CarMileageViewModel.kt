@@ -8,6 +8,18 @@ import com.neklaway.hme_reporting.common.domain.use_cases.car_mileage_use_cases.
 import com.neklaway.hme_reporting.common.domain.use_cases.car_mileage_use_cases.GetAllCarMileageFlowUseCase
 import com.neklaway.hme_reporting.common.domain.use_cases.car_mileage_use_cases.InsertCarMileageUseCase
 import com.neklaway.hme_reporting.common.domain.use_cases.car_mileage_use_cases.UpdateCarMileageUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.car_mileage.end_date.GetCarMileageEndDateUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.car_mileage.end_date.SetCarMileageEndDateUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.car_mileage.end_mileage.GetCarMileageEndMileageUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.car_mileage.end_mileage.SetCarMileageEndMileageUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.car_mileage.end_time.GetCarMileageEndTimeUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.car_mileage.end_time.SetCarMileageEndTimeUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.car_mileage.start_Mileage.GetCarMileageStartMileageUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.car_mileage.start_Mileage.SetCarMileageStartMileageUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.car_mileage.start_date.GetCarMileageStartDateUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.car_mileage.start_date.SetCarMileageStartDateUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.car_mileage.start_time.GetCarMileageStartTimeUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.car_mileage.start_time.SetCarMileageStartTimeUseCase
 import com.neklaway.hme_reporting.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
@@ -23,7 +35,18 @@ class CarMileageViewModel @Inject constructor(
     private val getAllCarMileageFlowUseCase: GetAllCarMileageFlowUseCase,
     private val insertCarMileage: InsertCarMileageUseCase,
     private val updateCarMileageUseCase: UpdateCarMileageUseCase,
-    //Todo("Get saved Data")
+    private val getCarMileageStartDateUseCase: GetCarMileageStartDateUseCase,
+    private val getCarMileageStartTimeUseCase: GetCarMileageStartTimeUseCase,
+    private val getCarMileageStartMileageUseCase: GetCarMileageStartMileageUseCase,
+    private val getCarMileageEndDateUseCase: GetCarMileageEndDateUseCase,
+    private val getCarMileageEndTimeUseCase: GetCarMileageEndTimeUseCase,
+    private val getCarMileageEndMileageUseCase: GetCarMileageEndMileageUseCase,
+    private val setCarMileageStartDateUseCase: SetCarMileageStartDateUseCase,
+    private val setCarMileageStartTimeUseCase: SetCarMileageStartTimeUseCase,
+    private val setCarMileageStartMileageUseCase: SetCarMileageStartMileageUseCase,
+    private val setCarMileageEndDateUseCase: SetCarMileageEndDateUseCase,
+    private val setCarMileageEndTimeUseCase: SetCarMileageEndTimeUseCase,
+    private val setCarMileageEndMileageUseCase: SetCarMileageEndMileageUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(CarMileageState())
@@ -36,7 +59,29 @@ class CarMileageViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             getCarMileages()
-            //TODO("Get saved data")
+            getSavedData()
+        }
+    }
+
+    private fun getSavedData() {
+        viewModelScope.launch {
+            val carMileageStartDate = getCarMileageStartDateUseCase()
+            val carMileageStartTime = getCarMileageStartTimeUseCase()
+            val carMileageStartMileage = getCarMileageStartMileageUseCase()
+            val carMileageEndDate = getCarMileageEndDateUseCase()
+            val carMileageEndTime = getCarMileageEndTimeUseCase()
+            val carMileageEndMileage = getCarMileageEndMileageUseCase()
+
+            _state.update {
+                it.copy(
+                    startTime = carMileageStartTime,
+                    startDate = carMileageStartDate,
+                    startMileage = carMileageStartMileage?.toString() ?: "",
+                    endDate = carMileageEndDate,
+                    endTime = carMileageEndTime,
+                    endMileage = carMileageEndMileage?.toString() ?: "",
+                )
+            }
         }
     }
 
@@ -53,7 +98,15 @@ class CarMileageViewModel @Inject constructor(
                     _state.update {
                         it.copy(
                             carMileageList = result.data.orEmpty()
-                                .sortedWith(compareBy<CarMileage>({ it.startDate }, { it.startTime }).reversed()),
+                                .sortedWith(
+                                    compareBy<CarMileage>(
+                                        { carMileage ->
+                                            carMileage.startDate
+                                        },
+                                        { carMileage ->
+                                            carMileage.startTime
+                                        }).reversed()
+                                ),
                             loading = false
                         )
                     }
@@ -99,6 +152,15 @@ class CarMileageViewModel @Inject constructor(
                 endTime = null,
                 endMileage = ""
             )
+        }
+
+        viewModelScope.launch {
+            setCarMileageStartTimeUseCase(null)
+            setCarMileageStartDateUseCase(null)
+            setCarMileageEndMileageUseCase(null)
+            setCarMileageStartMileageUseCase(null)
+            setCarMileageEndDateUseCase(null)
+            setCarMileageEndTimeUseCase(null)
         }
     }
 
@@ -178,7 +240,7 @@ class CarMileageViewModel @Inject constructor(
                 }
         }
         viewModelScope.launch {
-            // TODO("save start Mileage")
+            setCarMileageStartMileageUseCase(startMileageLong)
         }
         val startMileageString = startMileageLong?.toString() ?: ""
 
@@ -198,7 +260,7 @@ class CarMileageViewModel @Inject constructor(
                 }
         }
         viewModelScope.launch {
-            // TODO("save end Mileage")
+            setCarMileageEndMileageUseCase(endMileageLong)
         }
         val endMileageString = endMileageLong?.toString() ?: ""
 
@@ -224,6 +286,7 @@ class CarMileageViewModel @Inject constructor(
         date.set(Calendar.MILLISECOND, 0)
         _state.update { it.copy(startDate = date) }
         dateTimePickedHide()
+        viewModelScope.launch { setCarMileageStartDateUseCase(date) }
     }
 
     fun endDateClicked() {
@@ -244,6 +307,7 @@ class CarMileageViewModel @Inject constructor(
         date.set(Calendar.MILLISECOND, 0)
         _state.update { it.copy(endDate = date) }
         dateTimePickedHide()
+        viewModelScope.launch { setCarMileageEndDateUseCase(date) }
     }
 
     fun dateTimePickedHide() {
@@ -268,7 +332,7 @@ class CarMileageViewModel @Inject constructor(
         _state.update { it.copy(startTime = date) }
         dateTimePickedHide()
         viewModelScope.launch {
-            //TODO("save Time")
+            setCarMileageStartTimeUseCase(date)
         }
     }
 
@@ -283,7 +347,7 @@ class CarMileageViewModel @Inject constructor(
         _state.update { it.copy(endTime = date) }
         dateTimePickedHide()
         viewModelScope.launch {
-            //TODO("save Time")
+            setCarMileageEndTimeUseCase(date)
         }
     }
 
