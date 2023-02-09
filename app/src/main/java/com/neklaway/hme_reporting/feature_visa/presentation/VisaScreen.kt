@@ -107,7 +107,8 @@ fun VisaScreen(
                     .padding(5.dp)
             ) {
 
-                OutlinedTextField(value = state.country,
+                OutlinedTextField(
+                    value = state.country,
                     onValueChange = { country ->
                         viewModel.countryChanged(country)
                     },
@@ -117,7 +118,8 @@ fun VisaScreen(
                     maxLines = 1
                 )
 
-                OutlinedTextField(value = state.date.toDate(),
+                OutlinedTextField(
+                    value = state.date.toDate(),
                     onValueChange = {},
                     label = { Text(text = "Date") },
                     modifier = Modifier.fillMaxWidth(),

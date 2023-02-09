@@ -1,8 +1,8 @@
-package com.neklaway.hme_reporting.common.domain.use_cases.visa_use_cases
+package com.neklaway.hme_reporting.feature_visa.domain.use_cases
 
 import com.neklaway.hme_reporting.common.data.entity.toVisa
-import com.neklaway.hme_reporting.common.domain.model.Visa
 import com.neklaway.hme_reporting.common.domain.repository.VisaRepository
+import com.neklaway.hme_reporting.feature_visa.domain.model.Visa
 import com.neklaway.hme_reporting.utils.Resource
 import java.io.IOException
 import javax.inject.Inject

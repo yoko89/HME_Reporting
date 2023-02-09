@@ -3,7 +3,7 @@ package com.neklaway.hme_reporting.common.data.entity
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.neklaway.hme_reporting.common.domain.model.Visa
+import com.neklaway.hme_reporting.feature_visa.domain.model.Visa
 import com.neklaway.hme_reporting.utils.toCalender
 
 @Entity(

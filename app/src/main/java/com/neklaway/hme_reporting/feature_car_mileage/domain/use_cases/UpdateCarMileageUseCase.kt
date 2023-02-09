@@ -1,16 +1,19 @@
-package com.neklaway.hme_reporting.common.domain.use_cases.car_mileage_use_cases
+package com.neklaway.hme_reporting.feature_car_mileage.domain.use_cases
 
 import android.database.sqlite.SQLiteConstraintException
-import com.neklaway.hme_reporting.common.domain.model.CarMileage
-import com.neklaway.hme_reporting.common.domain.model.toCarMileageEntity
+import android.util.Log
 import com.neklaway.hme_reporting.common.domain.repository.CarMileageRepository
+import com.neklaway.hme_reporting.feature_car_mileage.domain.model.CarMileage
+import com.neklaway.hme_reporting.feature_car_mileage.domain.model.toCarMileageEntity
 import com.neklaway.hme_reporting.utils.Resource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import java.util.*
 import javax.inject.Inject
 
-class InsertCarMileageUseCase @Inject constructor(
+private const val TAG = "UpdateCarMileageUseCase"
+
+class UpdateCarMileageUseCase @Inject constructor(
     val repo: CarMileageRepository
 ) {
 
@@ -21,6 +24,7 @@ class InsertCarMileageUseCase @Inject constructor(
         endDate: Calendar?,
         endTime: Calendar?,
         endMileage: Long?,
+        id: Long?
     ): Flow<Resource<Boolean>> = flow {
         emit(Resource.Loading())
 
@@ -48,18 +52,26 @@ class InsertCarMileageUseCase @Inject constructor(
             emit(Resource.Error("End Time can't be blank"))
             return@flow
         }
+        if (id == null) {
+            emit(Resource.Error("Car Mileage can't be updated"))
+            return@flow
+        }
+
         try {
             val carMileage =
-                CarMileage(startDate, startTime, startMileage, endDate, endTime, endMileage)
-            val result = repo.insert(carMileage.toCarMileageEntity())
+                CarMileage(startDate, startTime, startMileage, endDate, endTime, endMileage, id)
+            val result = repo.update(carMileage.toCarMileageEntity())
             if (result > 0) {
                 emit(Resource.Success(true))
             } else {
-                emit(Resource.Error("Error: Can't insert Car Mileage"))
+                emit(Resource.Error("Error: Can't Update Car Mileage"))
+                Log.d(TAG, "invoke: error $result")
             }
         } catch (e: SQLiteConstraintException) {
             e.printStackTrace()
-            emit(Resource.Error(e.message ?: "Error: Can't Insert Car Mileage"))
+            emit(Resource.Error(e.message ?: "Error: Can't Update Car Mileage"))
+            Log.d(TAG, "invoke: error ${e.message}")
+
         }
     }
 }

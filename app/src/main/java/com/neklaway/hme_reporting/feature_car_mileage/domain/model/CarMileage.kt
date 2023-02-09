@@ -1,4 +1,4 @@
-package com.neklaway.hme_reporting.common.domain.model
+package com.neklaway.hme_reporting.feature_car_mileage.domain.model
 
 import com.neklaway.hme_reporting.common.data.entity.CarMileageEntity
 import com.neklaway.hme_reporting.utils.CalendarAsLongSerializer

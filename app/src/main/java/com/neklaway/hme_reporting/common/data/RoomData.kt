@@ -4,6 +4,10 @@ import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import com.neklaway.hme_reporting.common.data.dao.*
+import com.neklaway.hme_reporting.common.data.dao.CustomerDao
+import com.neklaway.hme_reporting.common.data.dao.HMECodeDao
+import com.neklaway.hme_reporting.common.data.dao.IBAUCodeDao
+import com.neklaway.hme_reporting.common.data.dao.TimeSheetDao
 import com.neklaway.hme_reporting.common.data.entity.*
 
 @Database(

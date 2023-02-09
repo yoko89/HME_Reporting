@@ -3,13 +3,9 @@ package com.neklaway.hme_reporting.feature_visa.presentation
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.neklaway.hme_reporting.common.domain.model.Visa
-import com.neklaway.hme_reporting.common.domain.use_cases.visa_use_cases.DeleteVisaUseCase
-import com.neklaway.hme_reporting.common.domain.use_cases.visa_use_cases.GetAllVisasFlowUseCase
-import com.neklaway.hme_reporting.common.domain.use_cases.visa_use_cases.InsertVisaUseCase
-import com.neklaway.hme_reporting.common.domain.use_cases.visa_use_cases.UpdateVisaUseCase
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.visa_reminder.GetVisaReminderUseCase
-import com.neklaway.hme_reporting.feature_visa.domain.use_cases.VisaReminderWorkerUseCase
+import com.neklaway.hme_reporting.feature_visa.domain.model.Visa
+import com.neklaway.hme_reporting.feature_visa.domain.use_cases.*
 import com.neklaway.hme_reporting.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
@@ -57,8 +53,7 @@ class VisaViewModel @Inject constructor(
                     _state.update {
                         it.copy(
                             visas = result.data.orEmpty()
-                                .sortedWith(compareBy({ it.date }, { it.country })),
-                            loading = false
+                                .sortedWith(compareBy({ it.date }, { it.country })), loading = false
                         )
                     }
                 }
@@ -149,8 +144,7 @@ class VisaViewModel @Inject constructor(
     fun visaClicked(visa: Visa) {
         _state.update {
             it.copy(
-                country = visa.country,
-                date = visa.date
+                country = visa.country, date = visa.date
             )
         }
         _state.update { it.copy(selectedVisa = visa) }
@@ -171,12 +165,7 @@ class VisaViewModel @Inject constructor(
     fun datePicked(year: Int, month: Int, day: Int) {
         val date = Calendar.getInstance()
         date.set(
-            year,
-            month,
-            day,
-            0,
-            0,
-            0
+            year, month, day, 0, 0, 0
         )
         date.set(Calendar.MILLISECOND, 0)
         _state.update { it.copy(date = date, showDatePicker = false) }
@@ -188,10 +177,7 @@ class VisaViewModel @Inject constructor(
 
     fun visaSelected(visa: Visa, checked: Boolean) {
         updateVisaUseCase(
-            country = visa.country,
-            date = visa.date,
-            checked = checked,
-            id = visa.id
+            country = visa.country, date = visa.date, checked = checked, id = visa.id
         ).onEach { result ->
             when (result) {
                 is Resource.Error -> {

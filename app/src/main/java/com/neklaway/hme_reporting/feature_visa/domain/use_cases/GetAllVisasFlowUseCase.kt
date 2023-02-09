@@ -1,8 +1,8 @@
-package com.neklaway.hme_reporting.common.domain.use_cases.visa_use_cases
+package com.neklaway.hme_reporting.feature_visa.domain.use_cases
 
 import com.neklaway.hme_reporting.common.data.entity.toVisa
-import com.neklaway.hme_reporting.common.domain.model.Visa
 import com.neklaway.hme_reporting.common.domain.repository.VisaRepository
+import com.neklaway.hme_reporting.feature_visa.domain.model.Visa
 import com.neklaway.hme_reporting.utils.Resource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
@@ -19,8 +19,8 @@ class GetAllVisasFlowUseCase @Inject constructor(
         try {
             emitAll(repo.getAllFlow().map { visaEntities ->
                 Resource.Success(visaEntities.map { visaEntity ->
-                        visaEntity.toVisa()
-                    })
+                    visaEntity.toVisa()
+                })
             })
         } catch (e: Exception) {
             emit(Resource.Error(e.localizedMessage ?: "Error: Can't get Visa"))

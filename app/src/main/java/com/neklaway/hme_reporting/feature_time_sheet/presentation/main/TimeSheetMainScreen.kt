@@ -20,6 +20,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.neklaway.hme_reporting.common.presentation.Screen
 import com.neklaway.hme_reporting.feature_time_sheet.presentation.customer.CustomerScreen
 import com.neklaway.hme_reporting.feature_time_sheet.presentation.edit_time_sheet.EditTimeSheetScreen
 import com.neklaway.hme_reporting.feature_time_sheet.presentation.edit_time_sheet.EditTimeSheetViewModel
@@ -27,7 +28,6 @@ import com.neklaway.hme_reporting.feature_time_sheet.presentation.hme_code.HMECo
 import com.neklaway.hme_reporting.feature_time_sheet.presentation.ibau_code.IBAUCodeScreen
 import com.neklaway.hme_reporting.feature_time_sheet.presentation.new_time_sheet.NewTimeSheetScreen
 import com.neklaway.hme_reporting.feature_time_sheet.presentation.time_sheet.TimeSheetScreen
-import com.neklaway.hme_reporting.common.presentation.Screen
 import com.neklaway.hme_reporting.common.presentation.common.component.BottomNavigationBar
 import com.neklaway.hme_reporting.common.ui.theme.HMEReportingTheme
 
@@ -73,7 +73,9 @@ fun TimeSheetMainScreen(
             ) {
                 AnimatedVisibility(visible = state.startupRoute == null) {
                Box(modifier = Modifier.fillMaxSize()) {
-                   CircularProgressIndicator(modifier = Modifier.size(50.dp).align(Alignment.Center))
+                   CircularProgressIndicator(modifier = Modifier
+                       .size(50.dp)
+                       .align(Alignment.Center))
                }
                 }
 

@@ -2,7 +2,7 @@ package com.neklaway.hme_reporting.common.data.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.neklaway.hme_reporting.common.domain.model.CarMileage
+import com.neklaway.hme_reporting.feature_car_mileage.domain.model.CarMileage
 import com.neklaway.hme_reporting.utils.toCalender
 
 @Entity(

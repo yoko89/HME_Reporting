@@ -9,8 +9,6 @@ import com.neklaway.hme_reporting.feature_settings.data.repository_impl.Settings
 import com.neklaway.hme_reporting.feature_settings.domain.repository.BackupRepository
 import com.neklaway.hme_reporting.feature_settings.domain.repository.RestoreRepository
 import com.neklaway.hme_reporting.feature_settings.domain.repository.SettingsRepository
-import com.neklaway.hme_reporting.common.data.repository_impl.VisaRepositoryImpl
-import com.neklaway.hme_reporting.common.domain.repository.VisaRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

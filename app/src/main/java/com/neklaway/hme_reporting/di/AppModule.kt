@@ -5,6 +5,10 @@ import android.content.Context
 import androidx.room.Room
 import com.neklaway.hme_reporting.common.data.RoomData
 import com.neklaway.hme_reporting.common.data.dao.*
+import com.neklaway.hme_reporting.common.data.dao.CustomerDao
+import com.neklaway.hme_reporting.common.data.dao.HMECodeDao
+import com.neklaway.hme_reporting.common.data.dao.IBAUCodeDao
+import com.neklaway.hme_reporting.common.data.dao.TimeSheetDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

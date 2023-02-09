@@ -1,9 +1,9 @@
-package com.neklaway.hme_reporting.common.domain.use_cases.car_mileage_use_cases
+package com.neklaway.hme_reporting.feature_car_mileage.domain.use_cases
 
 import android.database.sqlite.SQLiteConstraintException
-import com.neklaway.hme_reporting.common.domain.model.CarMileage
-import com.neklaway.hme_reporting.common.domain.model.toCarMileageEntity
 import com.neklaway.hme_reporting.common.domain.repository.CarMileageRepository
+import com.neklaway.hme_reporting.feature_car_mileage.domain.model.CarMileage
+import com.neklaway.hme_reporting.feature_car_mileage.domain.model.toCarMileageEntity
 import com.neklaway.hme_reporting.utils.Resource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow

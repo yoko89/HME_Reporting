@@ -1,6 +1,6 @@
 package com.neklaway.hme_reporting.feature_visa.presentation
 
-import com.neklaway.hme_reporting.common.domain.model.Visa
+import com.neklaway.hme_reporting.feature_visa.domain.model.Visa
 import java.util.*
 
 data class VisaState(

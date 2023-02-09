@@ -1,4 +1,4 @@
-package com.neklaway.hme_reporting.common.domain.model
+package com.neklaway.hme_reporting.feature_visa.domain.model
 
 import com.neklaway.hme_reporting.common.data.entity.VisaEntity
 import com.neklaway.hme_reporting.utils.CalendarAsLongSerializer
