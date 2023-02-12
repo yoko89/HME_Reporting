@@ -23,10 +23,10 @@ interface ExpanseDao {
     suspend fun update(expanseEntities: List<ExpanseEntity>): Int
 
     @Query("SELECT * FROM expansesTable")
-    fun getAll(): Flow<List<ExpanseEntity>>
+    suspend fun getAll(): Flow<List<ExpanseEntity>>
 
     @Query("SELECT * FROM expansesTable WHERE id = :id")
-    fun getById(id: Long): Flow<ExpanseEntity>
+    fun getById(id: Long): ExpanseEntity
 
     @Query("SELECT * FROM expansesTable WHERE HMEId = :id")
     fun getByHMECodeId(id: Long): Flow<List<ExpanseEntity>>

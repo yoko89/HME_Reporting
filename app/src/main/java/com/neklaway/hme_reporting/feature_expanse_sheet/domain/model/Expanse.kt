@@ -2,17 +2,11 @@ package com.neklaway.hme_reporting.feature_expanse_sheet.domain.model
 
 import android.net.Uri
 import com.neklaway.hme_reporting.common.data.entity.ExpanseEntity
-import com.neklaway.hme_reporting.utils.*
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.json.Json
 import java.util.*
 
-@Serializable
+
 data class Expanse(
     val HMEId: Long,
-    @Serializable(with = CalendarAsLongSerializer::class)
     val date: Calendar,
     val invoiceNumber: String,
     val description: String,
@@ -20,8 +14,8 @@ data class Expanse(
     val amount: Float,
     val currencyID: Long,
     val amountAED: Float,
-   val invoicesUri: List<String> = emptyList(),
-    val id: Long? = null
+    val invoiceUris: List<Uri> = emptyList(),
+    val id: Long?
 )
 
 fun Expanse.toExpansesEntity(): ExpanseEntity {
@@ -34,7 +28,7 @@ fun Expanse.toExpansesEntity(): ExpanseEntity {
         amount = amount,
         currencyID = currencyID,
         amountAED = amountAED,
-        invoicesUri =  invoicesUri,
+        invoiceUris = invoiceUris,
         id = id
     )
 }
