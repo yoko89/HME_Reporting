@@ -1,11 +1,11 @@
-package com.neklaway.hme_reporting.common.domain.use_cases.pdf_worker_use_case
+package com.neklaway.hme_reporting.feature_time_sheet.domain.use_cases.time_sheet_pdf_worker_use_case
 
 import android.app.Application
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.work.*
 import com.neklaway.hme_reporting.common.domain.model.TimeSheet
-import com.neklaway.hme_reporting.feature_time_sheet.data.worker.PDFCreatorWorker
+import com.neklaway.hme_reporting.feature_time_sheet.data.worker.TimeSheetPDFCreatorWorker
 import com.neklaway.hme_reporting.utils.Constants
 import com.neklaway.hme_reporting.utils.Resource
 import kotlinx.coroutines.Dispatchers
@@ -27,9 +27,9 @@ class PDFWorkerUseCase @Inject constructor(
             TimeSheet.listSerializer,
             timeSheets
         )
-        val pdfWorkRequest = OneTimeWorkRequestBuilder<PDFCreatorWorker>().setInputData(
+        val pdfWorkRequest = OneTimeWorkRequestBuilder<TimeSheetPDFCreatorWorker>().setInputData(
             workDataOf(
-                PDFCreatorWorker.TIME_SHEET_LIST_KEY to serializedSelectedTimeSheets
+                TimeSheetPDFCreatorWorker.TIME_SHEET_LIST_KEY to serializedSelectedTimeSheets
             )
         ).setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
             .build()
