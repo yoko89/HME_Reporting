@@ -1,6 +1,7 @@
 package com.neklaway.hme_reporting.common.domain.model
 
 import android.util.Log
+import com.neklaway.hme_reporting.common.data.entity.AllowanceType
 import com.neklaway.hme_reporting.common.data.entity.TimeSheetEntity
 import com.neklaway.hme_reporting.utils.CalendarAsLongSerializer
 import kotlinx.serialization.KSerializer
@@ -31,6 +32,7 @@ data class TimeSheet(
     val travelDay: Boolean = false,
     val noWorkDay: Boolean = false,
     val selected: Boolean = !created,
+    val dailyAllowance : AllowanceType? = null,
     val id: Long? = null,
     var overLap: Boolean = false,
 ) {
@@ -101,6 +103,7 @@ fun TimeSheet.toTimeSheetEntity(): TimeSheetEntity {
         created = created,
         travelDay = travelDay,
         noWorkDay = noWorkDay,
+        dailyAllowance = dailyAllowance,
         id = id
     )
 }

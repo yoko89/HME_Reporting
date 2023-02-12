@@ -32,7 +32,8 @@ data class TimeSheetEntity(
     val overTimeDay: Boolean = false,
     val created: Boolean = false,
     val travelDay: Boolean = false,
-    val noWorkDay : Boolean = false,
+    val noWorkDay: Boolean = false,
+    val dailyAllowance: AllowanceType? = null,
     @PrimaryKey(autoGenerate = true)
     val id: Long? = null
 )
@@ -54,6 +55,11 @@ fun TimeSheetEntity.toTimeSheet(): TimeSheet {
         travelDay = travelDay,
         noWorkDay = noWorkDay,
         selected = !created,
+        dailyAllowance = dailyAllowance,
         id = id
     )
+}
+
+enum class AllowanceType {
+    _8hours, _24hours, no
 }
