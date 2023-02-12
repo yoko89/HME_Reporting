@@ -4,10 +4,6 @@ import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import com.neklaway.hme_reporting.common.data.dao.*
-import com.neklaway.hme_reporting.common.data.dao.CustomerDao
-import com.neklaway.hme_reporting.common.data.dao.HMECodeDao
-import com.neklaway.hme_reporting.common.data.dao.IBAUCodeDao
-import com.neklaway.hme_reporting.common.data.dao.TimeSheetDao
 import com.neklaway.hme_reporting.common.data.entity.*
 
 @Database(
@@ -16,9 +12,11 @@ import com.neklaway.hme_reporting.common.data.entity.*
         IBAUCodeEntity::class,
         TimeSheetEntity::class,
         VisaEntity::class,
-        CarMileageEntity::class],
-    version = 2,
-    autoMigrations = [AutoMigration(from = 1 , to = 2)]
+        CarMileageEntity::class,
+        ExpanseEntity::class,
+        CurrencyExchangeEntity::class],
+    version = 3,
+    autoMigrations = [AutoMigration(from = 1, to = 2), AutoMigration(from = 2, 3)]
 )
 abstract class RoomData : RoomDatabase() {
 
@@ -28,6 +26,8 @@ abstract class RoomData : RoomDatabase() {
     abstract val timeSheetDao: TimeSheetDao
     abstract val visaDao: VisaDao
     abstract val carMileageDao: CarMileageDao
+    abstract val currencyExchangeDao: CurrencyExchangeDao
+    abstract val expanseDao: ExpanseDao
 
     companion object {
         const val DATABASE_NAME = "db"

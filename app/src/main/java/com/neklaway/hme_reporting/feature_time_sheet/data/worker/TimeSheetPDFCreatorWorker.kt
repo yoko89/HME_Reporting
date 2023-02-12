@@ -154,7 +154,7 @@ private const val CUSTOMER_LINE_LENGTH = 90f
 private const val ENGINEER_LINE_LENGTH = 90f
 
 @HiltWorker
-class PDFCreatorWorker @AssistedInject constructor(
+class TimeSheetPDFCreatorWorker @AssistedInject constructor(
     @Assisted appContext: Context,
     @Assisted workerParameters: WorkerParameters,
     val getHMECodeByIdUseCase: GetHMECodeByIdUseCase,
