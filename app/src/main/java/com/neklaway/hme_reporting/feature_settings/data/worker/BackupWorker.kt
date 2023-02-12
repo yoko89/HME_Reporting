@@ -23,6 +23,8 @@ import com.neklaway.hme_reporting.common.domain.use_cases.customer_use_cases.Get
 import com.neklaway.hme_reporting.common.domain.use_cases.hme_code_use_cases.GetAllHMECodesUseCase
 import com.neklaway.hme_reporting.common.domain.use_cases.ibau_code_use_cases.GetAllIBAUCodesUseCase
 import com.neklaway.hme_reporting.common.domain.use_cases.time_sheet_use_cases.GetAllTimeSheetUseCase
+import com.neklaway.hme_reporting.feature_car_mileage.domain.model.CarMileage
+import com.neklaway.hme_reporting.feature_car_mileage.domain.use_cases.GetAllCarMileageFlowUseCase
 import com.neklaway.hme_reporting.feature_visa.domain.model.Visa
 import com.neklaway.hme_reporting.feature_visa.domain.use_cases.GetAllVisasUseCase
 import com.neklaway.hme_reporting.utils.Constants
@@ -48,6 +50,7 @@ class BackupWorker @AssistedInject constructor(
     val getAllIBAUCodesUseCase: GetAllIBAUCodesUseCase,
     val getAllTimeSheetUseCase: GetAllTimeSheetUseCase,
     val getAllVisasUseCase: GetAllVisasUseCase,
+    val getAllCarMileageFlowUseCase: GetAllCarMileageFlowUseCase,
 ) : CoroutineWorker(appContext, workerParameters) {
 
     override suspend fun getForegroundInfo(): ForegroundInfo {
@@ -296,6 +299,52 @@ class BackupWorker @AssistedInject constructor(
             }
             Log.d(TAG, "get all Visa")
         }
+
+
+        getAllCarMileageFlowUseCase().collect { resource ->
+
+            Log.d(TAG, "getCarMileage: $resource")
+            when (resource) {
+                is Resource.Error -> resultError.add(resource.message ?: "Can't load CarMileage List")
+                is Resource.Loading -> Unit
+                is Resource.Success -> {
+                    val serializedCarMileage = Json.encodeToString(
+                        ListSerializer(CarMileage.serializer()),
+                        resource.data.orEmpty()
+                    )
+
+
+                    val contentValues = ContentValues().apply {
+                        put(MediaStore.Files.FileColumns.DISPLAY_NAME, "car_mileage")
+                        put(MediaStore.Files.FileColumns.MIME_TYPE, "application/json")
+                        put(folderPath.first, folderPath.second)
+                    }
+                    try {
+                        Log.d(TAG, "backup: Car Mileage file writing started")
+                        appContext.contentResolver.insert(collection, contentValues)
+                            ?.also { uri ->
+                                appContext.contentResolver.openOutputStream(uri)
+                                    .use { outputStream ->
+                                        outputStream?.write(serializedCarMileage.toByteArray())
+                                        Log.d(TAG, "HME serialized: $serializedCarMileage")
+                                        outputStream?.flush()
+                                        outputStream?.close()
+                                    }
+                                Log.d(TAG, "doWork: resolver use closed")
+                            }
+                    } catch (e: IOException) {
+                        e.printStackTrace()
+                        resultError.add("Car Mileage: " + e.message)
+                        Log.d(TAG, "carMileage: failed ${e.message}")
+                    }
+                    Log.d(TAG, "writing: stopped")
+                }
+            }
+            Log.d(TAG, "get all Car Mileage")
+        }
+
+
+
 
         val internalStorageFiles = appContext.filesDir.listFiles()
 

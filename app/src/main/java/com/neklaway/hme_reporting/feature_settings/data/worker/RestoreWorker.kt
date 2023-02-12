@@ -21,6 +21,8 @@ import com.neklaway.hme_reporting.common.domain.use_cases.customer_use_cases.Ins
 import com.neklaway.hme_reporting.common.domain.use_cases.hme_code_use_cases.InsertHMECodeListUseCase
 import com.neklaway.hme_reporting.common.domain.use_cases.ibau_code_use_cases.InsertIBAUCodeListUseCase
 import com.neklaway.hme_reporting.common.domain.use_cases.time_sheet_use_cases.InsertTimeSheetListUseCase
+import com.neklaway.hme_reporting.feature_car_mileage.domain.model.CarMileage
+import com.neklaway.hme_reporting.feature_car_mileage.domain.use_cases.InsertCarMileageListUseCase
 import com.neklaway.hme_reporting.feature_settings.data.broadcast.RestartReceiver
 import com.neklaway.hme_reporting.feature_visa.domain.model.Visa
 import com.neklaway.hme_reporting.feature_visa.domain.use_cases.InsertVisaListUseCase
@@ -47,6 +49,7 @@ class RestoreWorker @AssistedInject constructor(
     val insertIBAUCodeListUseCase: InsertIBAUCodeListUseCase,
     val insertTimeSheetListUseCase: InsertTimeSheetListUseCase,
     val insertVisaListUseCase: InsertVisaListUseCase,
+    val insertCarMileageListUseCase: InsertCarMileageListUseCase,
 ) : CoroutineWorker(appContext, workerParameters) {
 
     override suspend fun getForegroundInfo(): ForegroundInfo {
@@ -149,6 +152,20 @@ class RestoreWorker @AssistedInject constructor(
                     insertVisaListUseCase(visas).collect { resource ->
                         when (resource) {
                             is Resource.Success -> filesRestored["visa"] = true
+                            else -> Unit
+                        }
+                    }
+                }
+
+                "car_mileage.json" -> {
+                    val carMileageList = Json.decodeFromStream(
+                        ListSerializer(CarMileage.serializer()),
+                        backupInputStream
+                    )
+                    Log.d(TAG, "doWork:Deserialized Car Mileage $carMileageList")
+                    insertCarMileageListUseCase(carMileageList).collect { resource ->
+                        when (resource) {
+                            is Resource.Success -> filesRestored["car_mileage"] = true
                             else -> Unit
                         }
                     }
