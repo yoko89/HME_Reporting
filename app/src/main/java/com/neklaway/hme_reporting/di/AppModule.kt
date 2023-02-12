@@ -5,7 +5,10 @@ import android.content.Context
 import androidx.room.Room
 import com.neklaway.hme_reporting.common.data.RoomData
 import com.neklaway.hme_reporting.common.data.dao.*
-import com.neklaway.hme_reporting.common.data.entity.StringListConverter
+import com.neklaway.hme_reporting.common.data.dao.CustomerDao
+import com.neklaway.hme_reporting.common.data.dao.HMECodeDao
+import com.neklaway.hme_reporting.common.data.dao.IBAUCodeDao
+import com.neklaway.hme_reporting.common.data.dao.TimeSheetDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -23,8 +26,7 @@ object AppModule {
             app,
             RoomData::class.java,
             RoomData.DATABASE_NAME
-        )
-            .build()
+        ).build()
     }
 
     @Provides
@@ -75,21 +77,10 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideCurrencyExchangeDao(db: RoomData): CurrencyExchangeDao {
-        return db.currencyExchangeDao
-    }
-
-    @Provides
-    @Singleton
-    fun provideExpanseDao(db: RoomData): ExpanseDao {
-        return db.expanseDao
-    }
-
-    @Provides
-    @Singleton
     fun provideContext(app: Application): Context {
         return app.applicationContext
     }
+
 
 
 }
