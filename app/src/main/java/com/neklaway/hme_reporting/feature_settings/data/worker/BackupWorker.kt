@@ -24,7 +24,7 @@ import com.neklaway.hme_reporting.common.domain.use_cases.hme_code_use_cases.Get
 import com.neklaway.hme_reporting.common.domain.use_cases.ibau_code_use_cases.GetAllIBAUCodesUseCase
 import com.neklaway.hme_reporting.common.domain.use_cases.time_sheet_use_cases.GetAllTimeSheetUseCase
 import com.neklaway.hme_reporting.feature_car_mileage.domain.model.CarMileage
-import com.neklaway.hme_reporting.feature_car_mileage.domain.use_cases.GetAllCarMileageUseCase
+import com.neklaway.hme_reporting.feature_car_mileage.domain.use_cases.GetAllCarMileageFlowUseCase
 import com.neklaway.hme_reporting.feature_visa.domain.model.Visa
 import com.neklaway.hme_reporting.feature_visa.domain.use_cases.GetAllVisasUseCase
 import com.neklaway.hme_reporting.utils.Constants
@@ -36,7 +36,6 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
-import java.io.File
 import java.io.IOException
 import java.util.*
 
@@ -51,7 +50,7 @@ class BackupWorker @AssistedInject constructor(
     val getAllIBAUCodesUseCase: GetAllIBAUCodesUseCase,
     val getAllTimeSheetUseCase: GetAllTimeSheetUseCase,
     val getAllVisasUseCase: GetAllVisasUseCase,
-    val getAllCarMileageUseCase: GetAllCarMileageUseCase,
+    val getAllCarMileage:GetAllCarMileageFlowUseCase,
 ) : CoroutineWorker(appContext, workerParameters) {
 
     override suspend fun getForegroundInfo(): ForegroundInfo {
@@ -237,7 +236,7 @@ class BackupWorker @AssistedInject constructor(
                                 appContext.contentResolver.openOutputStream(uri)
                                     .use { outputStream ->
                                         outputStream?.write(serializedTimeSheet.toByteArray())
-                                        Log.d(TAG, "TimeSheet serialized: $serializedTimeSheet")
+                                        Log.d(TAG, "Ibau serialized: $serializedTimeSheet")
                                         outputStream?.flush()
                                         outputStream?.close()
                                     }
@@ -302,14 +301,11 @@ class BackupWorker @AssistedInject constructor(
         }
 
 
-        getAllCarMileageUseCase().apply {
-            val resource = this
+        getAllCarMileage().collect { resource ->
 
             Log.d(TAG, "getCarMileage: $resource")
             when (resource) {
-                is Resource.Error -> resultError.add(
-                    resource.message ?: "Can't load CarMileage List"
-                )
+                is Resource.Error -> resultError.add(resource.message ?: "Can't load CarMileage List")
                 is Resource.Loading -> Unit
                 is Resource.Success -> {
                     val serializedCarMileage = Json.encodeToString(
@@ -348,15 +344,7 @@ class BackupWorker @AssistedInject constructor(
         }
 
 
-        var internalStorageFiles: Array<File>? = null
-        try {
-            internalStorageFiles = appContext.filesDir.listFiles()
-            Log.d(TAG, "doWork: $internalStorageFiles")
-        } catch (e: Exception) {
-            Log.d(TAG, "doWork: ${e.message}")
-            e.printStackTrace()
-        }
-
+        val internalStorageFiles = appContext.filesDir.listFiles()
 
         //Backup signatures and datastore
         internalStorageFiles?.filter {
@@ -412,7 +400,6 @@ class BackupWorker @AssistedInject constructor(
 
         //Backup rest of files
         internalStorageFiles?.filter {
-
             !it.name.equals(Constants.SIGNATURES_FOLDER) or !it.name.equals(
                 "datastore"
             )
@@ -464,15 +451,11 @@ class BackupWorker @AssistedInject constructor(
                 .setSmallIcon(R.drawable.hb_logo)
                 .setContentTitle("BackUp is done")
                 .setAutoCancel(true)
-        Log.d(TAG, "Notification build : $notificationBuilder")
 
         if (resultError.isNotEmpty()) {
             notificationBuilder.setContentText(resultError.toString())
-            Log.d(TAG, "Notification: error")
-
         } else {
             notificationBuilder.setContentText("Backup Successful")
-            Log.d(TAG, "Notification: no error")
 
         }
 
@@ -483,8 +466,6 @@ class BackupWorker @AssistedInject constructor(
         ) {
             NotificationManagerCompat.from(appContext)
                 .notify(Constants.BACKUP_NOTIFICATION_ID, notificationBuilder.build())
-            Log.d(TAG, "Notification: notified")
-
         }
 
 
