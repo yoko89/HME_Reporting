@@ -20,9 +20,9 @@ interface CurrencyExchangeDao {
     suspend fun update(currencyExchangeEntity: CurrencyExchangeEntity): Int
 
     @Query("SELECT * FROM currencyExchangeTable")
-    fun getAll(): Flow<List<CurrencyExchangeEntity>>
+    suspend fun getAll(): Flow<List<CurrencyExchangeEntity>>
 
     @Query("SELECT * FROM currencyExchangeTable WHERE id = :id")
-    suspend fun getById(id: Long): CurrencyExchangeEntity
+    fun getById(id: Long): CurrencyExchangeEntity
 
 }

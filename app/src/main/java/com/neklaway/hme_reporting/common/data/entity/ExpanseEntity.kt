@@ -1,15 +1,12 @@
 package com.neklaway.hme_reporting.common.data.entity
 
 import android.net.Uri
-import androidx.room.*
+import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
+import androidx.room.PrimaryKey
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.Expanse
 import com.neklaway.hme_reporting.utils.toCalender
-import kotlinx.serialization.Serializer
-import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import java.util.Base64.Decoder
 
 
 @Entity(
@@ -37,10 +34,9 @@ data class ExpanseEntity(
     val description: String,
     val personallyPaid: Boolean,
     val amount: Float,
-    @ColumnInfo(index = true)
     val currencyID: Long,
     val amountAED: Float,
-    val invoicesUri: List<String> = emptyList(),
+    val invoiceUris: List<Uri> = emptyList(),
     @PrimaryKey(autoGenerate = true)
     val id: Long?
 )
@@ -55,19 +51,7 @@ fun ExpanseEntity.toExpanse(): Expanse {
         amount = amount,
         currencyID = currencyID,
         amountAED = amountAED,
-        invoicesUri = invoicesUri,
+        invoiceUris = invoiceUris,
         id = id
     )
-}
-
-class StringListConverter{
-    @TypeConverter
-    fun stringToListOfString(value:String):List<String>{
-       return Json.decodeFromString(ListSerializer(String.serializer()),value)
-    }
-
-    @TypeConverter
-    fun listOfStringToString(value:List<String>):String{
-        return Json.encodeToString(ListSerializer(String.serializer()),value)
-    }
 }
