@@ -13,14 +13,9 @@ class GetCurrencyExchangeByIdUseCase @Inject constructor(
 ) {
 
     operator fun invoke(id: Long): Flow<Resource<CurrencyExchange>> = flow {
-
         emit(Resource.Loading())
-        try {
-            emit(Resource.Success(repo.getById(id).toCurrencyExchange()))
-        } catch (e: Exception) {
-            e.printStackTrace()
-            emit(Resource.Error(e.message ?: "Error in getting currency"))
-        }
+        val result = repo.getById(id).toCurrencyExchange()
+        emit(Resource.Success(result))
     }
 
 }
