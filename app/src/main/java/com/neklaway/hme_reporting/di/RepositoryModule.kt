@@ -59,4 +59,12 @@ abstract class RepositoryModule {
     @Singleton
     abstract fun provideCarMileageRepository(carMileageRepositoryImpl: CarMileageRepositoryImpl): CarMileageRepository
 
+    @Binds
+    @Singleton
+    abstract fun provideExpanseRepository(expanseRepositoryImpl: ExpanseRepositoryImpl): ExpanseRepository
+
+    @Binds
+    @Singleton
+    abstract fun provideCurrencyExchangeRepository(currencyExchangeRepositoryImpl: CurrencyExchangeRepositoryImpl): CurrencyExchangeRepository
+
 }
