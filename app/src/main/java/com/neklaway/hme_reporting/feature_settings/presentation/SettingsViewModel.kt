@@ -19,6 +19,9 @@ import com.neklaway.hme_reporting.feature_settings.domain.use_cases.visa_reminde
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.visa_reminder.SetVisaReminderUseCase
 import com.neklaway.hme_reporting.feature_signature.domain.use_cases.bitmap_use_case.LoadBitmapUseCase
 import com.neklaway.hme_reporting.utils.Resource
+import com.neklaway.hme_reporting.utils.ResourceWithString
+import com.neklaway.hme_reporting.utils.toFloatWithString
+import com.neklaway.hme_reporting.utils.toIntWithString
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -103,24 +106,23 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun setVisaReminder(reminder: String) {
-        var reminderInt: Int?
+        viewModelScope.launch {
+            reminder.toIntWithString().let { resourceWithString ->
+                when (resourceWithString) {
+                    is ResourceWithString.Error -> {
+                        _userMessage.emit(resourceWithString.message ?: "Error")
 
-        try {
-            reminderInt = reminder.toInt()
-
-            viewModelScope.launch {
-                setVisaReminderUseCase(reminderInt!!)
-            }
-        } catch (e: NumberFormatException) {
-            e.printStackTrace()
-            reminderInt = null
-            if (reminder.isNotBlank())
-                viewModelScope.launch {
-                    _userMessage.emit("Visa Reminder Date Error: ${e.message}")
+                    }
+                    is ResourceWithString.Loading -> Unit
+                    is ResourceWithString.Success -> {
+                        setVisaReminderUseCase(resourceWithString.data!!)
+                    }
                 }
+                _state.update { it.copy(visaReminder = resourceWithString.string ?: "") }
+
+            }
         }
 
-        _state.update { it.copy(visaReminder = reminderInt?.toString() ?: "") }
     }
 
     fun setIsIbau(isIbau: Boolean) {
@@ -138,38 +140,27 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun breakDurationChanged(breakDuration: String) {
-
-        var breakFloat: Float?
-        Log.d(TAG, "breakDurationChanged: clicked")
-
-        try {
-            breakFloat = breakDuration.toFloat()
-
-            viewModelScope.launch {
-                breakFloat?.let {
-                    Log.d(TAG, "breakDurationChanged: breakFloat sent to use case $breakFloat")
-                    setBreakDurationUseCase(it).collect { resource ->
-                        when (resource) {
-                            is Resource.Error -> _userMessage.emit(resource.message ?: "error")
-                            else -> Unit
+        viewModelScope.launch {
+            breakDuration.toFloatWithString().let { resourceString ->
+                when (resourceString) {
+                    is ResourceWithString.Error -> {
+                        _userMessage.emit(resourceString.message ?: "error")
+                    }
+                    is ResourceWithString.Loading -> Unit
+                    is ResourceWithString.Success -> {
+                        setBreakDurationUseCase(resourceString.data!!).collect { resource ->
+                            when (resource) {
+                                is Resource.Error -> _userMessage.emit(
+                                    resource.message ?: "error"
+                                )
+                                else -> Unit
+                            }
                         }
                     }
                 }
-            }
-
-        } catch (e: NumberFormatException) {
-            e.printStackTrace()
-            breakFloat = null
-            if (breakDuration.isNotBlank()) {
-                viewModelScope.launch {
-                    _userMessage.emit("Error in Break Time " + e.message)
-                }
+                _state.update { it.copy(breakDuration = resourceString.string ?: "") }
             }
         }
-        Log.d(TAG, "breakDurationChanged: breakFloat $breakFloat")
-
-        _state.update { it.copy(breakDuration = if (breakFloat == null) "" else breakDuration) }
-
     }
 
     fun signatureBtnClicked() {

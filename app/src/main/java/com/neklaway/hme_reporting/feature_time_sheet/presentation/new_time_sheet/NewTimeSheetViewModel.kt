@@ -40,6 +40,9 @@ import com.neklaway.hme_reporting.feature_settings.domain.use_cases.break_time.G
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.is_auto_clear.GetIsAutoClearUseCase
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.is_ibau.GetIsIbauUseCase
 import com.neklaway.hme_reporting.utils.Resource
+import com.neklaway.hme_reporting.utils.ResourceWithString
+import com.neklaway.hme_reporting.utils.toFloatWithString
+import com.neklaway.hme_reporting.utils.toIntWithString
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
@@ -428,43 +431,38 @@ class NewTimeSheetViewModel @Inject constructor(
     }
 
     fun breakDurationChanged(breakDuration: String) {
-        var breakFloat: Float?
-        try {
-            breakFloat = breakDuration.toFloat()
-
-            viewModelScope.launch {
-                setSavedBreakDurationUseCase(breakFloat)
-            }
-        } catch (e: NumberFormatException) {
-            e.printStackTrace()
-            breakFloat = null
-            if (breakDuration.isNotBlank()) {
-                viewModelScope.launch {
-                    _userMessage.emit("Error in Break Time " + e.message)
+        viewModelScope.launch {
+            breakDuration.toFloatWithString().let { resourceWithString ->
+                when (resourceWithString) {
+                    is ResourceWithString.Error -> {
+                        _userMessage.emit(resourceWithString.message ?: "Error in Break Time")
+                        _state.update { it.copy(breakDuration = resourceWithString.string ?: "") }
+                    }
+                    is ResourceWithString.Loading -> Unit
+                    is ResourceWithString.Success -> {
+                        setSavedBreakDurationUseCase(resourceWithString.data)
+                        _state.update { it.copy(breakDuration = resourceWithString.string ?: "") }
+                    }
                 }
             }
         }
-        _state.update { it.copy(breakDuration = if (breakFloat == null) "" else breakDuration) }
     }
 
     fun travelDistanceChanged(travelDistance: String) {
-        var travelInt: Int?
-        try {
-            travelInt = travelDistance.toInt()
-        } catch (e: NumberFormatException) {
-            e.printStackTrace()
-            travelInt = null
-            if (travelDistance.isNotBlank())
-                viewModelScope.launch {
-                    _userMessage.emit("Error in Travel Distance " + e.message)
-                }
-        }
         viewModelScope.launch {
-            setTravelDistanceUseCase(travelInt)
+            travelDistance.toIntWithString().let { resourceWithString ->
+                when (resourceWithString) {
+                    is ResourceWithString.Error -> {
+                        _userMessage.emit(resourceWithString.message ?: "Error")
+                    }
+                    is ResourceWithString.Loading -> Unit
+                    is ResourceWithString.Success -> {
+                        setTravelDistanceUseCase(resourceWithString.data)
+                    }
+                }
+                _state.update { it.copy(traveledDistance = resourceWithString.string ?: "") }
+            }
         }
-        val travelString = travelInt?.toString() ?: ""
-
-        _state.update { it.copy(traveledDistance = travelString) }
     }
 
     fun travelDayChanged(travelDaySelected: Boolean) {
