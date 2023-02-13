@@ -1,10 +1,12 @@
 package com.neklaway.hme_reporting.common.data.entity
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.CurrencyExchange
 
 @Entity(
+    indices = [Index(value = ["currencyName"], unique = true)],
     tableName = "currencyExchangeTable"
 )
 data class CurrencyExchangeEntity(
