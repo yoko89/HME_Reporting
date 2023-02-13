@@ -5,7 +5,7 @@ import com.neklaway.hme_reporting.common.data.entity.CurrencyExchangeEntity
 data class CurrencyExchange(
     val currencyName:String,
     val rate:Float,
-    val id:Long?
+    val id:Long? = null
 )
 
 fun CurrencyExchange.toCurrencyExchangeEntity() : CurrencyExchangeEntity {
