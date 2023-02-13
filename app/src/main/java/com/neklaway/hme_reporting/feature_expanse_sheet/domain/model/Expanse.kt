@@ -15,7 +15,7 @@ data class Expanse(
     val currencyID: Long,
     val amountAED: Float,
     val invoiceUris: List<Uri> = emptyList(),
-    val id: Long?
+    val id: Long? = null
 )
 
 fun Expanse.toExpansesEntity(): ExpanseEntity {
