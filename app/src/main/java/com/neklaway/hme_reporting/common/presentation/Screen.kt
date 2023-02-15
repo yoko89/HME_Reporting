@@ -11,16 +11,20 @@ sealed class Screen(
     val imageVector: ImageVector? = null,
     val imageId: Int? = null
 ) {
-    object SettingsScreen : Screen("Settings", "settings_screen", Icons.Default.Settings)
-    object TimeSheetMainScreen : Screen("Timesheet", "time_sheet_main_screen", Icons.Default.Note)
-    object VisaScreen : Screen("Visa","visa_screen",Icons.Default.AirplaneTicket)
-    object CarMileageScreen : Screen("Car","car_mileage",Icons.Default.DirectionsCar)
-    object TimeSheetScreen : Screen("Time Sheet", "time_sheet_screen", Icons.Default.Note)
-    object CustomerScreen : Screen("Customer", "customer_screen", Icons.Default.Person)
-    object HMECodeScreen : Screen("HME Code", "hme_code_screen", imageId = R.drawable.hb_logo)
-    object IBAUCodeScreen : Screen("IBAU Code", "ibau_code_screen", imageId = R.drawable.ibau_logo)
-    object NewTimeSheetScreen : Screen("New", "new_time_sheet_screen", Icons.Default.NoteAdd)
-    object EditTimeSheetScreen : Screen("Edit", "edit_time_sheet_screen", Icons.Default.EditNote)
+    object Settings : Screen("Settings", "settings_screen", Icons.Default.Settings)
+    object TimeSheetMain : Screen("Timesheet", "time_sheet_main_screen", Icons.Default.Note)
+    object Visa : Screen("Visa","visa_screen",Icons.Default.AirplaneTicket)
+    object CarMileage : Screen("Car","car_mileage",Icons.Default.DirectionsCar)
+    object TimeSheet : Screen("Time Sheet", "time_sheet_screen", Icons.Default.Note)
+    object Customer : Screen("Customer", "customer_screen", Icons.Default.Person)
+    object HMECode : Screen("HME Code", "hme_code_screen", imageId = R.drawable.hb_logo)
+    object IBAUCode : Screen("IBAU Code", "ibau_code_screen", imageId = R.drawable.ibau_logo)
+    object NewTimeSheet : Screen("New", "new_time_sheet_screen", Icons.Default.NoteAdd)
+    object EditTimeSheet : Screen("Edit", "edit_time_sheet_screen", Icons.Default.EditNote)
+    object ExpanseSheet : Screen("Expanse Sheet", "expanse_sheet_screen", Icons.Default.Payment)
+    object NewExpanse : Screen("New Expanse","new_expanse_screen", Icons.Default.Receipt)
+    object DailyAllowance : Screen("Daily Allowance","daily_allowance_screen", Icons.Default.AttachMoney)
+    object EditExpanse : Screen("Edit Expanse","edit_expanse_screen", Icons.Default.Receipt)
 
 }
 

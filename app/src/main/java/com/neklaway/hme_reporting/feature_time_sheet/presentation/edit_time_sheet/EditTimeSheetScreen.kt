@@ -53,7 +53,7 @@ fun EditTimeSheetScreen(
     LaunchedEffect(key1 = event) {
         event.collect { event ->
             when(event){
-                EditTimeSheetEvents.PopBackStack -> navController.popBackStack(Screen.TimeSheetScreen.route,false)
+                EditTimeSheetEvents.PopBackStack -> navController.popBackStack(Screen.TimeSheet.route,false)
                 is EditTimeSheetEvents.UserMessage -> snackbarHostState.showSnackbar(event.message)
             }
         }

@@ -26,7 +26,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.neklaway.hme_reporting.common.presentation.common.component.CustomDatePicker
 import com.neklaway.hme_reporting.common.presentation.common.component.CustomTimePicker
 import com.neklaway.hme_reporting.common.ui.theme.HMEReportingTheme
-import com.neklaway.hme_reporting.feature_time_sheet.presentation.new_time_sheet.component.CarMileageItemCard
+import com.neklaway.hme_reporting.feature_car_mileage.presentation.component.CarMileageItemCard
 import com.neklaway.hme_reporting.utils.toDate
 import com.neklaway.hme_reporting.utils.toTime
 import java.util.*
