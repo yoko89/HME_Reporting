@@ -1,4 +1,4 @@
-package com.neklaway.hme_reporting.feature_expanse_sheet.domain.use_cases.currency_exchange_use_cases
+package com.neklaway.hme_reporting.common.domain.use_cases.currency_exchange_use_cases
 
 import android.database.sqlite.SQLiteConstraintException
 import android.util.Log

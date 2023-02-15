@@ -24,7 +24,7 @@ class TimeSheetMainViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            _state.value = TimeSheetState(isIbau = getIsIbauUseCase(),startupRoute = getTimeSheetRouteUseCase()?:Screen.NewTimeSheetScreen.route)
+            _state.value = TimeSheetState(isIbau = getIsIbauUseCase(),startupRoute = getTimeSheetRouteUseCase()?:Screen.NewTimeSheet.route)
         }
     }
 
