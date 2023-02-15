@@ -47,13 +47,13 @@ fun TimeSheetMainScreen(
             modifier = Modifier.fillMaxSize(),
             bottomBar = {
                 val screens = mutableListOf(
-                    Screen.TimeSheetScreen,
-                    Screen.NewTimeSheetScreen,
-                    Screen.CustomerScreen,
-                    Screen.HMECodeScreen
+                    Screen.TimeSheet,
+                    Screen.NewTimeSheet,
+                    Screen.Customer,
+                    Screen.HMECode
                 )
 
-                if (state.isIbau) screens.add(Screen.IBAUCodeScreen)
+                if (state.isIbau) screens.add(Screen.IBAUCode)
 
                 Log.d(TAG, "TimeSheetMainScreen: Screens are $screens" )
 
@@ -91,7 +91,7 @@ fun TimeSheetMainScreen(
 
 
 @Composable
-fun Navigation(
+private fun Navigation(
     navController: NavHostController,
     startDestination:String
 ) {
@@ -100,15 +100,15 @@ fun Navigation(
         startDestination = startDestination
     ) {
 
-        composable(route = Screen.TimeSheetScreen.route) {
+        composable(route = Screen.TimeSheet.route) {
             TimeSheetScreen(navController = navController)
         }
 
-        composable(route = Screen.NewTimeSheetScreen.route) {
+        composable(route = Screen.NewTimeSheet.route) {
             NewTimeSheetScreen()
         }
 
-        composable(route = Screen.EditTimeSheetScreen.route + "?" + EditTimeSheetViewModel.TIME_SHEET_ID + "={" + EditTimeSheetViewModel.TIME_SHEET_ID + "}",
+        composable(route = Screen.EditTimeSheet.route + "?" + EditTimeSheetViewModel.TIME_SHEET_ID + "={" + EditTimeSheetViewModel.TIME_SHEET_ID + "}",
             arguments = listOf(
                 navArgument(EditTimeSheetViewModel.TIME_SHEET_ID) {
                     type = NavType.LongType
@@ -118,15 +118,15 @@ fun Navigation(
             EditTimeSheetScreen(navController)
         }
 
-        composable(route = Screen.CustomerScreen.route) {
+        composable(route = Screen.Customer.route) {
             CustomerScreen()
         }
 
-        composable(route = Screen.HMECodeScreen.route) {
+        composable(route = Screen.HMECode.route) {
             HMECodeScreen()
         }
 
-        composable(route = Screen.IBAUCodeScreen.route) {
+        composable(route = Screen.IBAUCode.route) {
             IBAUCodeScreen()
         }
 

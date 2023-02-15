@@ -1,4 +1,4 @@
-package com.neklaway.hme_reporting.feature_time_sheet.presentation.new_time_sheet.component
+package com.neklaway.hme_reporting.feature_car_mileage.presentation.component
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*

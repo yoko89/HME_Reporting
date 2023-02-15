@@ -51,7 +51,7 @@ class MainActivity @Inject constructor(
                     val scope = rememberCoroutineScope()
 
                     val items =
-                        listOf(Screen.TimeSheetMainScreen, Screen.VisaScreen,Screen.CarMileageScreen, Screen.SettingsScreen)
+                        listOf(Screen.TimeSheetMain, Screen.Visa,Screen.CarMileage, Screen.Settings)
                     val selectedItem = remember {
                         mutableStateOf(items.find { it.route == navController.currentDestination?.route }
                             ?: items[0])
@@ -116,28 +116,28 @@ class MainActivity @Inject constructor(
 }
 
 @Composable
-fun Navigation(
+private fun Navigation(
     navController: NavHostController,
 ) {
     NavHost(
         navController = navController,
-        startDestination = Screen.TimeSheetMainScreen.route
+        startDestination = Screen.TimeSheetMain.route
     ) {
 
 
-        composable(route = Screen.TimeSheetMainScreen.route) {
+        composable(route = Screen.TimeSheetMain.route) {
             TimeSheetMainScreen()
         }
 
-        composable(route = Screen.VisaScreen.route) {
+        composable(route = Screen.Visa.route) {
             VisaScreen()
         }
 
-        composable(route = Screen.SettingsScreen.route) {
+        composable(route = Screen.Settings.route) {
             SettingsScreen()
         }
 
-        composable(route = Screen.CarMileageScreen.route) {
+        composable(route = Screen.CarMileage.route) {
             CarMileageScreen()
         }
 
