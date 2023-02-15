@@ -97,8 +97,8 @@ fun TimeSheetScreen(
                 Row {
                     AnimatedVisibility(
                         visible = state.fabVisible,
-                        enter = slideInVertically(initialOffsetY = { it }),
-                        exit = slideOutVertically(targetOffsetY = { it })
+                        enter = slideInVertically(initialOffsetY = { it }).plus(fadeIn()),
+                        exit = slideOutVertically(targetOffsetY = { it }).plus(fadeOut())
                     ) {
                         Row {
                             FloatingActionButton(
