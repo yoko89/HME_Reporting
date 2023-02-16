@@ -63,7 +63,7 @@ fun TimeSheetScreen(
 
                 is TimeSheetEvents.NavigateToTimeSheet ->
                     navController.navigate(
-                        Screen.EditTimeSheetScreen.route
+                        Screen.EditTimeSheet.route
                                 + "?" + EditTimeSheetViewModel.TIME_SHEET_ID
                                 + "=" + event.id
                     )

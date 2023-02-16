@@ -182,7 +182,8 @@ class EditTimeSheetViewModel @Inject constructor(
                 travelDay = state.value.travelDay,
                 noWorkDay = state.value.noWorkday,
                 id = state.value.timeSheetId,
-                created = false
+                created = false,
+                dailyAllowance = timeSheet.dailyAllowance
             ).collect { result ->
                 when (result) {
                     is Resource.Error -> {

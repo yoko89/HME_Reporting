@@ -1,15 +1,18 @@
 package com.neklaway.hme_reporting.common.domain.use_cases.time_sheet_use_cases
 
+import android.util.Log
+import com.neklaway.hme_reporting.common.data.entity.AllowanceType
 import com.neklaway.hme_reporting.common.domain.model.TimeSheet
 import com.neklaway.hme_reporting.common.domain.model.toTimeSheetEntity
 import com.neklaway.hme_reporting.common.domain.repository.TimeSheetRepository
+import com.neklaway.hme_reporting.common.presentation.Screen
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.is_ibau.GetIsIbauUseCase
 import com.neklaway.hme_reporting.utils.Resource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import java.util.*
 import javax.inject.Inject
-
+private const val TAG = "UpdateTimeSheetUseCase"
 class UpdateTimeSheetUseCase @Inject constructor(
     val repo: TimeSheetRepository,
     val getIsIbauUseCase: GetIsIbauUseCase
@@ -30,9 +33,10 @@ class UpdateTimeSheetUseCase @Inject constructor(
         travelDay: Boolean,
         noWorkDay: Boolean,
         id: Long,
-        created: Boolean
+        created: Boolean,
+        dailyAllowance:AllowanceType?
     ): Flow<Resource<Boolean>> = flow {
-
+        Log.d(TAG, "invoke: started")
         emit(Resource.Loading())
         if (HMEId == null) {
             emit(Resource.Error("HME Code must be selected"))
@@ -105,6 +109,7 @@ class UpdateTimeSheetUseCase @Inject constructor(
             noWorkDay = noWorkDay,
             selected = !created,
             id = id,
+            dailyAllowance = dailyAllowance
         )
 
         if (timeSheet.workTime < 0f) {
@@ -115,6 +120,7 @@ class UpdateTimeSheetUseCase @Inject constructor(
                 val result = repo.update(timeSheet.toTimeSheetEntity())
                 if (result > 0) {
                     emit(Resource.Success(true))
+                    Log.d(TAG, "invoke: update success")
                 } else {
                     emit(Resource.Error("Error: Can't Update Time Sheet"))
                 }

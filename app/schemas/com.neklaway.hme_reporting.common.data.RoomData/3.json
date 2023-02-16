@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 3,
-    "identityHash": "624b5171f4bd39e01692543db2a31cd1",
+    "identityHash": "26273bc973fce20c9d57ce38d6b5d065",
     "entities": [
       {
         "tableName": "customerTable",
@@ -464,7 +464,7 @@
       },
       {
         "tableName": "expansesTable",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`HMEId` INTEGER NOT NULL, `date` INTEGER NOT NULL, `invoiceNumber` TEXT NOT NULL, `description` TEXT NOT NULL, `personallyPaid` INTEGER NOT NULL, `amount` REAL NOT NULL, `currencyID` INTEGER NOT NULL, `amountAED` REAL NOT NULL, `invoiceUris` TEXT NOT NULL, `id` INTEGER PRIMARY KEY AUTOINCREMENT, FOREIGN KEY(`HMEId`) REFERENCES `hmeCodeTable`(`id`) ON UPDATE CASCADE ON DELETE CASCADE , FOREIGN KEY(`currencyID`) REFERENCES `currencyExchangeTable`(`id`) ON UPDATE CASCADE ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`HMEId` INTEGER NOT NULL, `date` INTEGER NOT NULL, `invoiceNumber` TEXT NOT NULL, `description` TEXT NOT NULL, `personallyPaid` INTEGER NOT NULL, `amount` REAL NOT NULL, `currencyID` INTEGER NOT NULL, `amountAED` REAL NOT NULL, `invoicesUri` TEXT NOT NULL, `id` INTEGER PRIMARY KEY AUTOINCREMENT, FOREIGN KEY(`HMEId`) REFERENCES `hmeCodeTable`(`id`) ON UPDATE CASCADE ON DELETE CASCADE , FOREIGN KEY(`currencyID`) REFERENCES `currencyExchangeTable`(`id`) ON UPDATE CASCADE ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "HMEId",
@@ -515,8 +515,8 @@
             "notNull": true
           },
           {
-            "fieldPath": "invoiceUris",
-            "columnName": "invoiceUris",
+            "fieldPath": "invoicesUri",
+            "columnName": "invoicesUri",
             "affinity": "TEXT",
             "notNull": true
           },
@@ -542,6 +542,15 @@
             ],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_expansesTable_HMEId` ON `${TABLE_NAME}` (`HMEId`)"
+          },
+          {
+            "name": "index_expansesTable_currencyID",
+            "unique": false,
+            "columnNames": [
+              "currencyID"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_expansesTable_currencyID` ON `${TABLE_NAME}` (`currencyID`)"
           }
         ],
         "foreignKeys": [
@@ -598,14 +607,24 @@
             "id"
           ]
         },
-        "indices": [],
+        "indices": [
+          {
+            "name": "index_currencyExchangeTable_currencyName",
+            "unique": true,
+            "columnNames": [
+              "currencyName"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_currencyExchangeTable_currencyName` ON `${TABLE_NAME}` (`currencyName`)"
+          }
+        ],
         "foreignKeys": []
       }
     ],
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '624b5171f4bd39e01692543db2a31cd1')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '26273bc973fce20c9d57ce38d6b5d065')"
     ]
   }
 }
