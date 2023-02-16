@@ -16,9 +16,9 @@ interface ExpanseRepository {
 
     suspend fun update(expanseEntities: List<ExpanseEntity>): Int
 
-    suspend fun getAll(): Flow<List<ExpanseEntity>>
+    fun getAll(): Flow<List<ExpanseEntity>>
 
-    fun getById(id: Long): ExpanseEntity
+    fun getById(id: Long): Flow<ExpanseEntity>
 
     fun getByHMECodeId(id: Long): Flow<List<ExpanseEntity>>
 

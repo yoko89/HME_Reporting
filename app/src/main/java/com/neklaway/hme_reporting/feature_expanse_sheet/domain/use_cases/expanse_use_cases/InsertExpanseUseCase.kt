@@ -27,7 +27,7 @@ class InsertExpanseUseCase @Inject constructor(
         amount: Float?,
         currencyID: Long?,
         amountAED: Float?,
-        invoiceUris: List<Uri> = emptyList(),
+        invoiceUris: List<String> = emptyList(),
     ): Flow<Resource<Boolean>> = flow {
         emit(Resource.Loading())
 
@@ -78,7 +78,6 @@ class InsertExpanseUseCase @Inject constructor(
                 amount,
                 currencyID,
                 amountAED,
-                invoiceUris
             )
             val result = repo.insert(expanse.toExpansesEntity())
             if (result > 0) {

@@ -6,7 +6,11 @@ data class CurrencyExchange(
     val currencyName:String,
     val rate:Float,
     val id:Long? = null
-)
+){
+    override fun toString(): String {
+        return "$currencyName\nrate: $rate"
+    }
+}
 
 fun CurrencyExchange.toCurrencyExchangeEntity() : CurrencyExchangeEntity {
     return CurrencyExchangeEntity(
