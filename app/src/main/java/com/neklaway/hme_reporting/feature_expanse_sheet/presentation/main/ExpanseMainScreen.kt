@@ -16,13 +16,18 @@ import androidx.navigation.navArgument
 import com.neklaway.hme_reporting.common.presentation.Screen
 import com.neklaway.hme_reporting.common.presentation.common.component.BottomNavigationBar
 import com.neklaway.hme_reporting.common.ui.theme.HMEReportingTheme
+import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.currency_exchange_rate.CurrencyExchangeScreen
+import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.daily_allowance.DailyAllowanceScreen
+import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.edit_expanse.EditExpanseScreen
+import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.edit_expanse.EditExpanseViewModel
 import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.expanse_sheet.ExpanseSheetScreen
+import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.new_expanse.NewExpanseScreen
 
 private const val TAG = "ExpanseMainScreen"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TimeSheetMainScreen() {
+fun ExpanseMainScreen() {
     val navController = rememberNavController()
 
     HMEReportingTheme {
@@ -32,11 +37,12 @@ fun TimeSheetMainScreen() {
             bottomBar = {
                 val screens = mutableListOf(
                     Screen.ExpanseSheet,
-                    Screen.NewExpanse,
                     Screen.DailyAllowance,
+                    Screen.NewExpanse,
+                    Screen.CurrencyExchange
                 )
 
-                Log.d(TAG, "ExpanseMainScreen: Screens are $screens" )
+                Log.d(TAG, "ExpanseMainScreen: Screens are $screens")
 
                 BottomNavigationBar(
                     screenList = screens, navController = navController
@@ -51,7 +57,7 @@ fun TimeSheetMainScreen() {
                     .padding(paddingValues)
                     .fillMaxSize()
             ) {
-                Navigation(navController = navController,Screen.ExpanseSheet.route)
+                Navigation(navController = navController, Screen.ExpanseSheet.route)
             }
 
         }
@@ -62,7 +68,7 @@ fun TimeSheetMainScreen() {
 @Composable
 private fun Navigation(
     navController: NavHostController,
-    startDestination:String
+    startDestination: String
 ) {
     NavHost(
         navController = navController,
@@ -73,18 +79,23 @@ private fun Navigation(
             ExpanseSheetScreen(navController)
         }
 
-        composable(route =
-            Screen.NewExpanse.route) {
+        composable(
+            route =
+            Screen.NewExpanse.route
+        ) {
             NewExpanseScreen()
         }
 
-        composable(route = Screen.DailyAllowance.route){
+        composable(route = Screen.DailyAllowance.route) {
             DailyAllowanceScreen()
-    }
+        }
+        composable(route = Screen.CurrencyExchange.route) {
+            CurrencyExchangeScreen()
+        }
 
         composable(route = Screen.EditExpanse.route + "?" + EditExpanseViewModel.EXPANSE_ID + "={" + EditExpanseViewModel.EXPANSE_ID + "}",
             arguments = listOf(
-                navArgument(EditExpanseScreen.EXPANSE_ID) {
+                navArgument(EditExpanseViewModel.EXPANSE_ID) {
                     type = NavType.LongType
                     defaultValue = -1
                 }

@@ -27,7 +27,7 @@ class UpdateExpanseUseCase @Inject constructor(
         amount: Float?,
         currencyID: Long?,
         amountAED: Float?,
-        invoiceUris: List<Uri> = emptyList(),
+        invoiceUris: List<String> = emptyList(),
         id: Long?
     ): Flow<Resource<Boolean>> = flow {
         emit(Resource.Loading())

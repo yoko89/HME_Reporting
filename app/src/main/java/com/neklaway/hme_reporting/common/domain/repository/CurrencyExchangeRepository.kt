@@ -13,7 +13,7 @@ interface CurrencyExchangeRepository {
 
     suspend fun update(currencyExchangeEntity: CurrencyExchangeEntity): Int
 
-    suspend fun getAll(): Flow<List<CurrencyExchangeEntity>>
+    fun getAll(): Flow<List<CurrencyExchangeEntity>>
 
-    fun getById(id: Long): CurrencyExchangeEntity
+    suspend fun getById(id: Long): CurrencyExchangeEntity
 }
