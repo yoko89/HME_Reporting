@@ -62,11 +62,13 @@ object AppModule {
     fun provideCarMileageDao(db: RoomData): CarMileageDao {
         return db.carMileageDao
     }
+
     @Provides
     @Singleton
     fun provideCurrencyExchangeDao(db: RoomData): CurrencyExchangeDao {
         return db.currencyExchangeDao
     }
+
     @Provides
     @Singleton
     fun provideExpanseDao(db: RoomData): ExpanseDao {
