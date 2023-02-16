@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Draw
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.PictureAsPdf
@@ -19,7 +18,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
@@ -29,22 +27,19 @@ import com.neklaway.hme_reporting.common.presentation.Screen
 import com.neklaway.hme_reporting.common.presentation.common.component.DropDown
 import com.neklaway.hme_reporting.common.presentation.common.component.ListDialog
 import com.neklaway.hme_reporting.common.ui.theme.HMEReportingTheme
-import com.neklaway.hme_reporting.feature_signature.presentation.signature.SignatureScreen
-import com.neklaway.hme_reporting.feature_time_sheet.presentation.edit_time_sheet.EditTimeSheetViewModel
-import com.neklaway.hme_reporting.feature_time_sheet.presentation.time_sheet.TimeSheetEvents
-import com.neklaway.hme_reporting.feature_time_sheet.presentation.time_sheet.TimeSheetViewModel
-import com.neklaway.hme_reporting.feature_time_sheet.presentation.time_sheet.component.TimeSheetHeader
-import com.neklaway.hme_reporting.feature_time_sheet.presentation.time_sheet.component.TimeSheetItemCard
+import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.edit_expanse.EditExpanseViewModel
+import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.expanse_sheet.component.ExpanseSheetHeader
+import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.expanse_sheet.component.ExpanseSheetItemCard
+import com.neklaway.hme_reporting.utils.Constants.EXPANSE_FOLDER
 import com.neklaway.hme_reporting.utils.NotificationPermissionRequest
 import java.io.File
 
-private const val TAG = "TimeSheetScreen"
-
+private const val TAG = "ExpanseSheetScreen"
 
 @Composable
 fun ExpanseSheetScreen(
     navController: NavController,
-    viewModel: TimeSheetViewModel = hiltViewModel(),
+    viewModel: ExpanseSheetViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -58,18 +53,17 @@ fun ExpanseSheetScreen(
     LaunchedEffect(
         key1 = events, key2 = state
     ) {
-
         events.collect { event ->
             when (event) {
-                is TimeSheetEvents.UserMessage -> snackbarHostState.showSnackbar(event.message)
+                is ExpanseSheetEvents.UserMessage -> snackbarHostState.showSnackbar(event.message)
 
-                is TimeSheetEvents.NavigateToTimeSheet ->
+                is ExpanseSheetEvents.NavigateToExpanseSheet ->
                     navController.navigate(
-                        Screen.EditTimeSheet.route
-                                + "?" + EditTimeSheetViewModel.TIME_SHEET_ID
+                        Screen.EditExpanse.route
+                                + "?" + EditExpanseViewModel.EXPANSE_ID
                                 + "=" + event.id
                     )
-                is TimeSheetEvents.ShowFile -> {
+                is ExpanseSheetEvents.ShowFile -> {
                     val intent = Intent(Intent.ACTION_VIEW)
                     val fileUri = FileProvider.getUriForFile(
                         context,
@@ -99,39 +93,26 @@ fun ExpanseSheetScreen(
                 Row {
                     AnimatedVisibility(
                         visible = state.fabVisible,
-                        enter = slideInVertically(initialOffsetY = { it }),
-                        exit = slideOutVertically(targetOffsetY = { it })
+                        enter = slideInVertically(initialOffsetY = { it }).plus(fadeIn()),
+                        exit = slideOutVertically(targetOffsetY = { it }).plus(fadeOut())
                     ) {
                         Row {
-                            FloatingActionButton(
-                                onClick = { viewModel.sign() },
-                                contentColor = if (state.signatureAvailable) Color.Green else MaterialTheme.colorScheme.tertiary
-                            ) {
+                            FloatingActionButton(onClick = {
+
+                                requestPermission = true
+                                //TODO: viewModel.createExpanseSheet()
+                            }) {
                                 Icon(
-                                    imageVector = Icons.Default.Draw,
-                                    contentDescription = "Sign TimeSheet",
+                                    imageVector = Icons.Default.PictureAsPdf,
+                                    contentDescription = "Create ExpanseSheet PDF",
                                 )
                             }
 
                             Spacer(modifier = Modifier.width(5.dp))
-
-                            AnimatedVisibility(visible = state.timeSheets.any { it.selected }) {
-                                FloatingActionButton(onClick = {
-
-                                    requestPermission = true
-                                    viewModel.createTimeSheet()
-                                }) {
-                                    Icon(
-                                        imageVector = Icons.Default.PictureAsPdf,
-                                        contentDescription = "Create TimeSheet PDF",
-                                    )
-                                }
-                            }
-                            Spacer(modifier = Modifier.width(5.dp))
-                            FloatingActionButton(onClick = { viewModel.openTimeSheets() }) {
+                            FloatingActionButton(onClick = { viewModel.openExpanseSheets() }) {
                                 Icon(
                                     imageVector = Icons.Default.FolderOpen,
-                                    contentDescription = "Open TimeSheet",
+                                    contentDescription = "Open ExpanseSheet",
                                 )
                             }
                             Spacer(modifier = Modifier.width(5.dp))
@@ -183,23 +164,34 @@ fun ExpanseSheetScreen(
                     }
                 )
 
-
-                AnimatedVisibility(
-                    visible = state.isIbau,
-                    enter = fadeIn(),
-                    exit = fadeOut()
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    DropDown(
-                        modifier = Modifier.padding(bottom = 5.dp),
-                        dropDownList = state.ibauCodes,
-                        selectedValue = state.selectedIBAUCode?.code ?: "No IBAU Code Selected",
-                        label = "IBAU Code",
-                        dropDownContentDescription = "Select IBAU Code",
-                        onSelect = { ibauCode ->
-                            viewModel.ibauSelected(ibauCode)
-                        }
-                    )
+                    Column {
+                        Text(text = "Less than 24H")
+                        Text(
+                            text = state.lessThan24hDays.toString(),
+                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                        )
+                    }
+                    Column {
+                        Text(text = "Full 24H")
+                        Text(
+                            text = state.fullDays.toString(),
+                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                        )
+                    }
+                    Column {
+                        Text(text = "No Allowance")
+                        Text(
+                            text = state.noAllowanceDays.toString(),
+                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                        )
+                    }
                 }
+
 
                 LazyColumn(
                     modifier = Modifier
@@ -216,45 +208,36 @@ fun ExpanseSheetScreen(
                             CircularProgressIndicator()
                         }
                     }
+
                     item {
-                        TimeSheetHeader(
-                            selectAll = state.selectAll,
-                            onSelectAllChecked = { checked ->
-                                viewModel.selectAll(checked)
-                            })
+                        ExpanseSheetHeader(modifier = Modifier.fillMaxWidth())
                     }
 
-                    items(items = state.timeSheets) { timeSheet ->
-                        TimeSheetItemCard(timeSheet = timeSheet,
-                            cardClicked = { viewModel.timesheetClicked(timeSheet) },
-                            onCheckedChanged = { checked ->
-                                viewModel.sheetSelectedChanged(timeSheet, checked)
-                            })
-                    }
-                }
-
-                state.selectedHMECode?.id?.let {
-
-                    AnimatedVisibility(visible = state.showSignaturePad) {
-                        SignatureScreen(
-                            signatureFileName = it.toString(),
-                            signatureUpdatedAtExit = { signedSuccessfully, signerName ->
-                                if (signedSuccessfully) {
-                                    viewModel.signatureDone(signerName)
-                                } else {
-                                    viewModel.signatureCanceled()
-                                }
-
-                            },
-                            requireSignerName = true
+                    items(items = state.expanseList) { expanse ->
+                        ExpanseSheetItemCard(
+                            expanse = expanse,
+                            currencyExchange = viewModel.getCurrencyExchangeName(expanse).collectAsState(initial = ""),
+                            cardClicked = { viewModel.expanseClicked(expanse) },
+                            modifier = Modifier.fillMaxWidth()
                         )
+                    }
+
+                    item {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.Start,
+                        ) {
+                            Text(text = "Total Payable = ${state.totalPaidAmount}")
+                            Text(text = "Total = ${state.totalAmount}")
+                        }
                     }
                 }
             }
 
             AnimatedVisibility(visible = state.showFileList) {
-                val pdfDirectory = File(context.filesDir.path + "/" + state.selectedHMECode?.code)
-                val listOfFiles = pdfDirectory.listFiles()?.toList() ?: emptyList()
+                val expansePdfDirectory =
+                    File(context.filesDir.path + "/" + state.selectedHMECode?.code + "/" + EXPANSE_FOLDER)
+                val listOfFiles = expansePdfDirectory.listFiles()?.toList() ?: emptyList()
 
                 ListDialog<File>(list = listOfFiles,
                     modifier = Modifier.fillMaxHeight(0.8f),

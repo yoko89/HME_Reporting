@@ -22,18 +22,18 @@ class ExpanseRepositoryImpl @Inject constructor(
     }
 
     override suspend fun update(expanseEntity: ExpanseEntity): Int {
-        return update(expanseEntity)
+        return dao.update(expanseEntity)
     }
 
     override suspend fun update(expanseEntities: List<ExpanseEntity>): Int {
         return dao.update(expanseEntities)
     }
 
-    override suspend fun getAll(): Flow<List<ExpanseEntity>> {
+    override fun getAll(): Flow<List<ExpanseEntity>> {
         return dao.getAll()
     }
 
-    override fun getById(id: Long): ExpanseEntity {
+    override fun getById(id: Long): Flow<ExpanseEntity> {
         return dao.getById(id)
     }
 
