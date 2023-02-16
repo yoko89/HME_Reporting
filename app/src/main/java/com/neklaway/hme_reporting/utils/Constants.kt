@@ -37,5 +37,6 @@ object Constants {
     //Visa Worker
     const val Visa_WORKER_TAG = "visa_tag"
 
-
+    //Expanse related
+    const val EXPANSE_FOLDER = "expanse"
 }

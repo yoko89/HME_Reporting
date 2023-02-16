@@ -217,7 +217,7 @@ class TimeSheetViewModel @Inject constructor(
                         is Resource.Loading -> _state.update { it.copy(loading = true) }
                         is Resource.Success -> {
                             Log.d(TAG, "get timesheet by HME: success ")
-                            result.data?.collect { timeSheetList ->
+                            result.data?.let { timeSheetList ->
                                 val timeSheetsListSorted = timeSheetList.sortedWith(
                                     compareBy({ it.date },
                                         { it.travelStart })

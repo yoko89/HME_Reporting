@@ -15,7 +15,9 @@ class GetTimeSheetByIBAUCodeIdUseCase @Inject constructor(
 
     operator fun invoke(ibauId: Long): Flow<Resource<Flow<List<TimeSheet>>>> = flow {
         emit(Resource.Loading())
-        val result= repo.getByIBAUCodeId(ibauId).map { it.map { it.toTimeSheet() }}
+        val result= repo.getByIBAUCodeId(ibauId).map {timeSheetEntitiesList ->
+            timeSheetEntitiesList.map { timeSheetEntity ->
+                timeSheetEntity.toTimeSheet() }}
         emit(Resource.Success(result))
     }
 

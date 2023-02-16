@@ -5,6 +5,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.neklaway.hmereporting.R
 
+
 sealed class Screen(
     val name: String,
     val route: String,
@@ -13,18 +14,26 @@ sealed class Screen(
 ) {
     object Settings : Screen("Settings", "settings_screen", Icons.Default.Settings)
     object TimeSheetMain : Screen("Timesheet", "time_sheet_main_screen", Icons.Default.Note)
-    object Visa : Screen("Visa","visa_screen",Icons.Default.AirplaneTicket)
-    object CarMileage : Screen("Car","car_mileage",Icons.Default.DirectionsCar)
+    object Visa : Screen("Visa", "visa_screen", Icons.Default.AirplaneTicket)
+    object CarMileage : Screen("Car", "car_mileage", Icons.Default.DirectionsCar)
     object TimeSheet : Screen("Time Sheet", "time_sheet_screen", Icons.Default.Note)
     object Customer : Screen("Customer", "customer_screen", Icons.Default.Person)
     object HMECode : Screen("HME Code", "hme_code_screen", imageId = R.drawable.hb_logo)
     object IBAUCode : Screen("IBAU Code", "ibau_code_screen", imageId = R.drawable.ibau_logo)
     object NewTimeSheet : Screen("New", "new_time_sheet_screen", Icons.Default.NoteAdd)
     object EditTimeSheet : Screen("Edit", "edit_time_sheet_screen", Icons.Default.EditNote)
+    object ExpanseMain : Screen("Expanse","expanse_main",Icons.Default.Payment)
     object ExpanseSheet : Screen("Expanse Sheet", "expanse_sheet_screen", Icons.Default.Payment)
-    object NewExpanse : Screen("New Expanse","new_expanse_screen", Icons.Default.Receipt)
-    object DailyAllowance : Screen("Daily Allowance","daily_allowance_screen", Icons.Default.AttachMoney)
-    object EditExpanse : Screen("Edit Expanse","edit_expanse_screen", Icons.Default.Receipt)
+    object NewExpanse : Screen("New Expanse", "new_expanse_screen", Icons.Default.Receipt)
+    object DailyAllowance :
+        Screen("Daily Allowance", "daily_allowance_screen", Icons.Default.AttachMoney)
+
+    object EditExpanse : Screen("Edit Expanse", "edit_expanse_screen", Icons.Default.Receipt)
+    object CurrencyExchange : Screen(
+        "Currency Exchange Rate",
+        "currency_exchange_rate_screen",
+        Icons.Default.CurrencyExchange
+    )
 
 }
 

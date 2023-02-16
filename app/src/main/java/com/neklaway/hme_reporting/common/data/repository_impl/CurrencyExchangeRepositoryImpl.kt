@@ -25,11 +25,11 @@ class CurrencyExchangeRepositoryImpl @Inject constructor(
         return dao.update(currencyExchangeEntity)
     }
 
-    override suspend fun getAll(): Flow<List<CurrencyExchangeEntity>> {
+    override fun getAll(): Flow<List<CurrencyExchangeEntity>> {
         return dao.getAll()
     }
 
-    override fun getById(id: Long): CurrencyExchangeEntity {
+    override suspend fun getById(id: Long): CurrencyExchangeEntity {
         return dao.getById(id)
     }
 }

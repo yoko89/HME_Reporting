@@ -1,5 +1,6 @@
 package com.neklaway.hme_reporting.utils
 
+import android.net.Uri
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
@@ -10,7 +11,8 @@ import java.util.*
 
 
 object CalendarAsLongSerializer : KSerializer<Calendar> {
-    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Calendar", PrimitiveKind.LONG)
+    override val descriptor: SerialDescriptor =
+        PrimitiveSerialDescriptor("Calendar", PrimitiveKind.LONG)
 
     override fun serialize(encoder: Encoder, value: Calendar) {
         val mills = value.timeInMillis
