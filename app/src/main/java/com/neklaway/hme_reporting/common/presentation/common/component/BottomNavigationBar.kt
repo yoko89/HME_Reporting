@@ -1,12 +1,14 @@
 package com.neklaway.hme_reporting.common.presentation.common.component
 
 import android.util.Log
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
@@ -34,6 +36,8 @@ fun BottomNavigationBar(
             val selected =
                 screen.route == backStackEntry.value?.destination?.route?.split("?")?.get(0)
 
+            val animatedWeight by animateFloatAsState(targetValue = if (selected) 3f else 1f)
+
             NavigationBarItem(
                 selected = selected,
                 onClick = {
@@ -55,7 +59,8 @@ fun BottomNavigationBar(
                 label = {
                     Text(text = screen.name, textAlign = TextAlign.Center)
                 },
-                alwaysShowLabel = false
+                alwaysShowLabel = false,
+                modifier = Modifier.weight(animatedWeight)
             )
         }
     }

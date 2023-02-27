@@ -2,9 +2,9 @@ package com.neklaway.hme_reporting.feature_expanse_sheet.presentation.main
 
 import android.util.Log
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -15,6 +15,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.neklaway.hme_reporting.common.presentation.Screen
 import com.neklaway.hme_reporting.common.presentation.common.component.BottomNavigationBar
+import com.neklaway.hme_reporting.common.presentation.common.component.ComposableScreenAnimation
 import com.neklaway.hme_reporting.common.ui.theme.HMEReportingTheme
 import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.currency_exchange_rate.CurrencyExchangeScreen
 import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.daily_allowance.DailyAllowanceScreen
@@ -27,13 +28,23 @@ private const val TAG = "ExpanseMainScreen"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ExpanseMainScreen() {
+fun ExpanseMainScreen(
+    showNavigationMenu: () ->Unit,
+    ) {
     val navController = rememberNavController()
 
     HMEReportingTheme {
 
         Scaffold(
             modifier = Modifier.fillMaxSize(),
+            topBar = {
+                TopAppBar(title = { Text(text = "Expanse Sheet") },
+                    navigationIcon = {
+                        IconButton(onClick = showNavigationMenu) {
+                            Icon(Icons.Default.Menu, contentDescription = "Menu")
+                        }
+                    })
+            },
             bottomBar = {
                 val screens = mutableListOf(
                     Screen.ExpanseSheet,
@@ -76,21 +87,29 @@ private fun Navigation(
     ) {
 
         composable(route = Screen.ExpanseSheet.route) {
-            ExpanseSheetScreen(navController)
+            ComposableScreenAnimation {
+                ExpanseSheetScreen(navController)
+            }
         }
 
         composable(
             route =
             Screen.NewExpanse.route
         ) {
-            NewExpanseScreen()
+            ComposableScreenAnimation {
+                NewExpanseScreen()
+            }
         }
 
         composable(route = Screen.DailyAllowance.route) {
-            DailyAllowanceScreen()
+            ComposableScreenAnimation {
+                DailyAllowanceScreen()
+            }
         }
         composable(route = Screen.CurrencyExchange.route) {
-            CurrencyExchangeScreen()
+            ComposableScreenAnimation {
+                CurrencyExchangeScreen()
+            }
         }
 
         composable(route = Screen.EditExpanse.route + "?" + EditExpanseViewModel.EXPANSE_ID + "={" + EditExpanseViewModel.EXPANSE_ID + "}",
@@ -100,7 +119,9 @@ private fun Navigation(
                     defaultValue = -1
                 }
             )) {
-            EditExpanseScreen(navController)
+            ComposableScreenAnimation {
+                EditExpanseScreen(navController)
+            }
         }
     }
 }
