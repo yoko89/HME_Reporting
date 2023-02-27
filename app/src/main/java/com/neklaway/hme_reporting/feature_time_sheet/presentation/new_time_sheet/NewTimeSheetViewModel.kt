@@ -347,9 +347,33 @@ class NewTimeSheetViewModel @Inject constructor(
             0
         )
         date.set(Calendar.MILLISECOND, 0)
-        _state.update { it.copy(date = date, showDatePicker = false) }
+
+        val travelStart = state.value.travelStart
+        travelStart?.set(year, month, day)
+        val workStart = state.value.workStart
+        workStart?.set(year, month, day)
+        val workEnd = state.value.workEnd
+        workEnd?.set(year, month, day)
+        val travelEnd = state.value.travelEnd
+        travelEnd?.set(year, month, day)
+
+
+        _state.update {
+            it.copy(
+                date = date,
+                travelStart = travelStart,
+                workStart = workStart,
+                workEnd = workEnd,
+                travelEnd = travelEnd,
+                showDatePicker = false
+            )
+        }
         viewModelScope.launch {
             setDateUseCase(date)
+            setTravelStartUseCase(travelStart)
+            setWorkStartUseCase(workStart)
+            setWorkEndUseCase(workEnd)
+            setTravelEndUseCase(travelEnd)
         }
     }
 
