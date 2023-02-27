@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -30,6 +31,7 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VisaScreen(
+    showNavigationMenu: () -> Unit,
     viewModel: VisaViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
@@ -72,35 +74,44 @@ fun VisaScreen(
     NotificationPermissionRequest(context = context)
 
     HMEReportingTheme {
-        Scaffold(floatingActionButton = {
-            Row {
-                AnimatedVisibility(
-                    state.selectedVisa != null,
-                    enter = slideInVertically(initialOffsetY = { it }),
-                    exit = slideOutVertically(targetOffsetY = { it })
-                ) {
-                    Row {
-                        FloatingActionButton(onClick = {
-                            viewModel.updateVisa()
-                        }) {
-                            Icon(
-                                imageVector = Icons.Default.Edit,
-                                contentDescription = "Edit Visa"
-                            )
+        Scaffold(
+            topBar = {
+                TopAppBar(title = { Text(text = "Visa") },
+                    navigationIcon = {
+                        IconButton(onClick = showNavigationMenu) {
+                            Icon(Icons.Default.Menu, contentDescription = "Menu")
                         }
-                        Spacer(modifier = Modifier.width(5.dp))
+                    })
+            },
+            floatingActionButton = {
+                Row {
+                    AnimatedVisibility(
+                        state.selectedVisa != null,
+                        enter = slideInVertically(initialOffsetY = { it }),
+                        exit = slideOutVertically(targetOffsetY = { it })
+                    ) {
+                        Row {
+                            FloatingActionButton(onClick = {
+                                viewModel.updateVisa()
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Default.Edit,
+                                    contentDescription = "Edit Visa"
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(5.dp))
+                        }
+                    }
+                    FloatingActionButton(onClick = {
+                        viewModel.saveVisa()
+                    }) {
+
+                        Icon(imageVector = Icons.Default.Add, contentDescription = "Add Visa")
                     }
                 }
-                FloatingActionButton(onClick = {
-                    viewModel.saveVisa()
-                }) {
-
-                    Icon(imageVector = Icons.Default.Add, contentDescription = "Add Visa")
-                }
-            }
-        }, snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState)
-        }) {
+            }, snackbarHost = {
+                SnackbarHost(hostState = snackbarHostState)
+            }) {
             Column(
                 modifier = Modifier
                     .padding(it)

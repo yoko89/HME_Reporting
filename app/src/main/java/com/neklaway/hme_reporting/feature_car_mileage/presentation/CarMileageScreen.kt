@@ -12,6 +12,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -35,6 +36,7 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CarMileageScreen(
+    showNavigationMenu: () -> Unit,
     viewModel: CarMileageViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
@@ -130,35 +132,47 @@ fun CarMileageScreen(
 
 
     HMEReportingTheme {
-        Scaffold(floatingActionButton = {
-            Row {
-                AnimatedVisibility(
-                    state.selectedCarMileage != null,
-                    enter = slideInVertically(initialOffsetY = { it }),
-                    exit = slideOutVertically(targetOffsetY = { it })
-                ) {
-                    Row {
-                        FloatingActionButton(onClick = {
-                            viewModel.updateCarMileage()
-                        }) {
-                            Icon(
-                                imageVector = Icons.Default.Edit,
-                                contentDescription = "Edit Car Mileage"
-                            )
+        Scaffold(
+            topBar = {
+                TopAppBar(title = { Text(text = "Car Mileage") },
+                    navigationIcon = {
+                        IconButton(onClick = showNavigationMenu) {
+                            Icon(Icons.Default.Menu, contentDescription = "Menu")
                         }
-                        Spacer(modifier = Modifier.width(5.dp))
+                    })
+            },
+            floatingActionButton = {
+                Row {
+                    AnimatedVisibility(
+                        state.selectedCarMileage != null,
+                        enter = slideInVertically(initialOffsetY = { it }),
+                        exit = slideOutVertically(targetOffsetY = { it })
+                    ) {
+                        Row {
+                            FloatingActionButton(onClick = {
+                                viewModel.updateCarMileage()
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Default.Edit,
+                                    contentDescription = "Edit Car Mileage"
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(5.dp))
+                        }
+                    }
+                    FloatingActionButton(onClick = {
+                        viewModel.saveCarMileage()
+                    }) {
+
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Add Car Mileage"
+                        )
                     }
                 }
-                FloatingActionButton(onClick = {
-                    viewModel.saveCarMileage()
-                }) {
-
-                    Icon(imageVector = Icons.Default.Add, contentDescription = "Add Car Mileage")
-                }
-            }
-        }, snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState)
-        }) {
+            }, snackbarHost = {
+                SnackbarHost(hostState = snackbarHostState)
+            }) {
             Column(
                 modifier = Modifier
                     .padding(it)

@@ -36,7 +36,6 @@ private val LightColorScheme = lightColorScheme(
 @Composable
 fun HMEReportingTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
@@ -52,7 +51,6 @@ fun HMEReportingTheme(
     if (!view.isInEditMode) {
         SideEffect {
             (view.context as Activity).window.statusBarColor = colorScheme.primary.toArgb()
-//            ViewCompat.getWindowInsetsController(view)?.isAppearanceLightStatusBars = darkTheme
             WindowCompat.getInsetsController(
                 (view.context as Activity).window,
                 view

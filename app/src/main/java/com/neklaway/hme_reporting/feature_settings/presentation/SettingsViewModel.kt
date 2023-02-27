@@ -46,7 +46,7 @@ class SettingsViewModel @Inject constructor(
     private val startRestore: StartRestore,
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(SettingsState())
+    private val _state = MutableStateFlow(SettingsState(noAllowance = ""))
     val state = _state.asStateFlow()
 
     private val _userMessage = MutableSharedFlow<String>()
@@ -201,6 +201,18 @@ class SettingsViewModel @Inject constructor(
 
     fun updateSignature() {
         getSignature()
+    }
+
+    fun setFullDayAllowance(allowance: String) {
+        TODO("Not yet implemented")
+    }
+
+    fun set8HAllowance(allowance: String) {
+        TODO("Not yet implemented")
+    }
+
+    fun setNoAllowance(allowance: String) {
+        TODO("Not yet implemented")
     }
 
 }
