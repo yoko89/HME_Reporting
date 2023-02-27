@@ -33,4 +33,8 @@ class CarMileageRepositoryImpl @Inject constructor(
     override suspend fun getAllFlow(): Flow<List<CarMileageEntity>> {
         return dao.getAllFlow()
     }
+
+    override fun getAll(): List<CarMileageEntity> {
+        return dao.getAll()
+    }
 }

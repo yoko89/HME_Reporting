@@ -26,4 +26,7 @@ interface CarMileageDao {
     @Query("SELECT * FROM carMileageTable")
     fun getAllFlow(): Flow<List<CarMileageEntity>>
 
+    @Query("SELECT * FROM carMileageTable")
+    fun getAll(): List<CarMileageEntity>
+
 }

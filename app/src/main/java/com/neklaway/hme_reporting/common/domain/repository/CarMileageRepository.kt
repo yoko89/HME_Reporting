@@ -16,5 +16,6 @@ interface CarMileageRepository {
     suspend fun getById(id: Long): CarMileageEntity
 
     suspend fun getAllFlow(): Flow<List<CarMileageEntity>>
+    fun getAll(): List<CarMileageEntity>
 
 }

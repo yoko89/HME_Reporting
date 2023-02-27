@@ -24,7 +24,7 @@ import com.neklaway.hme_reporting.common.domain.use_cases.hme_code_use_cases.Get
 import com.neklaway.hme_reporting.common.domain.use_cases.ibau_code_use_cases.GetAllIBAUCodesUseCase
 import com.neklaway.hme_reporting.common.domain.use_cases.time_sheet_use_cases.GetAllTimeSheetUseCase
 import com.neklaway.hme_reporting.feature_car_mileage.domain.model.CarMileage
-import com.neklaway.hme_reporting.feature_car_mileage.domain.use_cases.GetAllCarMileageFlowUseCase
+import com.neklaway.hme_reporting.feature_car_mileage.domain.use_cases.GetAllCarMileageUseCase
 import com.neklaway.hme_reporting.feature_visa.domain.model.Visa
 import com.neklaway.hme_reporting.feature_visa.domain.use_cases.GetAllVisasUseCase
 import com.neklaway.hme_reporting.utils.Constants
@@ -51,7 +51,7 @@ class BackupWorker @AssistedInject constructor(
     val getAllIBAUCodesUseCase: GetAllIBAUCodesUseCase,
     val getAllTimeSheetUseCase: GetAllTimeSheetUseCase,
     val getAllVisasUseCase: GetAllVisasUseCase,
-    val getAllCarMileageFlowUseCase: GetAllCarMileageFlowUseCase,
+    val getAllCarMileageUseCase: GetAllCarMileageUseCase,
 ) : CoroutineWorker(appContext, workerParameters) {
 
     override suspend fun getForegroundInfo(): ForegroundInfo {
@@ -302,7 +302,8 @@ class BackupWorker @AssistedInject constructor(
         }
 
 
-        getAllCarMileageFlowUseCase().collect { resource ->
+        getAllCarMileageUseCase().apply {
+            val resource = this
 
             Log.d(TAG, "getCarMileage: $resource")
             when (resource) {
