@@ -11,4 +11,8 @@ data class SettingsState(
     val showSignaturePad: Boolean = false,
     val signature: ImageBitmap? = null,
     val visaReminder: String = "",
-)
+    val fullDayAllowance :String ="",
+    val _8HAllowance: String = "",
+    val noAllowance: String = ""
+) {
+}
