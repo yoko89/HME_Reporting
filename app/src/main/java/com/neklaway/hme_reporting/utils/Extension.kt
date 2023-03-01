@@ -1,6 +1,8 @@
 package com.neklaway.hme_reporting.utils
 
+import android.annotation.SuppressLint
 import java.text.DateFormat
+import java.text.SimpleDateFormat
 import java.util.*
 
 fun Long.toCalender(): Calendar {
@@ -38,6 +40,22 @@ fun Calendar?.toTime(): String {
     }
     return "N/A"
 }
+
+@SuppressLint("SimpleDateFormat")
+fun Calendar?.toTime24(): String {
+    val formatter = SimpleDateFormat("HH:mm")
+
+    this?.let {
+        return try {
+            formatter.format(it.timeInMillis)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            "ERROR"
+        }
+    }
+    return "N/A"
+}
+
 
 fun String.toFloatWithString(): ResourceWithString<Float> {
     val string = this
