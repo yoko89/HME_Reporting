@@ -25,8 +25,8 @@ import com.neklaway.hme_reporting.feature_settings.domain.use_cases.user_name.Ge
 import com.neklaway.hme_reporting.feature_signature.domain.use_cases.bitmap_use_case.LoadBitmapUseCase
 import com.neklaway.hme_reporting.utils.Constants
 import com.neklaway.hme_reporting.utils.Resource
-import com.neklaway.hme_reporting.utils.toDate
-import com.neklaway.hme_reporting.utils.toTime
+import com.neklaway.hme_reporting.utils.toStdDate
+import com.neklaway.hme_reporting.utils.toTime24
 import com.neklaway.hmereporting.R
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -204,7 +204,8 @@ class PDFCreatorWorker @AssistedInject constructor(
     ): Result {
 
         // Get passed Data
-        val timeSheetsSerialized = inputData.getString(TIME_SHEET_LIST_KEY) ?: return Result.failure()
+        val timeSheetsSerialized =
+            inputData.getString(TIME_SHEET_LIST_KEY) ?: return Result.failure()
         val timeSheets = Json.decodeFromString(TimeSheet.listSerializer, timeSheetsSerialized)
 
         //Fetching required data
@@ -548,7 +549,7 @@ class PDFCreatorWorker @AssistedInject constructor(
                 )
 
                 canvas[currentPageCount].drawText(
-                    timeSheets.first().date.toDate() + "   " + timeSheets.first().travelStart.toTime(),
+                    timeSheets.first().date.toStdDate() + "   " + timeSheets.first().travelStart.toTime24(),
                     LEFT_DATA_START + DEPARTURE_SHIFT,
                     DATA_TOP + 6 * (textRowHeight),
                     paintText
@@ -588,7 +589,7 @@ class PDFCreatorWorker @AssistedInject constructor(
                     paintText
                 )
                 canvas[currentPageCount].drawText(
-                    timeSheets.last().date.toDate() + "   " + timeSheets.last().travelEnd.toTime(),
+                    timeSheets.last().date.toStdDate() + "   " + timeSheets.last().travelEnd.toTime24(),
                     RIGHT_DATA_START + ARRIVAL_SHIFT,
                     DATA_TOP + 6 * (textRowHeight),
                     paintText
@@ -826,7 +827,7 @@ class PDFCreatorWorker @AssistedInject constructor(
                         paintText
                     )
                     canvas[currentPageCount].drawText(
-                        hmeCode.signatureDate.toTime() + "  " + hmeCode.signatureDate.toDate(),
+                        hmeCode.signatureDate.toTime24() + "  " + hmeCode.signatureDate.toStdDate(),
                         CUSTOMER_SIGNATURE_DATE_SHIFT,
                         SIGNATURE_BOTTOM + paintText.ascent() - 2 * paintText.descent(),
                         paintText
@@ -892,7 +893,7 @@ class PDFCreatorWorker @AssistedInject constructor(
                     paintText
                 )
                 canvas[currentPageCount].drawText(
-                    Calendar.getInstance().toDate(),
+                    Calendar.getInstance().toStdDate(),
                     ENGINEER_SIGNATURE_DATE_SHIFT,
                     SIGNATURE_BOTTOM + paintText.ascent() - 2 * paintText.descent(),
                     paintText
@@ -931,31 +932,31 @@ class PDFCreatorWorker @AssistedInject constructor(
             )
 
             canvas[currentPageCount].drawText(
-                currentItem.date.toDate(),
+                currentItem.date.toStdDate(),
                 X_TABLE_LEFT + COLUMN_SHIFT_DATE + DATE_SHIFT,
                 yPositionForCurrentItem,
                 paintText
             )
             canvas[currentPageCount].drawText(
-                currentItem.travelStart.toTime(),
+                currentItem.travelStart.toTime24(),
                 X_TABLE_LEFT + 2 * COLUMN_SHIFT + TRAVEL_START_SHIFT,
                 yPositionForCurrentItem,
                 paintText
             )
             canvas[currentPageCount].drawText(
-                currentItem.workStart.toTime(),
+                currentItem.workStart.toTime24(),
                 X_TABLE_LEFT + 3 * COLUMN_SHIFT + WORK_START_SHIFT,
                 yPositionForCurrentItem,
                 paintText
             )
             canvas[currentPageCount].drawText(
-                currentItem.workEnd.toTime(),
+                currentItem.workEnd.toTime24(),
                 X_TABLE_LEFT + 4 * COLUMN_SHIFT + WORK_END_SHIFT,
                 yPositionForCurrentItem,
                 paintText
             )
             canvas[currentPageCount].drawText(
-                currentItem.travelEnd.toTime(),
+                currentItem.travelEnd.toTime24(),
                 X_TABLE_LEFT + 5 * COLUMN_SHIFT + TRAVEL_END_SHIFT,
                 yPositionForCurrentItem,
                 paintText
@@ -1068,19 +1069,19 @@ class PDFCreatorWorker @AssistedInject constructor(
             paintBoldText
         )
         canvas[currentPageCount].drawText(
-            String.format("%.2fH", totalWork),
+            String.format("%.2f", totalWork),
             X_TABLE_LEFT + 7 * COLUMN_SHIFT + WORKING_HOURS_SHIFT,
             yPositionForCurrentItem,
             paintText
         )
         canvas[currentPageCount].drawText(
-            String.format("%.2fH", totalOverTime),
+            String.format("%.2f", totalOverTime),
             X_TABLE_LEFT + 8 * COLUMN_SHIFT + OVER_TIME_SHIFT,
             yPositionForCurrentItem,
             paintText
         )
         canvas[currentPageCount].drawText(
-            String.format("%.2fH", totalTravel),
+            String.format("%.2f", totalTravel),
             X_TABLE_LEFT + 9 * COLUMN_SHIFT + TRAVEL_HOURS_SHIFT,
             yPositionForCurrentItem,
             paintText

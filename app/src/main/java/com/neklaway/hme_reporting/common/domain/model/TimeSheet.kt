@@ -74,15 +74,15 @@ data class TimeSheet(
     }
 
 
-    val workTimeString = String.format("%.2fH", workTime)
+    val workTimeString = String.format("%.2f", workTime)
 
 
-    val overTimeString = String.format("%.2fH", overTime)
+    val overTimeString = String.format("%.2f", overTime)
 
 
-    val travelTimeString = String.format("%.2fH", travelTime)
+    val travelTimeString = String.format("%.2f", travelTime)
 
-    val breakTimeString = "${breakDuration}H"
+    val breakTimeString = breakDuration.toString()
 
 }
 
