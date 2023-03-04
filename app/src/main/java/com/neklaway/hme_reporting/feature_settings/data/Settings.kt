@@ -20,6 +20,9 @@ class Settings @Inject constructor(@ApplicationContext context: Context) {
         private val break_duration = floatPreferencesKey("break_duration")
         private val auto_clear = booleanPreferencesKey("auto_clear")
         private val visa_reminder = intPreferencesKey("visa_reminder")
+        private val short_day_allowance = intPreferencesKey("short_day_allowance")
+        private val full_day_allowance = intPreferencesKey("full_day_allowance")
+        private val no_allowance = intPreferencesKey("no_allowance")
     }
 
     suspend fun setIbauUser(isIbauUser: Boolean) {
@@ -68,8 +71,35 @@ class Settings @Inject constructor(@ApplicationContext context: Context) {
         }
     }
 
+    suspend fun set8HDayAllowance(allowance: Int) {
+        settingsDataStore.edit { settings ->
+            settings[short_day_allowance] = allowance
+        }
+    }
+    suspend fun setFullDayAllowance(allowance: Int) {
+        settingsDataStore.edit { settings ->
+            settings[full_day_allowance] = allowance
+        }
+    }
+    suspend fun setNoAllowance(allowance: Int) {
+        settingsDataStore.edit { settings ->
+            settings[no_allowance] = allowance
+        }
+    }
+
     val getVisaReminder: Flow<Int> = settingsDataStore.data.map { settings ->
         settings[visa_reminder] ?: 30
     }
+
+    val getNoAllowance: Flow<Int> = settingsDataStore.data.map { settings ->
+        settings[no_allowance]?: 0
+    }
+    val get8HDayAllowance: Flow<Int> = settingsDataStore.data.map { settings ->
+        settings[short_day_allowance]?: 100
+    }
+    val getFullDayAllowance: Flow<Int> = settingsDataStore.data.map { settings ->
+        settings[full_day_allowance]?: 150
+    }
+
 
 }

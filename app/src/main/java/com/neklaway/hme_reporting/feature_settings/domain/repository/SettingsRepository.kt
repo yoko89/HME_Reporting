@@ -1,9 +1,6 @@
 package com.neklaway.hme_reporting.feature_settings.domain.repository
 
-import androidx.datastore.preferences.core.edit
-import com.neklaway.hme_reporting.feature_settings.data.Settings
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 
 interface SettingsRepository {
 
@@ -19,11 +16,19 @@ interface SettingsRepository {
 
     fun getBreakDuration(): Flow<Float>
 
-    suspend fun setUserName(userName:String)
+    suspend fun setUserName(userName: String)
 
     fun getUserName(): Flow<String>
 
     suspend fun setVisaReminder(reminder: Int)
 
     fun getVisaReminder(): Flow<Int>
+    suspend fun setNoAllowance(allowance: Int)
+    suspend fun set8HDayAllowance(allowance: Int)
+    suspend fun setFullDayAllowance(allowance: Int)
+    fun getNoAllowance(): Flow<Int>
+    fun get8HDayAllowance(): Flow<Int>
+    fun getFullDayAllowance(): Flow<Int>
+
+
 }
