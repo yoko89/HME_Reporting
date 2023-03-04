@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.neklaway.hme_reporting.feature_settings.domain.use_cases.allowance.*
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.backup.StartBackup
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.backup.StartRestore
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.break_time.GetBreakDurationUseCase
@@ -44,6 +45,12 @@ class SettingsViewModel @Inject constructor(
     private val setVisaReminderUseCase: SetVisaReminderUseCase,
     private val startBackup: StartBackup,
     private val startRestore: StartRestore,
+    private val getFullDayAllowanceUseCase: GetFullDayAllowanceUseCase,
+    private val get8HDayAllowanceUseCase : Get8HDayAllowanceUseCase,
+    private val getNoAllowanceUseCase : GetNoAllowanceUseCase,
+    private val setFullDayAllowanceUseCase : SetFullDayAllowanceUseCase,
+    private val set8HAllowanceUseCase: Set8HAllowanceUseCase,
+    private val setNoAllowanceUseCase : SetNoAllowanceUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SettingsState(noAllowance = ""))
@@ -59,6 +66,9 @@ class SettingsViewModel @Inject constructor(
         getSignature()
         getIsAutoClear()
         getVisaReminder()
+        getFullDayAllowance()
+        get8HDayAllowance()
+        getNoAllowance()
     }
 
 
@@ -94,6 +104,25 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             val visaReminder = getVisaReminderUseCase()
             _state.update { it.copy(visaReminder = visaReminder.toString()) }
+        }
+    }
+
+    private fun getFullDayAllowance() {
+        viewModelScope.launch {
+            val fullDayAllowance = getFullDayAllowanceUseCase()
+            _state.update { it.copy(fullDayAllowance = fullDayAllowance.toString()) }
+        }
+    }
+    private fun get8HDayAllowance() {
+        viewModelScope.launch {
+            val _8HDayAllowance = get8HDayAllowanceUseCase()
+            _state.update { it.copy(_8HAllowance = _8HDayAllowance.toString()) }
+        }
+    }
+    private fun getNoAllowance() {
+        viewModelScope.launch {
+            val noAllowance = getNoAllowanceUseCase()
+            _state.update { it.copy(noAllowance = noAllowance.toString()) }
         }
     }
 
@@ -204,15 +233,59 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun setFullDayAllowance(allowance: String) {
-        TODO("Not yet implemented")
+        viewModelScope.launch {
+            allowance.toIntWithString().let { resourceWithString ->
+                when (resourceWithString) {
+                    is ResourceWithString.Error -> {
+                        _userMessage.emit(resourceWithString.message ?: "Error")
+
+                    }
+                    is ResourceWithString.Loading -> Unit
+                    is ResourceWithString.Success -> {
+                        setFullDayAllowanceUseCase(resourceWithString.data!!)
+                    }
+                }
+                _state.update { it.copy(fullDayAllowance = resourceWithString.string ?: "") }
+
+            }
+        }
     }
 
     fun set8HAllowance(allowance: String) {
-        TODO("Not yet implemented")
-    }
+        viewModelScope.launch {
+            allowance.toIntWithString().let { resourceWithString ->
+                when (resourceWithString) {
+                    is ResourceWithString.Error -> {
+                        _userMessage.emit(resourceWithString.message ?: "Error")
+
+                    }
+                    is ResourceWithString.Loading -> Unit
+                    is ResourceWithString.Success -> {
+                        set8HAllowanceUseCase(resourceWithString.data!!)
+                    }
+                }
+                _state.update { it.copy(_8HAllowance = resourceWithString.string ?: "") }
+
+            }
+        }    }
 
     fun setNoAllowance(allowance: String) {
-        TODO("Not yet implemented")
+        viewModelScope.launch {
+            allowance.toIntWithString().let { resourceWithString ->
+                when (resourceWithString) {
+                    is ResourceWithString.Error -> {
+                        _userMessage.emit(resourceWithString.message ?: "Error")
+
+                    }
+                    is ResourceWithString.Loading -> Unit
+                    is ResourceWithString.Success -> {
+                        setNoAllowanceUseCase(resourceWithString.data!!)
+                    }
+                }
+                _state.update { it.copy(noAllowance = resourceWithString.string ?: "") }
+
+            }
+        }
     }
 
 }
