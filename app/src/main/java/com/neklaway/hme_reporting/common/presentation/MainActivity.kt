@@ -22,7 +22,7 @@ import com.neklaway.hme_reporting.common.presentation.common.component.Composabl
 import com.neklaway.hme_reporting.common.ui.theme.HMEReportingTheme
 import com.neklaway.hme_reporting.feature_car_mileage.presentation.CarMileageScreen
 import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.main.ExpanseMainScreen
-import com.neklaway.hme_reporting.feature_settings.presentation.settings.SettingsScreen
+import com.neklaway.hme_reporting.feature_settings.presentation.SettingsScreen
 import com.neklaway.hme_reporting.feature_time_sheet.presentation.main.TimeSheetMainScreen
 import com.neklaway.hme_reporting.feature_visa.presentation.VisaScreen
 import com.neklaway.hmereporting.BuildConfig
