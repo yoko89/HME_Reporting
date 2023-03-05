@@ -126,6 +126,8 @@ fun SettingsScreen(
                 }
 
                 item {
+                    Divider(modifier = Modifier.padding(vertical = 5.dp))
+
                     OutlinedTextField(
                         value = state.visaReminder,
                         onValueChange = {
@@ -139,7 +141,11 @@ fun SettingsScreen(
                     )
                 }
 
+
+
                 item {
+                    Divider(modifier = Modifier.padding(vertical = 5.dp))
+
                     OutlinedTextField(
                         value = state.fullDayAllowance,
                         onValueChange = {
@@ -182,6 +188,8 @@ fun SettingsScreen(
                 }
 
                 item {
+                    Divider(modifier = Modifier.padding(vertical = 5.dp))
+
                     state.signature?.let {
                         Spacer(modifier = Modifier.height(5.dp))
                         Image(
@@ -205,6 +213,9 @@ fun SettingsScreen(
                 }
 
                 item {
+
+                    Divider(modifier = Modifier.padding(vertical = 5.dp))
+
                     Button(
                         onClick = {
                             requestPermission = true
@@ -245,7 +256,6 @@ fun SettingsScreen(
                         viewModel.updateSignature()
                 })
         }
-
 
 
         if (requestPermission) {
