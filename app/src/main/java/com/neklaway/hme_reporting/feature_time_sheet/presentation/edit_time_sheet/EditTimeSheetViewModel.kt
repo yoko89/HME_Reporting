@@ -114,7 +114,7 @@ class EditTimeSheetViewModel @Inject constructor(
         viewModelScope.launch {
             val timeSheet = timeSheet.await() ?: return@launch
 
-            getHMECodeByIdUseCase(timeSheet.id!!).collect { result ->
+            getHMECodeByIdUseCase(timeSheet.HMEId).collect { result ->
                 when (result) {
                     is Resource.Error -> {
                         _event.emit(
