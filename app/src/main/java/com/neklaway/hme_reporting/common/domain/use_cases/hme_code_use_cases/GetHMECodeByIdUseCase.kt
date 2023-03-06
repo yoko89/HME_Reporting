@@ -12,7 +12,7 @@ class GetHMECodeByIdUseCase @Inject constructor(
     val repo: HMECodeRepository
 ) {
 
-    operator fun invoke(id: Long): Flow<Resource<HMECode>> = flow {
+    suspend operator fun invoke(id: Long): Flow<Resource<HMECode>> = flow {
         emit(Resource.Loading())
         val result = repo.getById(id).toHMECode()
         emit(Resource.Success(result))

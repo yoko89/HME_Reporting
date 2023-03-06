@@ -4,10 +4,19 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.neklaway.hme_reporting.common.domain.model.HMECode
+import com.neklaway.hme_reporting.common.domain.model.IBAUCode
 import com.neklaway.hme_reporting.common.domain.model.TimeSheet
+import com.neklaway.hme_reporting.common.domain.use_cases.hme_code_use_cases.GetHMECodeByCustomerIdUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.hme_code_use_cases.GetHMECodeByIdUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.ibau_code_use_cases.GetIBAUCodeByHMECodeIdUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.time_sheet.hme_id.SetHMEIdUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.time_sheet.ibau_id.GetIBAUIdUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.time_sheet.ibau_id.SetIBAUIdUseCase
 import com.neklaway.hme_reporting.common.domain.use_cases.time_sheet_use_cases.DeleteTimeSheetUseCase
 import com.neklaway.hme_reporting.common.domain.use_cases.time_sheet_use_cases.GetTimeSheetByIdUseCase
 import com.neklaway.hme_reporting.common.domain.use_cases.time_sheet_use_cases.UpdateTimeSheetUseCase
+import com.neklaway.hme_reporting.feature_settings.domain.use_cases.is_ibau.GetIsIbauUseCase
 import com.neklaway.hme_reporting.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Deferred
@@ -25,7 +34,14 @@ class EditTimeSheetViewModel @Inject constructor(
     private val updateTimeSheetUseCase: UpdateTimeSheetUseCase,
     private val getTimeSheetByIdUseCase: GetTimeSheetByIdUseCase,
     private val deleteTimeSheetUseCase: DeleteTimeSheetUseCase,
-    savedStateHandle: SavedStateHandle
+    private val getHMECodeByIdUseCase: GetHMECodeByIdUseCase,
+    private val getHMECodeByCustomerIdUseCase: GetHMECodeByCustomerIdUseCase,
+    private val setHMEIdUseCase: SetHMEIdUseCase,
+    private val getIsIBAUUseCase: GetIsIbauUseCase,
+    private val getIBAUCodeByHMECodeIdUseCase: GetIBAUCodeByHMECodeIdUseCase,
+    private val getIBAUIdUseCase: GetIBAUIdUseCase,
+    private val setIBAUIdUseCase: SetIBAUIdUseCase,
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     companion object {
@@ -38,17 +54,26 @@ class EditTimeSheetViewModel @Inject constructor(
     private val _event = MutableSharedFlow<EditTimeSheetEvents>()
     val event: SharedFlow<EditTimeSheetEvents> = _event
 
-    private val timeSheetId: Long
-    private var timeSheet: Deferred<TimeSheet?>
+    private var timeSheetId: Long = -1
+    private lateinit var timeSheet: Deferred<TimeSheet?>
 
     init {
+        getTimeSheet()
+        getHmeCodes()
+        viewModelScope.launch {
+            _state.update { it.copy(isIbau = getIsIBAUUseCase.invoke()) }
+        }
 
+    }
+
+    private fun getTimeSheet() {
         timeSheetId = savedStateHandle[TIME_SHEET_ID] ?: -1
         _state.update { it.copy(timeSheetId = timeSheetId) }
         Log.d(TAG, ": ${state.value.timeSheetId}")
+        var returnedTimesheet: TimeSheet? = null
+
 
         timeSheet = viewModelScope.async(Dispatchers.IO) {
-            var returnedTimesheet: TimeSheet? = null
             getTimeSheetByIdUseCase(timeSheetId).collect { result ->
                 Log.d(TAG, "TimeSheet: $result")
                 when (result) {
@@ -85,6 +110,56 @@ class EditTimeSheetViewModel @Inject constructor(
         }
     }
 
+    private fun getHmeCodes() {
+        viewModelScope.launch {
+            val timeSheet = timeSheet.await() ?: return@launch
+
+            getHMECodeByIdUseCase(timeSheet.id!!).collect { result ->
+                when (result) {
+                    is Resource.Error -> {
+                        _event.emit(
+                            EditTimeSheetEvents.UserMessage(
+                                result.message ?: "Error can't retrieve Data "
+                            )
+                        )
+                        _state.update { it.copy(loading = false) }
+                    }
+                    is Resource.Loading -> _state.update { it.copy(loading = true) }
+                    is Resource.Success -> {
+                        val currentHmeCode = result.data
+                        val customer = result.data?.customerId
+                        customer?.let { customerId ->
+                            getHMECodeByCustomerIdUseCase(customerId).collect { result ->
+                                when (result) {
+                                    is Resource.Error -> {
+                                        _event.emit(
+                                            EditTimeSheetEvents.UserMessage(
+                                                result.message ?: "Error can't retrieve Data "
+                                            )
+                                        )
+                                        _state.update { it.copy(loading = false) }
+                                    }
+                                    is Resource.Loading -> _state.update { it.copy(loading = true) }
+                                    is Resource.Success -> {
+                                        _state.update {
+                                            it.copy(
+                                                hmeCodes = result.data ?: emptyList(),
+                                                loading = false,
+                                                selectedHMECode = currentHmeCode,
+                                            )
+                                        }
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+                }
+
+            }
+        }
+
+    }
 
     fun updateTimeSheet() {
         viewModelScope.launch {
@@ -94,8 +169,8 @@ class EditTimeSheetViewModel @Inject constructor(
                 return@launch
             }
             updateTimeSheetUseCase.invoke(
-                HMEId = timeSheet.HMEId,
-                IBAUId = timeSheet.IBAUId,
+                HMEId = state.value.selectedHMECode?.id ?: timeSheet.HMEId,
+                IBAUId = state.value.selectedIBAUCode?.id ?: timeSheet.IBAUId,
                 date = state.value.date,
                 travelStart = state.value.travelStart,
                 workStart = state.value.workStart,
@@ -289,4 +364,57 @@ class EditTimeSheetViewModel @Inject constructor(
         }
     }
 
+    fun hmeSelected(hmeCode: HMECode) {
+        viewModelScope.launch {
+            _state.update {
+                it.copy(
+                    selectedHMECode = hmeCode
+                )
+            }
+
+            viewModelScope.launch(Dispatchers.IO) hmeSelectedScope@{
+                setHMEIdUseCase(hmeCode.id!!)
+
+                if (!getIsIBAUUseCase()) return@hmeSelectedScope
+
+                getIBAUCodeByHMECodeIdUseCase(hmeCode.id).collect { result ->
+                    when (result) {
+                        is Resource.Error -> {
+                            _event.emit(
+                                EditTimeSheetEvents.UserMessage(
+                                    result.message ?: "Can't get IBAU codes"
+                                )
+                            )
+                            _state.update { it.copy(loading = false) }
+                        }
+                        is Resource.Loading -> _state.update { it.copy(loading = true) }
+                        is Resource.Success -> {
+                            val savedSelectedIbauId = getIBAUIdUseCase()
+                            val savedSelectedIbau =
+                                result.data?.find { it.id == savedSelectedIbauId }
+                            _state.update {
+                                it.copy(
+                                    ibauCodes = result.data.orEmpty(),
+                                    loading = false,
+                                    selectedIBAUCode = savedSelectedIbau
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+
+    fun ibauSelected(ibauCode: IBAUCode) {
+        _state.update {
+            it.copy(
+                selectedIBAUCode = ibauCode
+            )
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            setIBAUIdUseCase(ibauCode.id!!)
+        }
+    }
 }

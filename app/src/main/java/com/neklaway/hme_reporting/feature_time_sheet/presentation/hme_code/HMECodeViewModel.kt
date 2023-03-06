@@ -95,10 +95,10 @@ class HMECodeViewModel @Inject constructor(
         state.value.selectedCustomer?.let { selectedCustomer ->
             insertHMECodeUseCase(
                 customerId = selectedCustomer.id,
-                hmeCode,
-                machineType,
-                machineNumber,
-                workDescription
+                code = hmeCode,
+                machineType = machineType,
+                machineNumber = machineNumber,
+                workDescription = workDescription
             ).onEach { result ->
                 when (result) {
                     is Resource.Error -> {
@@ -142,15 +142,15 @@ class HMECodeViewModel @Inject constructor(
         val selectedHMECode = state.value.selectedHMECode ?: return
 
         updateHMECodeUseCase(
-            selectedHMECode.id!!,
-            selectedHMECode.customerId,
-            hmeCode,
-            machineType,
-            machineNumber,
-            workDescription,
-            selectedHMECode.fileNumber,
-            selectedHMECode.signerName,
-            selectedHMECode.signatureDate
+            id = selectedHMECode.id!!,
+            customerId = selectedHMECode.customerId,
+            code = hmeCode,
+            machineType = machineType,
+            machineNumber = machineNumber,
+            workDescription = workDescription,
+            fileNumber = selectedHMECode.fileNumber,
+            signerName = selectedHMECode.signerName,
+            signatureDate = selectedHMECode.signatureDate
         ).onEach { result ->
             when (result) {
                 is Resource.Error -> {

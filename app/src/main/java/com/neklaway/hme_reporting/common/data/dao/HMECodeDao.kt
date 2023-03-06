@@ -22,9 +22,9 @@ interface HMECodeDao {
     suspend fun getAll(): List<HMECodeEntity>
 
     @Query("SELECT * FROM hmeCodeTable WHERE id = :id")
-    fun getById(id: Long): HMECodeEntity
+    suspend fun getById(id: Long): HMECodeEntity
 
     @Query("SELECT * FROM hmeCodeTable WHERE customerId = :customerId")
-    fun getByCustomerId(customerId: Long): List<HMECodeEntity>
+    suspend fun getByCustomerId(customerId: Long): List<HMECodeEntity>
 
 }

@@ -1,5 +1,8 @@
 package com.neklaway.hme_reporting.feature_time_sheet.presentation.edit_time_sheet
 
+import com.neklaway.hme_reporting.common.domain.model.Customer
+import com.neklaway.hme_reporting.common.domain.model.HMECode
+import com.neklaway.hme_reporting.common.domain.model.IBAUCode
 import java.util.*
 
 data class EditTimeSheetState(
@@ -18,9 +21,17 @@ data class EditTimeSheetState(
     val created: Boolean = false,
     val loading: Boolean = false,
     val showDatePicker: Boolean = false,
-    val showTimePickerTravelStart:Boolean = false,
-    val showTimePickerWorkStart:Boolean = false,
-    val showTimePickerWorkEnd:Boolean = false,
-    val showTimePickerTravelEnd:Boolean = false,
-    val timeSheetId : Long = -1,
-)
+    val showTimePickerTravelStart: Boolean = false,
+    val showTimePickerWorkStart: Boolean = false,
+    val showTimePickerWorkEnd: Boolean = false,
+    val showTimePickerTravelEnd: Boolean = false,
+    val timeSheetId: Long = -1,
+    val customers: List<Customer> = emptyList(),
+    val selectedCustomer: Customer? = null,
+    val hmeCodes: List<HMECode> = emptyList(),
+    val selectedHMECode: HMECode? = null,
+    val ibauCodes: List<IBAUCode> = emptyList(),
+    val selectedIBAUCode:IBAUCode? = null,
+    val isIbau:Boolean = false,
+    )
+

@@ -25,6 +25,7 @@ import androidx.navigation.NavController
 import com.neklaway.hme_reporting.common.presentation.Screen
 import com.neklaway.hme_reporting.common.presentation.common.component.CustomDatePicker
 import com.neklaway.hme_reporting.common.presentation.common.component.CustomTimePicker
+import com.neklaway.hme_reporting.common.presentation.common.component.DropDown
 import com.neklaway.hme_reporting.common.presentation.common.component.Selector
 import com.neklaway.hme_reporting.common.ui.theme.HMEReportingTheme
 import com.neklaway.hme_reporting.utils.toDate
@@ -211,6 +212,41 @@ fun EditTimeSheetScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top,
             ) {
+
+                DropDown(
+                    modifier = Modifier.padding(bottom = 5.dp),
+                    dropDownList = state.hmeCodes,
+                    selectedValue = state.selectedHMECode?.code ?: "No HME Code Selected",
+                    label = "HME Code",
+                    dropDownContentDescription = "Select HME Code",
+                    onSelect = { hmeCode ->
+                        viewModel.hmeSelected(hmeCode)
+                    }
+                )
+
+
+                AnimatedVisibility(
+                    visible = state.isIbau,
+                    enter = slideInHorizontally(initialOffsetX = {
+                        -it
+                    }),
+                    exit = slideOutHorizontally(
+                        targetOffsetX = {
+                            -it
+                        })
+                ) {
+                    DropDown(
+                        modifier = Modifier.padding(bottom = 5.dp),
+                        dropDownList = state.ibauCodes,
+                        selectedValue = state.selectedIBAUCode?.code ?: "No IBAU Code Selected",
+                        label = "IBAU Code",
+                        dropDownContentDescription = "Select IBAU Code",
+                        onSelect = { ibauCode ->
+                            viewModel.ibauSelected(ibauCode)
+                        }
+                    )
+                }
+
 
 
                 AnimatedVisibility(

@@ -9,7 +9,7 @@ import com.neklaway.hme_reporting.common.domain.model.HMECode
 import com.neklaway.hme_reporting.utils.toCalender
 
 @Entity(
-    indices = [Index(value = ["code"], unique = true), Index(value = ["customerId"])],
+    indices = [Index(value = ["code"], unique = true), Index(value = ["customerId"], unique = false)],
     foreignKeys = [ForeignKey(
         entity = CustomerEntity::class,
         parentColumns = ["id"],
