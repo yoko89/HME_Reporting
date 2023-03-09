@@ -5,7 +5,6 @@ import android.content.Context
 import androidx.room.Room
 import com.neklaway.hme_reporting.common.data.RoomData
 import com.neklaway.hme_reporting.common.data.dao.*
-import com.neklaway.hme_reporting.common.data.entity.StringListConverter
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

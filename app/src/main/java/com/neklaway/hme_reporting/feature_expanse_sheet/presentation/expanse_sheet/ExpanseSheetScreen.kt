@@ -216,7 +216,8 @@ fun ExpanseSheetScreen(
                     items(items = state.expanseList) { expanse ->
                         ExpanseSheetItemCard(
                             expanse = expanse,
-                            currencyExchange = viewModel.getCurrencyExchangeName(expanse).collectAsState(initial = ""),
+                            currencyExchange = viewModel.getCurrencyExchangeName(expanse)
+                                .collectAsState(initial = ""),
                             cardClicked = { viewModel.expanseClicked(expanse) },
                             modifier = Modifier.fillMaxWidth()
                         )

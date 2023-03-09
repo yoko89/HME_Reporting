@@ -1,4 +1,4 @@
-package com.neklaway.hme_reporting.feature_settings.presentation.settings
+package com.neklaway.hme_reporting.feature_settings.presentation
 
 import android.app.Activity.RESULT_OK
 import android.content.Intent
@@ -27,7 +27,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.work.*
 import com.neklaway.hme_reporting.common.presentation.common.component.Selector
 import com.neklaway.hme_reporting.common.ui.theme.HMEReportingTheme
-import com.neklaway.hme_reporting.feature_settings.presentation.SettingsViewModel
 import com.neklaway.hme_reporting.feature_signature.presentation.signature.SignatureScreen
 import com.neklaway.hme_reporting.utils.Constants
 import com.neklaway.hme_reporting.utils.NotificationPermissionRequest
@@ -126,6 +125,8 @@ fun SettingsScreen(
                 }
 
                 item {
+                    Divider(modifier = Modifier.padding(vertical = 5.dp))
+
                     OutlinedTextField(
                         value = state.visaReminder,
                         onValueChange = {
@@ -139,7 +140,11 @@ fun SettingsScreen(
                     )
                 }
 
+
+
                 item {
+                    Divider(modifier = Modifier.padding(vertical = 5.dp))
+
                     OutlinedTextField(
                         value = state.fullDayAllowance,
                         onValueChange = {
@@ -182,6 +187,8 @@ fun SettingsScreen(
                 }
 
                 item {
+                    Divider(modifier = Modifier.padding(vertical = 5.dp))
+
                     state.signature?.let {
                         Spacer(modifier = Modifier.height(5.dp))
                         Image(
@@ -205,6 +212,9 @@ fun SettingsScreen(
                 }
 
                 item {
+
+                    Divider(modifier = Modifier.padding(vertical = 5.dp))
+
                     Button(
                         onClick = {
                             requestPermission = true
@@ -245,7 +255,6 @@ fun SettingsScreen(
                         viewModel.updateSignature()
                 })
         }
-
 
 
         if (requestPermission) {
