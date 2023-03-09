@@ -22,7 +22,7 @@ fun Calendar?.toDate(): String {
             "ERROR"
         }
     }
-    return "N/A"
+    return "---"
 
 }
 @SuppressLint("SimpleDateFormat")
@@ -37,7 +37,7 @@ fun Calendar?.toStdDate(): String {
             "ERROR"
         }
     }
-    return "N/A"
+    return "---"
 
 }
 
@@ -53,7 +53,7 @@ fun Calendar?.toTime(): String {
             "ERROR"
         }
     }
-    return "N/A"
+    return "---"
 }
 
 @SuppressLint("SimpleDateFormat")
@@ -68,7 +68,7 @@ fun Calendar?.toTime24(): String {
             "ERROR"
         }
     }
-    return "N/A"
+    return "---"
 }
 
 
