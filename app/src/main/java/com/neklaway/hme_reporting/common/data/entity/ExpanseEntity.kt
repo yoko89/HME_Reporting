@@ -1,15 +1,11 @@
 package com.neklaway.hme_reporting.common.data.entity
 
-import android.net.Uri
 import androidx.room.*
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.Expanse
 import com.neklaway.hme_reporting.utils.toCalender
-import kotlinx.serialization.Serializer
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import java.util.Base64.Decoder
 
 
 @Entity(
@@ -60,14 +56,14 @@ fun ExpanseEntity.toExpanse(): Expanse {
     )
 }
 
-class StringListConverter{
+class StringListConverter {
     @TypeConverter
-    fun stringToListOfString(value:String):List<String>{
-       return Json.decodeFromString(ListSerializer(String.serializer()),value)
+    fun stringToListOfString(value: String): List<String> {
+        return Json.decodeFromString(ListSerializer(String.serializer()), value)
     }
 
     @TypeConverter
-    fun listOfStringToString(value:List<String>):String{
-        return Json.encodeToString(ListSerializer(String.serializer()),value)
+    fun listOfStringToString(value: List<String>): String {
+        return Json.encodeToString(ListSerializer(String.serializer()), value)
     }
 }
