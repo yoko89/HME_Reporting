@@ -29,6 +29,6 @@ interface SettingsRepository {
     fun getNoAllowance(): Flow<Int>
     fun get8HDayAllowance(): Flow<Int>
     fun getFullDayAllowance(): Flow<Int>
-
-
+    suspend fun setSavingDeductible(deductible:Int)
+    fun getSavingDeductible():Flow<Int>
 }

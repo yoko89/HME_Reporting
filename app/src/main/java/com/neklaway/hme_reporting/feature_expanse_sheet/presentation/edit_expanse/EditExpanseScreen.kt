@@ -160,6 +160,17 @@ fun EditExpanseScreen(
                         .fillMaxWidth(),
                 )
 
+                Row(modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text(text = "Paid in Cash")
+                    Checkbox(
+                        checked = state.personallyPaid,
+                        onCheckedChange = viewModel::cashCheckChanged
+                    )
+
+                }
+
                 OutlinedTextField(
                     value = state.amount,
                     onValueChange = viewModel::amountChanged,

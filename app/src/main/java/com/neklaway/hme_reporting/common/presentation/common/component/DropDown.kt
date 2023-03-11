@@ -38,7 +38,7 @@ fun <T> DropDown(
             value = selectedValue,
             onValueChange = {},
             label = { Text(text = label) },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().clickable(false){},
             readOnly = true,
             trailingIcon = {
                 Icon(

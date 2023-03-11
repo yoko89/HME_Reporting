@@ -46,11 +46,13 @@ class SettingsViewModel @Inject constructor(
     private val startBackup: StartBackup,
     private val startRestore: StartRestore,
     private val getFullDayAllowanceUseCase: GetFullDayAllowanceUseCase,
-    private val get8HDayAllowanceUseCase : Get8HDayAllowanceUseCase,
-    private val getNoAllowanceUseCase : GetNoAllowanceUseCase,
-    private val setFullDayAllowanceUseCase : SetFullDayAllowanceUseCase,
+    private val get8HDayAllowanceUseCase: Get8HDayAllowanceUseCase,
+    private val getNoAllowanceUseCase: GetNoAllowanceUseCase,
+    private val setFullDayAllowanceUseCase: SetFullDayAllowanceUseCase,
     private val set8HAllowanceUseCase: Set8HAllowanceUseCase,
-    private val setNoAllowanceUseCase : SetNoAllowanceUseCase,
+    private val setNoAllowanceUseCase: SetNoAllowanceUseCase,
+    private val setSavingDeductibleUseCase: SetSavingDeductibleUseCase,
+    private val getSavingDeductibleUseCase: GetSavingDeductibleUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SettingsState(noAllowance = ""))
@@ -69,6 +71,7 @@ class SettingsViewModel @Inject constructor(
         getFullDayAllowance()
         get8HDayAllowance()
         getNoAllowance()
+        getSavingDeductible()
     }
 
 
@@ -113,16 +116,25 @@ class SettingsViewModel @Inject constructor(
             _state.update { it.copy(fullDayAllowance = fullDayAllowance.toString()) }
         }
     }
+
     private fun get8HDayAllowance() {
         viewModelScope.launch {
             val _8HDayAllowance = get8HDayAllowanceUseCase()
             _state.update { it.copy(_8HAllowance = _8HDayAllowance.toString()) }
         }
     }
+
     private fun getNoAllowance() {
         viewModelScope.launch {
             val noAllowance = getNoAllowanceUseCase()
             _state.update { it.copy(noAllowance = noAllowance.toString()) }
+        }
+    }
+
+    private fun getSavingDeductible() {
+        viewModelScope.launch {
+            val savingDeductible = getSavingDeductibleUseCase()
+            _state.update { it.copy(savingDeductible = savingDeductible.toString()) }
         }
     }
 
@@ -267,7 +279,8 @@ class SettingsViewModel @Inject constructor(
                 _state.update { it.copy(_8HAllowance = resourceWithString.string ?: "") }
 
             }
-        }    }
+        }
+    }
 
     fun setNoAllowance(allowance: String) {
         viewModelScope.launch {
@@ -283,6 +296,25 @@ class SettingsViewModel @Inject constructor(
                     }
                 }
                 _state.update { it.copy(noAllowance = resourceWithString.string ?: "") }
+
+            }
+        }
+    }
+
+    fun setSavingDeductible(deductible: String) {
+        viewModelScope.launch {
+            deductible.toIntWithString().let { resourceWithString ->
+                when (resourceWithString) {
+                    is ResourceWithString.Error -> {
+                        _userMessage.emit(resourceWithString.message ?: "Error")
+
+                    }
+                    is ResourceWithString.Loading -> Unit
+                    is ResourceWithString.Success -> {
+                        setSavingDeductibleUseCase(resourceWithString.data!!)
+                    }
+                }
+                _state.update { it.copy(savingDeductible = resourceWithString.string ?: "") }
 
             }
         }

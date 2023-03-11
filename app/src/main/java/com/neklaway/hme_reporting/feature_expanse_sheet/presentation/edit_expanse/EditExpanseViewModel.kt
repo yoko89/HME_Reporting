@@ -223,6 +223,10 @@ class EditExpanseViewModel @Inject constructor(
         _state.update { it.copy(description = description) }
     }
 
+    fun cashCheckChanged(cash:Boolean){
+        _state.update { it.copy(personallyPaid = cash) }
+    }
+
     fun amountChanged(amount: String) {
         viewModelScope.launch {
             amount.toFloatWithString().let { resourceWithString ->
@@ -237,8 +241,8 @@ class EditExpanseViewModel @Inject constructor(
                     }
                     is ResourceWithString.Loading -> Unit
                     is ResourceWithString.Success -> {
-                        calculateAmountInAED()
                         _state.update { it.copy(amount = resourceWithString.string ?: "") }
+                        calculateAmountInAED()
                     }
                 }
             }

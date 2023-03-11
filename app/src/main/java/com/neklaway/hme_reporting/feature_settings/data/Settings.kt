@@ -23,6 +23,7 @@ class Settings @Inject constructor(@ApplicationContext context: Context) {
         private val short_day_allowance = intPreferencesKey("short_day_allowance")
         private val full_day_allowance = intPreferencesKey("full_day_allowance")
         private val no_allowance = intPreferencesKey("no_allowance")
+        private val saving_deductible = intPreferencesKey("saving_deductible")
     }
 
     suspend fun setIbauUser(isIbauUser: Boolean) {
@@ -76,11 +77,13 @@ class Settings @Inject constructor(@ApplicationContext context: Context) {
             settings[short_day_allowance] = allowance
         }
     }
+
     suspend fun setFullDayAllowance(allowance: Int) {
         settingsDataStore.edit { settings ->
             settings[full_day_allowance] = allowance
         }
     }
+
     suspend fun setNoAllowance(allowance: Int) {
         settingsDataStore.edit { settings ->
             settings[no_allowance] = allowance
@@ -92,14 +95,22 @@ class Settings @Inject constructor(@ApplicationContext context: Context) {
     }
 
     val getNoAllowance: Flow<Int> = settingsDataStore.data.map { settings ->
-        settings[no_allowance]?: 0
+        settings[no_allowance] ?: 0
     }
     val get8HDayAllowance: Flow<Int> = settingsDataStore.data.map { settings ->
-        settings[short_day_allowance]?: 100
+        settings[short_day_allowance] ?: 100
     }
     val getFullDayAllowance: Flow<Int> = settingsDataStore.data.map { settings ->
-        settings[full_day_allowance]?: 150
+        settings[full_day_allowance] ?: 150
     }
 
+    suspend fun setSavingDeductible(deductible: Int) {
+        settingsDataStore.edit { settings ->
+            settings[saving_deductible] = deductible
+        }
+    }
 
+    val getSavingDeductible: Flow<Int> = settingsDataStore.data.map { settings ->
+        settings[saving_deductible] ?: 50
+    }
 }

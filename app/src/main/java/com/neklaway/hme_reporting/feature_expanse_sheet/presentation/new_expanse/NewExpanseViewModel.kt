@@ -318,4 +318,8 @@ class NewExpanseViewModel @Inject constructor(
         _state.update { it.copy(description = description) }
     }
 
+    fun cashCheckChanged(checked:Boolean){
+        _state.update { it.copy(personallyPaid = checked) }
+    }
+
 }

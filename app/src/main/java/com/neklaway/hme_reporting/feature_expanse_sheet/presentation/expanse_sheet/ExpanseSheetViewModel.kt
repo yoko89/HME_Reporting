@@ -16,6 +16,8 @@ import com.neklaway.hme_reporting.common.domain.use_cases.time_sheet_use_cases.G
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.Expanse
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.use_cases.currency_exchange_use_cases.GetCurrencyExchangeByIdUseCase
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.use_cases.expanse_use_cases.GetExpanseByHMEIdUseCase
+import com.neklaway.hme_reporting.utils.CalculateAllowance
+import com.neklaway.hme_reporting.utils.CalculateExpanse
 import com.neklaway.hme_reporting.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -37,6 +39,8 @@ class ExpanseSheetViewModel @Inject constructor(
     private val setHMEIdUseCase: SetHMEIdUseCase,
     private val getCurrencyExchangeByIdUseCase: GetCurrencyExchangeByIdUseCase,
     private val getExpanseByHMEIdUseCase: GetExpanseByHMEIdUseCase,
+    private val calculateAllowance: CalculateAllowance,
+    private val calculateExpanse: CalculateExpanse,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ExpanseSheetState())
@@ -45,9 +49,21 @@ class ExpanseSheetViewModel @Inject constructor(
     private val _event = MutableSharedFlow<ExpanseSheetEvents>()
     val event: SharedFlow<ExpanseSheetEvents> = _event
 
+    private val totalExpanse = MutableStateFlow(0f)
+    private val totalAllowance = MutableStateFlow(0f)
 
     init {
         getCustomers()
+
+        totalExpanse.combine(totalAllowance) { totalExpanse, totalAllowance ->
+            Pair(
+                totalExpanse,
+                totalAllowance
+            )
+        }.onEach { totalPair ->
+            _state.update { it.copy(totalPaidAmount = totalPair.first + totalPair.second) }
+        }.launchIn(viewModelScope)
+
     }
 
     private fun getCustomers() {
@@ -177,6 +193,9 @@ class ExpanseSheetViewModel @Inject constructor(
                                 loading = false,
                             )
                         }
+                        totalAllowance.emit(
+                            calculateAllowance.invoke(fullDay, lessThan24H, noAllowance)
+                        )
                     }
                 }
             }
@@ -206,10 +225,13 @@ class ExpanseSheetViewModel @Inject constructor(
                             loading = false,
                         )
                     }
+
+                    totalExpanse.emit(calculateExpanse(expanseList))
                 }
             }
         }.launchIn(viewModelScope)
     }
+
 
     fun expanseClicked(expanse: Expanse) {
         expanse.id?.let {

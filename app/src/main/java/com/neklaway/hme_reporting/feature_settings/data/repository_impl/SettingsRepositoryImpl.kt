@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 private const val TAG = "settingsRepo"
+
 class SettingsRepositoryImpl @Inject constructor(
     private val settings: Settings
 ) : SettingsRepository {
@@ -49,7 +50,7 @@ class SettingsRepositoryImpl @Inject constructor(
     }
 
     override fun getVisaReminder(): Flow<Int> {
-       return settings.getVisaReminder
+        return settings.getVisaReminder
     }
 
     override suspend fun setNoAllowance(allowance: Int) {
@@ -74,5 +75,13 @@ class SettingsRepositoryImpl @Inject constructor(
 
     override fun getFullDayAllowance(): Flow<Int> {
         return settings.getFullDayAllowance
+    }
+
+    override suspend fun setSavingDeductible(deductible: Int) {
+        settings.setSavingDeductible(deductible)
+    }
+
+    override fun getSavingDeductible(): Flow<Int> {
+        return settings.getSavingDeductible
     }
 }

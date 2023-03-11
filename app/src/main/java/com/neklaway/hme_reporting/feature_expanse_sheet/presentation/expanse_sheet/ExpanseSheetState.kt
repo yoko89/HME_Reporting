@@ -21,7 +21,6 @@ data class ExpanseSheetState(
     val lessThan24hDays: Int = 0,
     val fullDays: Int = 0,
     val noAllowanceDays: Int = 0,
-    val totalAmount: Float = 0f,
     val totalPaidAmount: Float = 0f,
 )
 

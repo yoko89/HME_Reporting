@@ -57,18 +57,13 @@ fun ExpanseSheetScreen(
             when (event) {
                 is ExpanseSheetEvents.UserMessage -> snackbarHostState.showSnackbar(event.message)
 
-                is ExpanseSheetEvents.NavigateToExpanseSheet ->
-                    navController.navigate(
-                        Screen.EditExpanse.route
-                                + "?" + EditExpanseViewModel.EXPANSE_ID
-                                + "=" + event.id
-                    )
+                is ExpanseSheetEvents.NavigateToExpanseSheet -> navController.navigate(
+                    Screen.EditExpanse.route + "?" + EditExpanseViewModel.EXPANSE_ID + "=" + event.id
+                )
                 is ExpanseSheetEvents.ShowFile -> {
                     val intent = Intent(Intent.ACTION_VIEW)
                     val fileUri = FileProvider.getUriForFile(
-                        context,
-                        "com.neklaway.hme_reporting.provider",
-                        event.file
+                        context, "com.neklaway.hme_reporting.provider", event.file
                     )
                     intent.setDataAndType(fileUri, "application/pdf")
                     intent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
@@ -82,55 +77,52 @@ fun ExpanseSheetScreen(
 
 
     val fabRotation = animateFloatAsState(
-        targetValue = if (state.fabVisible) 90f else 0f,
-        animationSpec = tween(500)
+        targetValue = if (state.fabVisible) 90f else 0f, animationSpec = tween(500)
     )
 
 
     HMEReportingTheme {
-        Scaffold(
-            floatingActionButton = {
-                Row {
-                    AnimatedVisibility(
-                        visible = state.fabVisible,
-                        enter = slideInVertically(initialOffsetY = { it }).plus(fadeIn()),
-                        exit = slideOutVertically(targetOffsetY = { it }).plus(fadeOut())
-                    ) {
-                        Row {
-                            FloatingActionButton(onClick = {
+        Scaffold(floatingActionButton = {
+            Row {
+                AnimatedVisibility(
+                    visible = state.fabVisible,
+                    enter = slideInVertically(initialOffsetY = { it }).plus(fadeIn()),
+                    exit = slideOutVertically(targetOffsetY = { it }).plus(fadeOut())
+                ) {
+                    Row {
+                        FloatingActionButton(onClick = {
 
-                                requestPermission = true
-                                //TODO: viewModel.createExpanseSheet()
-                            }) {
-                                Icon(
-                                    imageVector = Icons.Default.PictureAsPdf,
-                                    contentDescription = "Create ExpanseSheet PDF",
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.width(5.dp))
-                            FloatingActionButton(onClick = { viewModel.openExpanseSheets() }) {
-                                Icon(
-                                    imageVector = Icons.Default.FolderOpen,
-                                    contentDescription = "Open ExpanseSheet",
-                                )
-                            }
-                            Spacer(modifier = Modifier.width(5.dp))
+                            requestPermission = true
+                            //TODO: viewModel.createExpanseSheet()
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.PictureAsPdf,
+                                contentDescription = "Create ExpanseSheet PDF",
+                            )
                         }
-                    }
 
-                    FloatingActionButton(onClick = { viewModel.showMoreFABClicked() }) {
-                        Icon(
-                            imageVector = Icons.Default.MoreHoriz,
-                            contentDescription = "Show More Floating action buttons",
-                            modifier = Modifier.rotate(fabRotation.value)
-                        )
+                        Spacer(modifier = Modifier.width(5.dp))
+                        FloatingActionButton(onClick = { viewModel.openExpanseSheets() }) {
+                            Icon(
+                                imageVector = Icons.Default.FolderOpen,
+                                contentDescription = "Open ExpanseSheet",
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(5.dp))
                     }
                 }
-            },
-            snackbarHost = {
-                SnackbarHost(hostState = snackbarHostState)
+
+                FloatingActionButton(onClick = { viewModel.showMoreFABClicked() }) {
+                    Icon(
+                        imageVector = Icons.Default.MoreHoriz,
+                        contentDescription = "Show More Floating action buttons",
+                        modifier = Modifier.rotate(fabRotation.value)
+                    )
+                }
             }
+        }, snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        }
 
         ) {
 
@@ -142,27 +134,23 @@ fun ExpanseSheetScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top,
             ) {
-                DropDown(
-                    modifier = Modifier.padding(vertical = 5.dp),
+                DropDown(modifier = Modifier.padding(vertical = 5.dp),
                     dropDownList = state.customers,
                     selectedValue = state.selectedCustomer?.name ?: "No Customer Selected",
                     label = "Customer",
                     dropDownContentDescription = "Select Customer",
                     onSelect = { customer ->
                         viewModel.customerSelected(customer)
-                    }
-                )
+                    })
 
-                DropDown(
-                    modifier = Modifier.padding(bottom = 5.dp),
+                DropDown(modifier = Modifier.padding(bottom = 5.dp),
                     dropDownList = state.hmeCodes,
                     selectedValue = state.selectedHMECode?.code ?: "No HME Code Selected",
                     label = "HME Code",
                     dropDownContentDescription = "Select HME Code",
                     onSelect = { hmeCode ->
                         viewModel.hmeSelected(hmeCode)
-                    }
-                )
+                    })
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -201,9 +189,7 @@ fun ExpanseSheetScreen(
 
                     item {
                         AnimatedVisibility(
-                            visible = state.loading,
-                            enter = fadeIn(),
-                            exit = fadeOut()
+                            visible = state.loading, enter = fadeIn(), exit = fadeOut()
                         ) {
                             CircularProgressIndicator()
                         }
@@ -228,8 +214,8 @@ fun ExpanseSheetScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalAlignment = Alignment.Start,
                         ) {
-                            Text(text = "Total Payable = ${state.totalPaidAmount}")
-                            Text(text = "Total = ${state.totalAmount}")
+                            Text(text = "Total Payable = ${state.totalPaidAmount}",
+                            style = MaterialTheme.typography.headlineSmall)
                         }
                     }
                 }
@@ -244,7 +230,8 @@ fun ExpanseSheetScreen(
                     modifier = Modifier.fillMaxHeight(0.8f),
                     onClick = { file ->
                         viewModel.fileSelected(file)
-                    }, onCancel = {
+                    },
+                    onCancel = {
                         viewModel.fileSelectionCanceled()
                     })
             }

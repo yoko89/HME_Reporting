@@ -185,6 +185,19 @@ fun SettingsScreen(
                         singleLine = true,
                     )
                 }
+                item {
+                    OutlinedTextField(
+                        value = state.savingDeductible,
+                        onValueChange = {
+                            viewModel.setSavingDeductible(it)
+                        },
+                        label = { Text(text = "Deductible to Saving") },
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        singleLine = true,
+                    )
+                }
 
                 item {
                     Divider(modifier = Modifier.padding(vertical = 5.dp))

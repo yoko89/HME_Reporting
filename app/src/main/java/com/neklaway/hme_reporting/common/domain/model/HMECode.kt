@@ -1,7 +1,7 @@
 package com.neklaway.hme_reporting.common.domain.model
 
 import com.neklaway.hme_reporting.common.data.entity.HMECodeEntity
-import com.neklaway.hme_reporting.utils.CalendarAsLongSerializer
+import com.neklaway.hme_reporting.utils.DateAsLongSerializer
 import kotlinx.serialization.Serializable
 import java.util.Calendar
 
@@ -14,7 +14,7 @@ data class HMECode(
     val workDescription: String?,
     val fileNumber : Int = 0,
     val signerName : String? = null,
-    @Serializable(with = CalendarAsLongSerializer::class)
+    @Serializable(with = DateAsLongSerializer::class)
     val signatureDate: Calendar? = null,
     val id: Long? = null
 ) {

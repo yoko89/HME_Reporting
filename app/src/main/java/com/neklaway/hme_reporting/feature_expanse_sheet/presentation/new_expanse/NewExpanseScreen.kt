@@ -5,6 +5,7 @@ package com.neklaway.hme_reporting.feature_expanse_sheet.presentation.new_expans
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.*
@@ -152,6 +153,16 @@ fun NewExpanseScreen(
                         .fillMaxWidth(),
                 )
 
+                Row(modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text(text = "Paid in Cash")
+                    Checkbox(
+                        checked = state.personallyPaid,
+                        onCheckedChange = viewModel::cashCheckChanged
+                    )
+
+                }
                 OutlinedTextField(
                     value = state.amount,
                     onValueChange = viewModel::amountChanged,
