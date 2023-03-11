@@ -6,14 +6,14 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 fun Long.toCalender(): Calendar {
-    val cal = Calendar.getInstance()
+    val cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Dubai"))
     cal.timeInMillis = this
     return cal
 }
 
 fun Calendar?.toDate(): String {
     val formatter = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault())
-
+formatter.timeZone = TimeZone.getTimeZone("UTC")
     this?.let {
         return try {
             formatter.format(it.timeInMillis)
@@ -28,6 +28,7 @@ fun Calendar?.toDate(): String {
 @SuppressLint("SimpleDateFormat")
 fun Calendar?.toStdDate(): String {
     val formatter = SimpleDateFormat("dd MMM yyyy")
+    formatter.timeZone = TimeZone.getTimeZone("UTC")
 
     this?.let {
         return try {
@@ -44,6 +45,7 @@ fun Calendar?.toStdDate(): String {
 
 fun Calendar?.toTime(): String {
     val formatter = DateFormat.getTimeInstance(DateFormat.SHORT, Locale.getDefault())
+    formatter.timeZone = TimeZone.getTimeZone("UTC")
 
     this?.let {
         return try {
@@ -59,6 +61,7 @@ fun Calendar?.toTime(): String {
 @SuppressLint("SimpleDateFormat")
 fun Calendar?.toTime24(): String {
     val formatter = SimpleDateFormat("HH:mm")
+    formatter.timeZone = TimeZone.getTimeZone("UTC")
 
     this?.let {
         return try {

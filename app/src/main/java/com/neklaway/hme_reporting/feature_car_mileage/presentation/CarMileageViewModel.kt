@@ -275,6 +275,8 @@ class CarMileageViewModel @Inject constructor(
 
     fun startDatePicked(year: Int, month: Int, day: Int) {
         val date = Calendar.getInstance()
+        date.timeZone = TimeZone.getTimeZone("UTC")
+
         date.set(
             year,
             month,
@@ -296,6 +298,7 @@ class CarMileageViewModel @Inject constructor(
 
     fun endDatePicked(year: Int, month: Int, day: Int) {
         val date = Calendar.getInstance()
+        TimeZone.getTimeZone("UTC")
         date.set(
             year,
             month,

@@ -164,6 +164,7 @@ class VisaViewModel @Inject constructor(
 
     fun datePicked(year: Int, month: Int, day: Int) {
         val date = Calendar.getInstance()
+        date.timeZone = TimeZone.getTimeZone("UTC")
         date.set(
             year, month, day, 0, 0, 0
         )
