@@ -13,7 +13,7 @@ fun Long.toCalender(): Calendar {
 
 fun Calendar?.toDate(): String {
     val formatter = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault())
-formatter.timeZone = TimeZone.getTimeZone("UTC")
+formatter.timeZone = TimeZone.getTimeZone("Asia/Dubai")
     this?.let {
         return try {
             formatter.format(it.timeInMillis)
@@ -28,7 +28,7 @@ formatter.timeZone = TimeZone.getTimeZone("UTC")
 @SuppressLint("SimpleDateFormat")
 fun Calendar?.toStdDate(): String {
     val formatter = SimpleDateFormat("dd MMM yyyy")
-    formatter.timeZone = TimeZone.getTimeZone("UTC")
+    formatter.timeZone = TimeZone.getTimeZone("Asia/Dubai")
 
     this?.let {
         return try {
@@ -45,7 +45,7 @@ fun Calendar?.toStdDate(): String {
 
 fun Calendar?.toTime(): String {
     val formatter = DateFormat.getTimeInstance(DateFormat.SHORT, Locale.getDefault())
-    formatter.timeZone = TimeZone.getTimeZone("UTC")
+    formatter.timeZone = TimeZone.getTimeZone("Asia/Dubai")
 
     this?.let {
         return try {
@@ -61,7 +61,7 @@ fun Calendar?.toTime(): String {
 @SuppressLint("SimpleDateFormat")
 fun Calendar?.toTime24(): String {
     val formatter = SimpleDateFormat("HH:mm")
-    formatter.timeZone = TimeZone.getTimeZone("UTC")
+    formatter.timeZone = TimeZone.getTimeZone("Asia/Dubai")
 
     this?.let {
         return try {
