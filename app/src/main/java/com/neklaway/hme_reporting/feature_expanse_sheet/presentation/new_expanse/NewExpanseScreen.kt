@@ -5,7 +5,6 @@ package com.neklaway.hme_reporting.feature_expanse_sheet.presentation.new_expans
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.*
@@ -34,13 +33,16 @@ fun NewExpanseScreen(
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    val userMessage = viewModel.userMessage
+    val event = viewModel.event
 
     val dateInteractionSource = remember { MutableInteractionSource() }
 
-    LaunchedEffect(key1 = userMessage) {
-        userMessage.collect {
-            snackbarHostState.showSnackbar(it)
+    LaunchedEffect(key1 = event) {
+        event.collect {event ->
+            when(event){
+                is NewExpanseEvents.TakePicture -> TODO()
+                is NewExpanseEvents.UserMessage -> snackbarHostState.showSnackbar(event.message)
+            }
         }
     }
 

@@ -42,8 +42,8 @@ class NewExpanseViewModel @Inject constructor(
     private val _state = MutableStateFlow(NewExpanseState())
     val state = _state.asStateFlow()
 
-    private val _userMessage = MutableSharedFlow<String>()
-    val userMessage: SharedFlow<String> = _userMessage
+    private val _event = MutableSharedFlow<NewExpanseEvents>()
+    val event: SharedFlow<NewExpanseEvents> = _event
 
 
     init {
@@ -55,7 +55,7 @@ class NewExpanseViewModel @Inject constructor(
         getAllCustomersFlowUseCase().onEach { result ->
             when (result) {
                 is Resource.Error -> {
-                    _userMessage.emit(result.message ?: "Can't get customers")
+                    _event.emit(NewExpanseEvents.UserMessage(result.message ?: "Can't get customers"))
                     _state.update { it.copy(loading = false) }
                 }
                 is Resource.Loading -> _state.update { it.copy(loading = true) }
@@ -93,7 +93,7 @@ class NewExpanseViewModel @Inject constructor(
                 getHMECodeByCustomerIdUseCase(customer.id).collect { resource ->
                     when (resource) {
                         is Resource.Error -> {
-                            _userMessage.emit(resource.message ?: "Can't get HME codes")
+                            _event.emit(NewExpanseEvents.UserMessage(resource.message ?: "Can't get HME codes"))
                             _state.update { it.copy(loading = false) }
                         }
                         is Resource.Loading -> _state.update { it.copy(loading = true) }
@@ -139,7 +139,7 @@ class NewExpanseViewModel @Inject constructor(
             val amountInFloat = state.value.amount.toFloatWithString().let { resource ->
                 when (resource) {
                     is ResourceWithString.Error -> {
-                        _userMessage.emit(resource.message ?: "Error")
+                        _event.emit(NewExpanseEvents.UserMessage(resource.message ?: "Error"))
                         resource.data
                     }
                     is ResourceWithString.Loading -> null
@@ -152,7 +152,7 @@ class NewExpanseViewModel @Inject constructor(
             val amountInAEDInFloat = state.value.amountAED.toFloatWithString().let { resource ->
                 when (resource) {
                     is ResourceWithString.Error -> {
-                        _userMessage.emit(resource.message ?: "Error")
+                        _event.emit(NewExpanseEvents.UserMessage(resource.message ?: "Error"))
                         resource.data
                     }
                     is ResourceWithString.Loading -> null
@@ -164,7 +164,7 @@ class NewExpanseViewModel @Inject constructor(
             }
 
             insertExpanseUseCase.invoke(
-                HMEId = state.value.selectedHMECode!!.id,
+                HMEId = state.value.selectedHMECode?.id,
                 date = state.value.date,
                 invoiceNumber = state.value.invoiceNumber,
                 description = state.value.description,
@@ -178,11 +178,11 @@ class NewExpanseViewModel @Inject constructor(
                 when (result) {
                     is Resource.Loading -> _state.update { it.copy(loading = true) }
                     is Resource.Error -> {
-                        _userMessage.emit(result.message ?: "Can't Insert Expanse")
+                        _event.emit(NewExpanseEvents.UserMessage(result.message ?: "Can't Insert Expanse"))
                         _state.update { it.copy(loading = false) }
                     }
                     is Resource.Success -> {
-                        _userMessage.emit("Expanse Saved")
+                        _event.emit(NewExpanseEvents.UserMessage("Expanse Saved"))
                         _state.update { it.copy(loading = false) }
                         clearState()
                     }
@@ -212,6 +212,7 @@ class NewExpanseViewModel @Inject constructor(
 
     fun datePicked(year: Int, month: Int, day: Int) {
         val date = Calendar.getInstance()
+        date.timeZone = TimeZone.getTimeZone("Asia/Dubai")
         date.set(
             year,
             month,
@@ -233,7 +234,7 @@ class NewExpanseViewModel @Inject constructor(
             amount.toFloatWithString().let { resourceWithString ->
                 when (resourceWithString) {
                     is ResourceWithString.Error -> {
-                        _userMessage.emit(resourceWithString.message ?: "Error in Amount")
+                        _event.emit(NewExpanseEvents.UserMessage(resourceWithString.message ?: "Error in Amount"))
                         _state.update { it.copy(amount = resourceWithString.string ?: "") }
                     }
                     is ResourceWithString.Loading -> Unit
@@ -250,7 +251,7 @@ class NewExpanseViewModel @Inject constructor(
             amount.toFloatWithString().let { resourceWithString ->
                 when (resourceWithString) {
                     is ResourceWithString.Error -> {
-                        _userMessage.emit(resourceWithString.message ?: "Error in Amount")
+                        _event.emit(NewExpanseEvents.UserMessage(resourceWithString.message ?: "Error in Amount"))
                         _state.update { it.copy(amountAED = resourceWithString.string ?: "") }
                     }
                     is ResourceWithString.Loading -> Unit
@@ -266,7 +267,7 @@ class NewExpanseViewModel @Inject constructor(
             getAllCurrencyExchangeFlowUseCase().collect { resource ->
                 when (resource) {
                     is Resource.Error -> {
-                        _userMessage.emit(resource.message ?: "Error can't get Currency List")
+                        _event.emit(NewExpanseEvents.UserMessage(resource.message ?: "Error can't get Currency List"))
                         _state.update { it.copy(loading = false) }
                     }
                     is Resource.Loading -> {
@@ -297,7 +298,7 @@ class NewExpanseViewModel @Inject constructor(
         val amountInAED = state.value.amount.toFloatWithString().let { resource ->
             when (resource) {
                 is ResourceWithString.Error -> {
-                    _userMessage.emit(resource.message ?: "Error")
+                    _event.emit(NewExpanseEvents.UserMessage(resource.message ?: "Error"))
                     ""
                 }
                 is ResourceWithString.Loading -> ""

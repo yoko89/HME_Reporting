@@ -141,6 +141,7 @@ class EditExpanseViewModel @Inject constructor(
 
     fun datePicked(year: Int, month: Int, day: Int) {
         val date = Calendar.getInstance()
+        date.timeZone = TimeZone.getTimeZone("Asia/Dubai")
         date.set(
             year,
             month,

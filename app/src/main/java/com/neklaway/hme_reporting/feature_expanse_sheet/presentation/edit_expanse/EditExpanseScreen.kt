@@ -52,6 +52,7 @@ fun EditExpanseScreen(
                     false
                 )
                 is EditExpanseEvents.UserMessage -> snackbarHostState.showSnackbar(event.message)
+                is EditExpanseEvents.TakePicture -> TODO()
             }
         }
     }
