@@ -4,18 +4,18 @@ import com.neklaway.hme_reporting.common.data.entity.toExpanse
 import com.neklaway.hme_reporting.common.domain.repository.ExpanseRepository
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.Expanse
 import com.neklaway.hme_reporting.utils.Resource
-import kotlinx.coroutines.flow.*
 import javax.inject.Inject
 
 class GetExpanseByIdUseCase @Inject constructor(
     val repo: ExpanseRepository
 ) {
 
-    suspend operator fun invoke(id: Long): Flow<Resource<Expanse>> = flow {
-        emit(Resource.Loading())
-        emitAll(repo.getById(id).map {
-            Resource.Success(it.toExpanse())
-        })
+    operator fun invoke(id: Long): Resource<Expanse> {
+        return try {
+            Resource.Success(repo.getById(id).toExpanse())
+        } catch (e: Exception) {
+            Resource.Error(e.localizedMessage?:"Can't get expanse")
+        }
     }
-
 }
+

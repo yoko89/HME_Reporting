@@ -2,9 +2,13 @@
 
 package com.neklaway.hme_reporting.feature_expanse_sheet.presentation.new_expanse
 
+import android.graphics.BitmapFactory
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.*
@@ -13,18 +17,26 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DocumentScanner
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toFile
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.neklaway.hme_reporting.common.presentation.common.component.CustomDatePicker
 import com.neklaway.hme_reporting.common.presentation.common.component.DropDown
 import com.neklaway.hme_reporting.common.ui.theme.HMEReportingTheme
 import com.neklaway.hme_reporting.utils.toDate
 import java.util.*
+
+private const val TAG = "NewExpanseScreen"
 
 @Composable
 fun NewExpanseScreen(
@@ -37,10 +49,17 @@ fun NewExpanseScreen(
 
     val dateInteractionSource = remember { MutableInteractionSource() }
 
+    val imageCapture = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture(),
+        onResult = viewModel::photoTaken
+    )
+
     LaunchedEffect(key1 = event) {
-        event.collect {event ->
-            when(event){
-                is NewExpanseEvents.TakePicture -> TODO()
+        event.collect { event ->
+            when (event) {
+                is NewExpanseEvents.TakePicture -> {
+                    imageCapture.launch(event.uri)
+                }
                 is NewExpanseEvents.UserMessage -> snackbarHostState.showSnackbar(event.message)
             }
         }
@@ -75,11 +94,21 @@ fun NewExpanseScreen(
     HMEReportingTheme {
         Scaffold(
             floatingActionButton = {
-                FloatingActionButton(onClick = { viewModel.insertExpanse() }) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "Add Expanse"
-                    )
+                Row() {
+                    val context = LocalContext.current
+                    FloatingActionButton(onClick = { viewModel.takePicture(context) }) {
+                        Icon(
+                            imageVector = Icons.Default.DocumentScanner,
+                            contentDescription = "Add Invoice Image"
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(5.dp))
+                    FloatingActionButton(onClick = { viewModel.insertExpanse() }) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Add Expanse"
+                        )
+                    }
                 }
             },
             snackbarHost = {
@@ -87,6 +116,7 @@ fun NewExpanseScreen(
             }
         ) { paddingValues ->
             val scrollState = rememberScrollState()
+
             Column(
                 modifier = Modifier
                     .verticalScroll(scrollState)
@@ -118,7 +148,6 @@ fun NewExpanseScreen(
                     }
                 )
 
-
                 AnimatedVisibility(
                     visible = state.loading,
                     enter = slideInHorizontally(initialOffsetX = {
@@ -128,7 +157,6 @@ fun NewExpanseScreen(
                 ) {
                     CircularProgressIndicator()
                 }
-
                 OutlinedTextField(
                     value = state.date.toDate(),
                     onValueChange = {},
@@ -155,9 +183,11 @@ fun NewExpanseScreen(
                         .fillMaxWidth(),
                 )
 
-                Row(modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
                     Text(text = "Paid in Cash")
                     Checkbox(
                         checked = state.personallyPaid,
@@ -165,6 +195,7 @@ fun NewExpanseScreen(
                     )
 
                 }
+
                 OutlinedTextField(
                     value = state.amount,
                     onValueChange = viewModel::amountChanged,
@@ -190,10 +221,41 @@ fun NewExpanseScreen(
                         .fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
+                state.invoicesUris.forEach { uri ->
+                    val imageFile = uri.toFile()
+                    if (imageFile.exists()) {
+                        val path = imageFile.absolutePath
+                        val image = BitmapFactory.decodeFile(path)
+                        Box {
+                            Image(
+                                bitmap = image.asImageBitmap(),
+                                contentDescription = null,
+                                modifier = Modifier.padding(5.dp),
+                                contentScale = ContentScale.Fit
+                            )
+                            IconButton(
+                                onClick = {
+                                    viewModel.deleteImage(uri)
+                                },
+                                modifier = Modifier.align(
+                                    Alignment.TopEnd
+                                )
+                            ) {
+                                Icon(
+                                    Icons.Default.Close,
+                                    contentDescription = null,
+                                )
+                            }
+                        }
+                    }
+
+                }
             }
+
         }
     }
 }
+
 
 
 

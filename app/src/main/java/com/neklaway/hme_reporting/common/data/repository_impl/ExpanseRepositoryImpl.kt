@@ -33,7 +33,7 @@ class ExpanseRepositoryImpl @Inject constructor(
         return dao.getAll()
     }
 
-    override fun getById(id: Long): Flow<ExpanseEntity> {
+    override fun getById(id: Long): ExpanseEntity {
         return dao.getById(id)
     }
 

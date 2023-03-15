@@ -1,7 +1,6 @@
 package com.neklaway.hme_reporting.feature_expanse_sheet.domain.use_cases.expanse_use_cases
 
 import android.database.sqlite.SQLiteConstraintException
-import android.net.Uri
 import android.util.Log
 import com.neklaway.hme_reporting.common.domain.repository.ExpanseRepository
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.Expanse
@@ -70,14 +69,15 @@ class InsertExpanseUseCase @Inject constructor(
 
         try {
             val expanse = Expanse(
-                HMEId,
-                date,
-                invoiceNumber,
-                description,
-                personallyPaid,
-                amount,
-                currencyID,
-                amountAED,
+                HMEId = HMEId,
+                date = date,
+                invoiceNumber = invoiceNumber,
+                description = description,
+                personallyPaid = personallyPaid,
+                amount = amount,
+                currencyID = currencyID,
+                amountAED = amountAED,
+                invoicesUri = invoiceUris
             )
             val result = repo.insert(expanse.toExpansesEntity())
             if (result > 0) {

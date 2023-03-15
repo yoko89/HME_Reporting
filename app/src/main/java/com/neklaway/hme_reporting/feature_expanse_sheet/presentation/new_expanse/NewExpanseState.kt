@@ -1,5 +1,6 @@
 package com.neklaway.hme_reporting.feature_expanse_sheet.presentation.new_expanse
 
+import android.net.Uri
 import com.neklaway.hme_reporting.common.domain.model.Customer
 import com.neklaway.hme_reporting.common.domain.model.HMECode
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.CurrencyExchange
@@ -18,7 +19,7 @@ data class NewExpanseState(
     val amount: String = "",
     val currencyList: List<CurrencyExchange> = emptyList(),
     val amountAED: String = "",
-    val invoicesUri: List<String> = emptyList(),
+    val invoicesUris: List<Uri> = emptyList(),
     val showDatePicker: Boolean = false,
     val selectedCurrency: CurrencyExchange? = null
 )

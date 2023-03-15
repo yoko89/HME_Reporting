@@ -2,9 +2,13 @@
 
 package com.neklaway.hme_reporting.feature_expanse_sheet.presentation.edit_expanse
 
+import android.graphics.BitmapFactory
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.*
@@ -12,14 +16,20 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.DocumentScanner
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toFile
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.neklaway.hme_reporting.common.presentation.Screen
@@ -42,7 +52,10 @@ fun EditExpanseScreen(
 
     val dateInteractionSource = remember { MutableInteractionSource() }
 
-
+    val imageCapture = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture(),
+        onResult = viewModel::photoTaken
+    )
 
     LaunchedEffect(key1 = event) {
         event.collect { event ->
@@ -52,7 +65,9 @@ fun EditExpanseScreen(
                     false
                 )
                 is EditExpanseEvents.UserMessage -> snackbarHostState.showSnackbar(event.message)
-                is EditExpanseEvents.TakePicture -> TODO()
+                is EditExpanseEvents.TakePicture -> {
+                    imageCapture.launch(event.uri)
+                }
             }
         }
     }
@@ -96,6 +111,15 @@ fun EditExpanseScreen(
                         Icon(
                             imageVector = Icons.Default.Delete,
                             contentDescription = "Delete Expanse"
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(5.dp))
+
+                    val context = LocalContext.current
+                    FloatingActionButton(onClick = { viewModel.takePicture(context) }) {
+                        Icon(
+                            imageVector = Icons.Default.DocumentScanner,
+                            contentDescription = "Add Invoice Image"
                         )
                     }
 
@@ -161,9 +185,11 @@ fun EditExpanseScreen(
                         .fillMaxWidth(),
                 )
 
-                Row(modifier = Modifier.fillMaxWidth(),
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween) {
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
                     Text(text = "Paid in Cash")
                     Checkbox(
                         checked = state.personallyPaid,
@@ -197,10 +223,41 @@ fun EditExpanseScreen(
                         .fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
+
+                state.invoicesUris.forEach { uri ->
+                    val imageFile = uri.toFile()
+                    if (imageFile.exists()) {
+                        val path = imageFile.absolutePath
+                        val image = BitmapFactory.decodeFile(path)
+                        Box {
+                            Image(
+                                bitmap = image.asImageBitmap(),
+                                contentDescription = null,
+                                modifier = Modifier.padding(5.dp),
+                                contentScale = ContentScale.Fit
+                            )
+                            IconButton(
+                                onClick = {
+                                    viewModel.deleteImage(uri)
+                                },
+                                modifier = Modifier.align(
+                                    Alignment.TopEnd
+                                )
+                            ) {
+                                Icon(
+                                    Icons.Default.Close,
+                                    contentDescription = null,
+                                )
+                            }
+                        }
+                    }
+
+                }
             }
         }
     }
 }
+
 
 
 

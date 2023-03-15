@@ -1,6 +1,10 @@
 package com.neklaway.hme_reporting.feature_expanse_sheet.presentation.new_expanse
 
+import android.content.Context
+import android.net.Uri
 import android.util.Log
+import androidx.core.content.FileProvider
+import androidx.core.net.toFile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.neklaway.hme_reporting.common.domain.model.Customer
@@ -21,6 +25,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import java.io.File
 import java.util.*
 import javax.inject.Inject
 
@@ -45,6 +50,8 @@ class NewExpanseViewModel @Inject constructor(
     private val _event = MutableSharedFlow<NewExpanseEvents>()
     val event: SharedFlow<NewExpanseEvents> = _event
 
+    private val mutableUriList = state.value.invoicesUris.toMutableList()
+
 
     init {
         getCustomers()
@@ -55,7 +62,11 @@ class NewExpanseViewModel @Inject constructor(
         getAllCustomersFlowUseCase().onEach { result ->
             when (result) {
                 is Resource.Error -> {
-                    _event.emit(NewExpanseEvents.UserMessage(result.message ?: "Can't get customers"))
+                    _event.emit(
+                        NewExpanseEvents.UserMessage(
+                            result.message ?: "Can't get customers"
+                        )
+                    )
                     _state.update { it.copy(loading = false) }
                 }
                 is Resource.Loading -> _state.update { it.copy(loading = true) }
@@ -93,7 +104,11 @@ class NewExpanseViewModel @Inject constructor(
                 getHMECodeByCustomerIdUseCase(customer.id).collect { resource ->
                     when (resource) {
                         is Resource.Error -> {
-                            _event.emit(NewExpanseEvents.UserMessage(resource.message ?: "Can't get HME codes"))
+                            _event.emit(
+                                NewExpanseEvents.UserMessage(
+                                    resource.message ?: "Can't get HME codes"
+                                )
+                            )
                             _state.update { it.copy(loading = false) }
                         }
                         is Resource.Loading -> _state.update { it.copy(loading = true) }
@@ -172,13 +187,17 @@ class NewExpanseViewModel @Inject constructor(
                 amount = amountInFloat,
                 currencyID = state.value.selectedCurrency?.id,
                 amountAED = amountInAEDInFloat,
-                invoiceUris = state.value.invoicesUri
+                invoiceUris = state.value.invoicesUris.map { it.toString() }
             ).collect { result ->
                 Log.d(TAG, "insertExpanse: result is $result")
                 when (result) {
                     is Resource.Loading -> _state.update { it.copy(loading = true) }
                     is Resource.Error -> {
-                        _event.emit(NewExpanseEvents.UserMessage(result.message ?: "Can't Insert Expanse"))
+                        _event.emit(
+                            NewExpanseEvents.UserMessage(
+                                result.message ?: "Can't Insert Expanse"
+                            )
+                        )
                         _state.update { it.copy(loading = false) }
                     }
                     is Resource.Success -> {
@@ -201,6 +220,7 @@ class NewExpanseViewModel @Inject constructor(
                 amountAED = "",
                 personallyPaid = false,
                 selectedCurrency = null,
+                invoicesUris = emptyList()
             )
         }
     }
@@ -234,7 +254,11 @@ class NewExpanseViewModel @Inject constructor(
             amount.toFloatWithString().let { resourceWithString ->
                 when (resourceWithString) {
                     is ResourceWithString.Error -> {
-                        _event.emit(NewExpanseEvents.UserMessage(resourceWithString.message ?: "Error in Amount"))
+                        _event.emit(
+                            NewExpanseEvents.UserMessage(
+                                resourceWithString.message ?: "Error in Amount"
+                            )
+                        )
                         _state.update { it.copy(amount = resourceWithString.string ?: "") }
                     }
                     is ResourceWithString.Loading -> Unit
@@ -246,12 +270,17 @@ class NewExpanseViewModel @Inject constructor(
             }
         }
     }
+
     fun amountAEDChanged(amount: String) {
         viewModelScope.launch {
             amount.toFloatWithString().let { resourceWithString ->
                 when (resourceWithString) {
                     is ResourceWithString.Error -> {
-                        _event.emit(NewExpanseEvents.UserMessage(resourceWithString.message ?: "Error in Amount"))
+                        _event.emit(
+                            NewExpanseEvents.UserMessage(
+                                resourceWithString.message ?: "Error in Amount"
+                            )
+                        )
                         _state.update { it.copy(amountAED = resourceWithString.string ?: "") }
                     }
                     is ResourceWithString.Loading -> Unit
@@ -262,12 +291,17 @@ class NewExpanseViewModel @Inject constructor(
             }
         }
     }
+
     private fun getCurrencyList() {
         viewModelScope.launch {
             getAllCurrencyExchangeFlowUseCase().collect { resource ->
                 when (resource) {
                     is Resource.Error -> {
-                        _event.emit(NewExpanseEvents.UserMessage(resource.message ?: "Error can't get Currency List"))
+                        _event.emit(
+                            NewExpanseEvents.UserMessage(
+                                resource.message ?: "Error can't get Currency List"
+                            )
+                        )
                         _state.update { it.copy(loading = false) }
                     }
                     is Resource.Loading -> {
@@ -312,15 +346,47 @@ class NewExpanseViewModel @Inject constructor(
         _state.update { it.copy(amountAED = amountInAED) }
     }
 
-    fun invoiceNumberChanged(invoiceNumber:String){
+    fun invoiceNumberChanged(invoiceNumber: String) {
         _state.update { it.copy(invoiceNumber = invoiceNumber) }
     }
-    fun descriptionChanged(description:String){
+
+    fun descriptionChanged(description: String) {
         _state.update { it.copy(description = description) }
     }
 
-    fun cashCheckChanged(checked:Boolean){
+    fun cashCheckChanged(checked: Boolean) {
         _state.update { it.copy(personallyPaid = checked) }
+    }
+
+    fun takePicture(context: Context) {
+        val selectedHme = state.value.selectedHMECode ?: return
+        val directory = File(context.filesDir.path + "/" + selectedHme.code)
+        if (!directory.exists()) {
+            directory.mkdirs()
+        }
+        var file = File(directory, selectedHme.code + Calendar.getInstance().timeInMillis + ".jpg")
+        while (file.exists()) {
+            file = File(directory, selectedHme.code + Calendar.getInstance().timeInMillis + ".jpg")
+        }
+        mutableUriList.add(Uri.fromFile(file))
+        val uri = FileProvider.getUriForFile(context, "com.neklaway.hme_reporting.provider", file)
+        Uri.fromFile(file)
+        viewModelScope.launch {
+            _event.emit(NewExpanseEvents.TakePicture(uri))
+        }
+    }
+
+    fun photoTaken(successful: Boolean) {
+        val list = mutableUriList.toList()
+        _state.update { it.copy(invoicesUris = list) }
+    }
+
+    fun deleteImage(uri: Uri) {
+        mutableUriList.remove(uri)
+        uri.toFile().delete()
+        val list = mutableUriList.toList()
+        _state.update { it.copy(invoicesUris = list) }
+
     }
 
 }

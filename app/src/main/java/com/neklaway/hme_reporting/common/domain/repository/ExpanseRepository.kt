@@ -18,7 +18,7 @@ interface ExpanseRepository {
 
     fun getAll(): Flow<List<ExpanseEntity>>
 
-    fun getById(id: Long): Flow<ExpanseEntity>
+    fun getById(id: Long): ExpanseEntity
 
     fun getByHMECodeId(id: Long): Flow<List<ExpanseEntity>>
 

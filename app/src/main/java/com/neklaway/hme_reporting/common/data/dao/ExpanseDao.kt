@@ -26,7 +26,7 @@ interface ExpanseDao {
     fun getAll(): Flow<List<ExpanseEntity>>
 
     @Query("SELECT * FROM expansesTable WHERE id = :id")
-    fun getById(id: Long): Flow<ExpanseEntity>
+    fun getById(id: Long): ExpanseEntity
 
     @Query("SELECT * FROM expansesTable WHERE HMEId = :id")
     fun getByHMECodeId(id: Long): Flow<List<ExpanseEntity>>

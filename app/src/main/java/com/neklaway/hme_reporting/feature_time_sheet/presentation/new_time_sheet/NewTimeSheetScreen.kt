@@ -169,7 +169,7 @@ fun NewTimeSheetScreen(
                 FloatingActionButton(onClick = { viewModel.insertTimeSheet() }) {
                     Icon(
                         imageVector = Icons.Default.Add,
-                        contentDescription = "Update Time Sheet"
+                        contentDescription = "Add Time Sheet"
                     )
                 }
             },

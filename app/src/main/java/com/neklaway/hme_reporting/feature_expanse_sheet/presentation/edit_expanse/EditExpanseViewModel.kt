@@ -1,6 +1,11 @@
 package com.neklaway.hme_reporting.feature_expanse_sheet.presentation.edit_expanse
 
+import android.content.Context
+import android.net.Uri
 import android.util.Log
+import androidx.core.content.FileProvider
+import androidx.core.net.toFile
+import androidx.core.net.toUri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -15,11 +20,10 @@ import com.neklaway.hme_reporting.utils.Resource
 import com.neklaway.hme_reporting.utils.ResourceWithString
 import com.neklaway.hme_reporting.utils.toFloatWithString
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import java.io.File
 import java.util.*
 import javax.inject.Inject
 
@@ -45,8 +49,9 @@ class EditExpanseViewModel @Inject constructor(
     private val _event = MutableSharedFlow<EditExpanseEvents>()
     val event: SharedFlow<EditExpanseEvents> = _event
 
+    private val mutableUriList = state.value.invoicesUris.toMutableList()
+
     private val expanseId: Long
-    private var expanseDeferred: Deferred<Expanse?>
     private lateinit var returnedExpanse: Expanse
 
     init {
@@ -56,8 +61,8 @@ class EditExpanseViewModel @Inject constructor(
         _state.update { it.copy(expanseId = expanseId) }
         Log.d(TAG, ": ${state.value.expanseId}")
 
-        expanseDeferred = viewModelScope.async(Dispatchers.IO) {
-            getExpanseByIdUseCase(expanseId).onEach { result ->
+        viewModelScope.launch(Dispatchers.IO) {
+            getExpanseByIdUseCase(expanseId).let { result ->
                 Log.d(TAG, "Expanse: $result")
                 when (result) {
                     is Resource.Error -> {
@@ -70,7 +75,9 @@ class EditExpanseViewModel @Inject constructor(
                     }
                     is Resource.Loading -> _state.update { it.copy(loading = true) }
                     is Resource.Success -> {
-                        val expanse = result.data ?: return@onEach
+                        Log.d(TAG, "Expanse loaded: Success")
+                        val expanse = result.data ?: return@let
+                        Log.d(TAG, "expanse is: $expanse")
                         val currency =
                             getCurrencyExchangeByIdUseCase(expanse.currencyID).last().data
                         _state.update {
@@ -81,17 +88,18 @@ class EditExpanseViewModel @Inject constructor(
                                 personallyPaid = expanse.personallyPaid,
                                 amount = expanse.amount.toString(),
                                 amountAED = expanse.amountAED.toString(),
-                                invoicesUri = expanse.invoicesUri,
+                                invoicesUris = expanse.invoicesUri.map { it.toUri() },
                                 selectedCurrency = currency,
                                 expanseId = expanseId,
                                 loading = false
                             )
                         }
-                        returnedExpanse = result.data
+                        returnedExpanse = expanse
                     }
                 }
-            }.launchIn(viewModelScope)
-            return@async returnedExpanse
+            }
+            Log.d(TAG, "returned expanse: $returnedExpanse")
+            returnedExpanse
         }
     }
 
@@ -111,7 +119,7 @@ class EditExpanseViewModel @Inject constructor(
                 amount = state.value.amount.toFloat(),
                 currencyID = state.value.selectedCurrency?.id,
                 amountAED = state.value.amountAED.toFloat(),
-                invoiceUris = state.value.invoicesUri,
+                invoiceUris = state.value.invoicesUris.map { it.toString()},
                 id = state.value.expanseId,
             ).collect { result ->
                 when (result) {
@@ -160,14 +168,14 @@ class EditExpanseViewModel @Inject constructor(
 
     fun deleteExpanse() {
         viewModelScope.launch {
-            val expanse = expanseDeferred.await()
 
-            if (expanse == null) {
+
+            if (!::returnedExpanse.isInitialized) {
                 _event.emit(EditExpanseEvents.UserMessage("Can't retrieve Expanse"))
                 return@launch
             }
 
-            deleteExpanseUseCase(expanse).collect { result ->
+            deleteExpanseUseCase(returnedExpanse).collect { result ->
                 when (result) {
                     is Resource.Error -> {
                         _event.emit(
@@ -224,7 +232,7 @@ class EditExpanseViewModel @Inject constructor(
         _state.update { it.copy(description = description) }
     }
 
-    fun cashCheckChanged(cash:Boolean){
+    fun cashCheckChanged(cash: Boolean) {
         _state.update { it.copy(personallyPaid = cash) }
     }
 
@@ -297,5 +305,47 @@ class EditExpanseViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    fun takePicture(context: Context) {
+        viewModelScope.launch {
+            if (!::returnedExpanse.isInitialized) {
+                _event.emit(EditExpanseEvents.UserMessage("Can't retrieve Expanse"))
+                return@launch
+            }
+            val selectedHme = returnedExpanse.HMEId
+            val directory = File(context.filesDir.path + "/" + selectedHme)
+            if (!directory.exists()) {
+                directory.mkdirs()
+            }
+            var file = File(
+                directory,
+                selectedHme.toString() + Calendar.getInstance().timeInMillis + ".jpg"
+            )
+            while (file.exists()) {
+                file = File(
+                    directory,
+                    selectedHme.toString() + Calendar.getInstance().timeInMillis + ".jpg"
+                )
+            }
+            mutableUriList.add(Uri.fromFile(file))
+            val uri =
+                FileProvider.getUriForFile(context, "com.neklaway.hme_reporting.provider", file)
+            Uri.fromFile(file)
+            _event.emit(EditExpanseEvents.TakePicture(uri))
+        }
+    }
+
+    fun photoTaken(successful: Boolean) {
+        val list = mutableUriList.toList()
+        _state.update { it.copy(invoicesUris = list) }
+    }
+
+    fun deleteImage(uri: Uri) {
+        mutableUriList.remove(uri)
+        uri.toFile().delete()
+        val list = mutableUriList.toList()
+        _state.update { it.copy(invoicesUris = list) }
+
     }
 }
