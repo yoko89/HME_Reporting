@@ -1,7 +1,7 @@
 package com.neklaway.hme_reporting.feature_expanse_sheet.domain.model
 
 import com.neklaway.hme_reporting.common.data.entity.CurrencyExchangeEntity
-
+@kotlinx.serialization.Serializable
 data class CurrencyExchange(
     val currencyName:String,
     val rate:Float,

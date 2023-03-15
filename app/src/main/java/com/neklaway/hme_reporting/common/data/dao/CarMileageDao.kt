@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface CarMileageDao {
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(carMileage: CarMileageEntity): Long
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)

@@ -10,7 +10,7 @@ interface ExpanseDao {
     @Insert
     suspend fun insert(expanseEntity: ExpanseEntity): Long
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(expanseEntities: List<ExpanseEntity>): List<Long>
 
     @Delete
@@ -23,7 +23,9 @@ interface ExpanseDao {
     suspend fun update(expanseEntities: List<ExpanseEntity>): Int
 
     @Query("SELECT * FROM expansesTable")
-    fun getAll(): Flow<List<ExpanseEntity>>
+    fun getAllFlow(): Flow<List<ExpanseEntity>>
+    @Query("SELECT * FROM expansesTable")
+    fun getAll(): List<ExpanseEntity>
 
     @Query("SELECT * FROM expansesTable WHERE id = :id")
     fun getById(id: Long): ExpanseEntity

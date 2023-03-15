@@ -24,7 +24,11 @@ import com.neklaway.hme_reporting.common.domain.use_cases.hme_code_use_cases.Get
 import com.neklaway.hme_reporting.common.domain.use_cases.ibau_code_use_cases.GetAllIBAUCodesUseCase
 import com.neklaway.hme_reporting.common.domain.use_cases.time_sheet_use_cases.GetAllTimeSheetUseCase
 import com.neklaway.hme_reporting.feature_car_mileage.domain.model.CarMileage
-import com.neklaway.hme_reporting.feature_car_mileage.domain.use_cases.GetAllCarMileageFlowUseCase
+import com.neklaway.hme_reporting.feature_car_mileage.domain.use_cases.GetAllCarMileageUseCase
+import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.CurrencyExchange
+import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.Expanse
+import com.neklaway.hme_reporting.feature_expanse_sheet.domain.use_cases.currency_exchange_use_cases.GetAllCurrencyExchangeUseCase
+import com.neklaway.hme_reporting.feature_expanse_sheet.domain.use_cases.expanse_use_cases.GetAllExpansesUseCase
 import com.neklaway.hme_reporting.feature_visa.domain.model.Visa
 import com.neklaway.hme_reporting.feature_visa.domain.use_cases.GetAllVisasUseCase
 import com.neklaway.hme_reporting.utils.Constants
@@ -50,7 +54,9 @@ class BackupWorker @AssistedInject constructor(
     val getAllIBAUCodesUseCase: GetAllIBAUCodesUseCase,
     val getAllTimeSheetUseCase: GetAllTimeSheetUseCase,
     val getAllVisasUseCase: GetAllVisasUseCase,
-    val getAllCarMileage:GetAllCarMileageFlowUseCase,
+    val getAllCarMileage:GetAllCarMileageUseCase,
+    val getAllCurrencyExchangeUseCase: GetAllCurrencyExchangeUseCase,
+    val getAllExpansesUseCase: GetAllExpansesUseCase,
 ) : CoroutineWorker(appContext, workerParameters) {
 
     override suspend fun getForegroundInfo(): ForegroundInfo {
@@ -92,7 +98,7 @@ class BackupWorker @AssistedInject constructor(
 
 
                     val contentValues = ContentValues().apply {
-                        put(MediaStore.Files.FileColumns.DISPLAY_NAME, "customers")
+                        put(MediaStore.Files.FileColumns.DISPLAY_NAME, "01_customers")
                         put(MediaStore.Files.FileColumns.MIME_TYPE, "application/json")
                         put(folderPath.first, folderPath.second)
                     }
@@ -136,7 +142,7 @@ class BackupWorker @AssistedInject constructor(
 
 
                     val contentValues = ContentValues().apply {
-                        put(MediaStore.Files.FileColumns.DISPLAY_NAME, "hme")
+                        put(MediaStore.Files.FileColumns.DISPLAY_NAME, "02_hme")
                         put(MediaStore.Files.FileColumns.MIME_TYPE, "application/json")
                         put(folderPath.first, folderPath.second)
                     }
@@ -178,7 +184,7 @@ class BackupWorker @AssistedInject constructor(
 
 
                     val contentValues = ContentValues().apply {
-                        put(MediaStore.Files.FileColumns.DISPLAY_NAME, "ibau")
+                        put(MediaStore.Files.FileColumns.DISPLAY_NAME, "03_ibau")
                         put(MediaStore.Files.FileColumns.MIME_TYPE, "application/json")
                         put(folderPath.first, folderPath.second)
                     }
@@ -225,7 +231,7 @@ class BackupWorker @AssistedInject constructor(
 
 
                     val contentValues = ContentValues().apply {
-                        put(MediaStore.Files.FileColumns.DISPLAY_NAME, "timesheet")
+                        put(MediaStore.Files.FileColumns.DISPLAY_NAME, "04_timesheet")
                         put(MediaStore.Files.FileColumns.MIME_TYPE, "application/json")
                         put(folderPath.first, folderPath.second)
                     }
@@ -270,7 +276,7 @@ class BackupWorker @AssistedInject constructor(
 
 
                     val contentValues = ContentValues().apply {
-                        put(MediaStore.Files.FileColumns.DISPLAY_NAME, "visa")
+                        put(MediaStore.Files.FileColumns.DISPLAY_NAME, "05_visa")
                         put(MediaStore.Files.FileColumns.MIME_TYPE, "application/json")
                         put(folderPath.first, folderPath.second)
                     }
@@ -301,7 +307,7 @@ class BackupWorker @AssistedInject constructor(
         }
 
 
-        getAllCarMileage().collect { resource ->
+        getAllCarMileage().let { resource ->
 
             Log.d(TAG, "getCarMileage: $resource")
             when (resource) {
@@ -315,7 +321,7 @@ class BackupWorker @AssistedInject constructor(
 
 
                     val contentValues = ContentValues().apply {
-                        put(MediaStore.Files.FileColumns.DISPLAY_NAME, "car_mileage")
+                        put(MediaStore.Files.FileColumns.DISPLAY_NAME, "06_car_mileage")
                         put(MediaStore.Files.FileColumns.MIME_TYPE, "application/json")
                         put(folderPath.first, folderPath.second)
                     }
@@ -341,6 +347,90 @@ class BackupWorker @AssistedInject constructor(
                 }
             }
             Log.d(TAG, "get all Car Mileage")
+        }
+
+        getAllCurrencyExchangeUseCase().let { resource ->
+
+            Log.d(TAG, "getExpanse: $resource")
+            when (resource) {
+                is Resource.Error -> resultError.add(resource.message ?: "Can't load Currency Exchange List")
+                is Resource.Loading -> Unit
+                is Resource.Success -> {
+                    val serializedCurrencyExchange = Json.encodeToString(
+                        ListSerializer(CurrencyExchange.serializer()),
+                        resource.data.orEmpty()
+                    )
+
+
+                    val contentValues = ContentValues().apply {
+                        put(MediaStore.Files.FileColumns.DISPLAY_NAME, "07_currency_exchange")
+                        put(MediaStore.Files.FileColumns.MIME_TYPE, "application/json")
+                        put(folderPath.first, folderPath.second)
+                    }
+                    try {
+                        Log.d(TAG, "backup: Currency Exchange file writing started")
+                        appContext.contentResolver.insert(collection, contentValues)
+                            ?.also { uri ->
+                                appContext.contentResolver.openOutputStream(uri)
+                                    .use { outputStream ->
+                                        outputStream?.write(serializedCurrencyExchange.toByteArray())
+                                        Log.d(TAG, "Currency Exchange serialized: $serializedCurrencyExchange")
+                                        outputStream?.flush()
+                                        outputStream?.close()
+                                    }
+                                Log.d(TAG, "doWork: resolver use closed")
+                            }
+                    } catch (e: IOException) {
+                        e.printStackTrace()
+                        resultError.add("Currency Exchanged: " + e.message)
+                        Log.d(TAG, "Currency Exchanged: failed ${e.message}")
+                    }
+                    Log.d(TAG, "writing: stopped")
+                }
+            }
+            Log.d(TAG, "get Currency Exchanged")
+        }
+
+        getAllExpansesUseCase().let { resource ->
+
+            Log.d(TAG, "getExpanse: $resource")
+            when (resource) {
+                is Resource.Error -> resultError.add(resource.message ?: "Can't load Expanse List")
+                is Resource.Loading -> Unit
+                is Resource.Success -> {
+                    val serializedExpanse = Json.encodeToString(
+                        ListSerializer(Expanse.serializer()),
+                        resource.data.orEmpty()
+                    )
+
+
+                    val contentValues = ContentValues().apply {
+                        put(MediaStore.Files.FileColumns.DISPLAY_NAME, "08_expanse")
+                        put(MediaStore.Files.FileColumns.MIME_TYPE, "application/json")
+                        put(folderPath.first, folderPath.second)
+                    }
+                    try {
+                        Log.d(TAG, "backup: Expanse file writing started")
+                        appContext.contentResolver.insert(collection, contentValues)
+                            ?.also { uri ->
+                                appContext.contentResolver.openOutputStream(uri)
+                                    .use { outputStream ->
+                                        outputStream?.write(serializedExpanse.toByteArray())
+                                        Log.d(TAG, "Expanse serialized: $serializedExpanse")
+                                        outputStream?.flush()
+                                        outputStream?.close()
+                                    }
+                                Log.d(TAG, "doWork: resolver use closed")
+                            }
+                    } catch (e: IOException) {
+                        e.printStackTrace()
+                        resultError.add("Expanse: " + e.message)
+                        Log.d(TAG, "Expanse: failed ${e.message}")
+                    }
+                    Log.d(TAG, "writing: stopped")
+                }
+            }
+            Log.d(TAG, "get Expanse")
         }
 
 

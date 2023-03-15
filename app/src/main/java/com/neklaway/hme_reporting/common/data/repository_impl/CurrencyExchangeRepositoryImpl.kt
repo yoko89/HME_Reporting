@@ -25,7 +25,11 @@ class CurrencyExchangeRepositoryImpl @Inject constructor(
         return dao.update(currencyExchangeEntity)
     }
 
-    override fun getAll(): Flow<List<CurrencyExchangeEntity>> {
+    override fun getAllFlow(): Flow<List<CurrencyExchangeEntity>> {
+        return dao.getAllFlow()
+    }
+
+    suspend override fun getAll(): List<CurrencyExchangeEntity> {
         return dao.getAll()
     }
 

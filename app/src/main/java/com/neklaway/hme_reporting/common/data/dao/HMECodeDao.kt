@@ -9,7 +9,7 @@ interface HMECodeDao {
     @Insert
     suspend fun insert(hmeCode: HMECodeEntity):Long
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(hmeCodes: List<HMECodeEntity>):List<Long>
 
     @Delete

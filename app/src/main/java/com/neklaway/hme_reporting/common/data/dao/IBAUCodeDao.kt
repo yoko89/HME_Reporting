@@ -9,7 +9,7 @@ interface IBAUCodeDao {
     @Insert
     suspend fun insert(ibauCode: IBAUCodeEntity):Long
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(ibauCodes: List<IBAUCodeEntity>):List<Long>
 
     @Delete

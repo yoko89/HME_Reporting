@@ -10,7 +10,7 @@ interface CurrencyExchangeDao {
     @Insert
     suspend fun insert(currencyExchangeEntity: CurrencyExchangeEntity): Long
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(currencyExchangeEntities: List<CurrencyExchangeEntity>): List<Long>
 
     @Delete
@@ -20,7 +20,9 @@ interface CurrencyExchangeDao {
     suspend fun update(currencyExchangeEntity: CurrencyExchangeEntity): Int
 
     @Query("SELECT * FROM currencyExchangeTable")
-    fun getAll(): Flow<List<CurrencyExchangeEntity>>
+    fun getAllFlow(): Flow<List<CurrencyExchangeEntity>>
+    @Query("SELECT * FROM currencyExchangeTable")
+    suspend fun getAll(): List<CurrencyExchangeEntity>
 
     @Query("SELECT * FROM currencyExchangeTable WHERE id = :id")
     suspend fun getById(id: Long): CurrencyExchangeEntity

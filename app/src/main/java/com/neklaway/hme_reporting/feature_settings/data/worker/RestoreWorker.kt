@@ -23,6 +23,10 @@ import com.neklaway.hme_reporting.common.domain.use_cases.ibau_code_use_cases.In
 import com.neklaway.hme_reporting.common.domain.use_cases.time_sheet_use_cases.InsertTimeSheetListUseCase
 import com.neklaway.hme_reporting.feature_car_mileage.domain.model.CarMileage
 import com.neklaway.hme_reporting.feature_car_mileage.domain.use_cases.InsertCarMileageListUseCase
+import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.CurrencyExchange
+import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.Expanse
+import com.neklaway.hme_reporting.feature_expanse_sheet.domain.use_cases.currency_exchange_use_cases.InsertCurrencyExchangeListUseCase
+import com.neklaway.hme_reporting.feature_expanse_sheet.domain.use_cases.expanse_use_cases.InsertExpanseListUseCase
 import com.neklaway.hme_reporting.feature_settings.data.broadcast.RestartReceiver
 import com.neklaway.hme_reporting.feature_visa.domain.model.Visa
 import com.neklaway.hme_reporting.feature_visa.domain.use_cases.InsertVisaListUseCase
@@ -50,6 +54,8 @@ class RestoreWorker @AssistedInject constructor(
     val insertTimeSheetListUseCase: InsertTimeSheetListUseCase,
     val insertVisaListUseCase: InsertVisaListUseCase,
     val insertCarMileageListUseCase: InsertCarMileageListUseCase,
+    val insertExpanseListUseCase: InsertExpanseListUseCase,
+    val insertCurrencyExchangeListUseCase: InsertCurrencyExchangeListUseCase
 ) : CoroutineWorker(appContext, workerParameters) {
 
     override suspend fun getForegroundInfo(): ForegroundInfo {
@@ -75,6 +81,9 @@ class RestoreWorker @AssistedInject constructor(
             "ibau" to false,
             "timesheet" to false,
             "visa" to false,
+            "car_mileage" to false,
+            "currency_Exchange" to false,
+            "expanse" to false
         )
 
 
@@ -87,7 +96,7 @@ class RestoreWorker @AssistedInject constructor(
             val backupInputStream =
                 applicationContext.contentResolver.openInputStream(files.uri) ?: return@forEach
             when (files.name) {
-                "customers.json" -> {
+                "01_customers.json" -> {
                     val customers = Json.decodeFromStream(
                         ListSerializer(Customer.serializer()),
                         backupInputStream
@@ -101,7 +110,7 @@ class RestoreWorker @AssistedInject constructor(
                     }
                 }
 
-                "hme.json" -> {
+                "02_hme.json" -> {
                     val hmes = Json.decodeFromStream(
                         ListSerializer(HMECode.serializer()),
                         backupInputStream
@@ -115,7 +124,7 @@ class RestoreWorker @AssistedInject constructor(
                     }
                 }
 
-                "ibau.json" -> {
+                "03_ibau.json" -> {
                     val ibaus = Json.decodeFromStream(
                         ListSerializer(IBAUCode.serializer()),
                         backupInputStream
@@ -129,7 +138,7 @@ class RestoreWorker @AssistedInject constructor(
                     }
                 }
 
-                "timesheet.json" -> {
+                "04_timesheet.json" -> {
                     val timesheets = Json.decodeFromStream(
                         ListSerializer(TimeSheet.serializer()),
                         backupInputStream
@@ -143,7 +152,7 @@ class RestoreWorker @AssistedInject constructor(
                     }
                 }
 
-                "visa.json" -> {
+                "05_visa.json" -> {
                     val visas = Json.decodeFromStream(
                         ListSerializer(Visa.serializer()),
                         backupInputStream
@@ -157,7 +166,7 @@ class RestoreWorker @AssistedInject constructor(
                     }
                 }
 
-                "car_mileage.json" -> {
+                "06_car_mileage.json" -> {
                     val carMileageList = Json.decodeFromStream(
                         ListSerializer(CarMileage.serializer()),
                         backupInputStream
@@ -166,6 +175,34 @@ class RestoreWorker @AssistedInject constructor(
                     insertCarMileageListUseCase(carMileageList).collect { resource ->
                         when (resource) {
                             is Resource.Success -> filesRestored["car_mileage"] = true
+                            else -> Unit
+                        }
+                    }
+                }
+
+                "07_currency_exchange.json" -> {
+                    val currencyList = Json.decodeFromStream(
+                        ListSerializer(CurrencyExchange.serializer()),
+                        backupInputStream
+                    )
+                    Log.d(TAG, "doWork:Deserialized Expanse $currencyList")
+                    insertCurrencyExchangeListUseCase(currencyList).collect { resource ->
+                        when (resource) {
+                            is Resource.Success -> filesRestored["currency_Exchange"] = true
+                            else -> Unit
+                        }
+                    }
+                }
+
+                "08_expanse.json" -> {
+                    val expanseList = Json.decodeFromStream(
+                        ListSerializer(Expanse.serializer()),
+                        backupInputStream
+                    )
+                    Log.d(TAG, "doWork:Deserialized Expanse $expanseList")
+                    insertExpanseListUseCase(expanseList).collect { resource ->
+                        when (resource) {
+                            is Resource.Success -> filesRestored["expanse"] = true
                             else -> Unit
                         }
                     }
@@ -215,7 +252,9 @@ class RestoreWorker @AssistedInject constructor(
 
 
         var notificationText = if (filesRestored.values.any { !it }) {
-            filesRestored.toString()
+            filesRestored.filter {it ->
+                !it.value
+            }.toString()
         } else {
             "Restore Successful"
         }

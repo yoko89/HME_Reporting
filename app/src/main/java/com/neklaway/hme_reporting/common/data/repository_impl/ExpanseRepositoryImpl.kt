@@ -29,7 +29,11 @@ class ExpanseRepositoryImpl @Inject constructor(
         return dao.update(expanseEntities)
     }
 
-    override fun getAll(): Flow<List<ExpanseEntity>> {
+    override fun getAllFlow(): Flow<List<ExpanseEntity>> {
+        return dao.getAllFlow()
+    }
+
+    override suspend fun getAll(): List<ExpanseEntity> {
         return dao.getAll()
     }
 

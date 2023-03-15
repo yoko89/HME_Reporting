@@ -10,7 +10,7 @@ interface TimeSheetDao {
     @Insert
     suspend fun insert(timeSheet: TimeSheetEntity):Long
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(timeSheets: List<TimeSheetEntity>):List<Long>
 
     @Delete
