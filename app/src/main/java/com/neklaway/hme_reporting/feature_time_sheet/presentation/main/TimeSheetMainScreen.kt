@@ -22,7 +22,6 @@ import androidx.navigation.navArgument
 import com.neklaway.hme_reporting.common.presentation.Screen
 import com.neklaway.hme_reporting.common.presentation.common.component.BottomNavigationBar
 import com.neklaway.hme_reporting.common.presentation.common.component.ComposableScreenAnimation
-import com.neklaway.hme_reporting.common.ui.theme.HMEReportingTheme
 import com.neklaway.hme_reporting.feature_time_sheet.presentation.customer.CustomerScreen
 import com.neklaway.hme_reporting.feature_time_sheet.presentation.edit_time_sheet.EditTimeSheetScreen
 import com.neklaway.hme_reporting.feature_time_sheet.presentation.edit_time_sheet.EditTimeSheetViewModel
@@ -37,69 +36,67 @@ private const val TAG = "TimeSheetMainScreen"
 @Composable
 fun TimeSheetMainScreen(
     viewModel: TimeSheetMainViewModel = hiltViewModel(),
-            showNavigationMenu: () ->Unit,
+    showNavigationMenu: () -> Unit,
 ) {
     val state by viewModel.state.collectAsState()
     val navController = rememberNavController()
 
-    HMEReportingTheme {
 
-        Scaffold(
-            modifier = Modifier.fillMaxSize(),
-            topBar = {
-                     TopAppBar(title = { Text(text = "Time Sheet")},
-                     navigationIcon = {
-                         IconButton(onClick = showNavigationMenu) {
-                             Icon(Icons.Default.Menu, contentDescription = "Menu")
-                         }
-                     })
-            },
-            bottomBar = {
-                val screens = mutableListOf(
-                    Screen.TimeSheet,
-                    Screen.NewTimeSheet,
-                    Screen.Customer,
-                    Screen.HMECode
-                )
-
-                if (state.isIbau) screens.add(Screen.IBAUCode)
-
-                Log.d(TAG, "TimeSheetMainScreen: Screens are $screens")
-
-                BottomNavigationBar(
-                    screenList = screens, navController = navController
-                ) {
-                    viewModel.screenSelected(it.route)
-                    navController.popBackStack()
-                    navController.navigate(it.route)
-                }
-            }
-        ) { paddingValues ->
-            Surface(
-                modifier = Modifier
-                    .padding(paddingValues)
-                    .fillMaxSize()
-            ) {
-                AnimatedVisibility(visible = state.startupRoute == null) {
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        CircularProgressIndicator(
-                            modifier = Modifier
-                                .size(50.dp)
-                                .align(Alignment.Center)
-                        )
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        topBar = {
+            TopAppBar(title = { Text(text = "Time Sheet") },
+                navigationIcon = {
+                    IconButton(onClick = showNavigationMenu) {
+                        Icon(Icons.Default.Menu, contentDescription = "Menu")
                     }
-                }
+                })
+        },
+        bottomBar = {
+            val screens = mutableListOf(
+                Screen.TimeSheet,
+                Screen.NewTimeSheet,
+                Screen.Customer,
+                Screen.HMECode
+            )
 
-                AnimatedVisibility(visible = state.startupRoute != null) {
+            if (state.isIbau) screens.add(Screen.IBAUCode)
 
-                    Navigation(
-                        navController = navController,
-                        state.startupRoute!!
+            Log.d(TAG, "TimeSheetMainScreen: Screens are $screens")
+
+            BottomNavigationBar(
+                screenList = screens, navController = navController
+            ) {
+                viewModel.screenSelected(it.route)
+                navController.popBackStack()
+                navController.navigate(it.route)
+            }
+        }
+    ) { paddingValues ->
+        Surface(
+            modifier = Modifier
+                .padding(paddingValues)
+                .fillMaxSize()
+        ) {
+            AnimatedVisibility(visible = state.startupRoute == null) {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .size(50.dp)
+                            .align(Alignment.Center)
                     )
                 }
             }
 
+            AnimatedVisibility(visible = state.startupRoute != null) {
+
+                Navigation(
+                    navController = navController,
+                    state.startupRoute!!
+                )
+            }
         }
+
     }
 }
 
@@ -155,8 +152,6 @@ private fun Navigation(
                 IBAUCodeScreen()
             }
         }
-
-
     }
 }
 

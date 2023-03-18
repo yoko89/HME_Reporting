@@ -40,7 +40,7 @@ class CurrencyExchangeViewModel @Inject constructor(
     private fun getCurrencyExchangeList() {
 
         getAllCurrencyExchangeFlowUseCase().onEach { result ->
-            Log.d(TAG, "getCurrency: Fetching currencyList $result, Data = ${result.message}")
+            Log.d(TAG, "getCurrency: Fetching currencyList $result, Data = ${result.data}")
             when (result) {
                 is Resource.Error -> {
                     _userMessage.emit(result.message ?: "Can't get customers")

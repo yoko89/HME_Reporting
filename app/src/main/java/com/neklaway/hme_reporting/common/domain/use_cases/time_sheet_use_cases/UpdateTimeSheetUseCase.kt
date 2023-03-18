@@ -5,14 +5,15 @@ import com.neklaway.hme_reporting.common.data.entity.AllowanceType
 import com.neklaway.hme_reporting.common.domain.model.TimeSheet
 import com.neklaway.hme_reporting.common.domain.model.toTimeSheetEntity
 import com.neklaway.hme_reporting.common.domain.repository.TimeSheetRepository
-import com.neklaway.hme_reporting.common.presentation.Screen
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.is_ibau.GetIsIbauUseCase
 import com.neklaway.hme_reporting.utils.Resource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import java.util.*
 import javax.inject.Inject
+
 private const val TAG = "UpdateTimeSheetUseCase"
+
 class UpdateTimeSheetUseCase @Inject constructor(
     val repo: TimeSheetRepository,
     val getIsIbauUseCase: GetIsIbauUseCase
@@ -34,7 +35,9 @@ class UpdateTimeSheetUseCase @Inject constructor(
         noWorkDay: Boolean,
         id: Long,
         created: Boolean,
-        dailyAllowance:AllowanceType?
+        expanseCreated: Boolean,
+        expanseSelected: Boolean,
+        dailyAllowance: AllowanceType?
     ): Flow<Resource<Boolean>> = flow {
         Log.d(TAG, "invoke: started")
         emit(Resource.Loading())
@@ -105,30 +108,31 @@ class UpdateTimeSheetUseCase @Inject constructor(
             traveledDistance = if (noWorkDay) 0 else traveledDistance ?: 0,
             overTimeDay = overTimeDay,
             created = created,
+            expanseCreated = expanseCreated,
+            expanseSelected = expanseSelected,
             travelDay = travelDay,
             noWorkDay = noWorkDay,
             selected = !created,
             id = id,
             dailyAllowance = dailyAllowance
         )
-
         if (timeSheet.workTime < 0f) {
             emit(Resource.Error("Work Time can't be less than zero"))
             return@flow
         }
-            try {
-                val result = repo.update(timeSheet.toTimeSheetEntity())
-                if (result > 0) {
-                    emit(Resource.Success(true))
-                    Log.d(TAG, "invoke: update success")
-                } else {
-                    emit(Resource.Error("Error: Can't Update Time Sheet"))
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                emit(Resource.Error(e.message ?: "Error: Can't Update Time Sheet"))
+        try {
+            val result = repo.update(timeSheet.toTimeSheetEntity())
+            if (result > 0) {
+                emit(Resource.Success(true))
+                Log.d(TAG, "invoke: update success")
+            } else {
+                emit(Resource.Error("Error: Can't Update Time Sheet"))
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emit(Resource.Error(e.message ?: "Error: Can't Update Time Sheet"))
         }
+    }
 
 }
 

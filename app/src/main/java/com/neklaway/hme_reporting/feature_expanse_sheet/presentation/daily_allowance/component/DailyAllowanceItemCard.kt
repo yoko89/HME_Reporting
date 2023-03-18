@@ -1,10 +1,10 @@
 package com.neklaway.hme_reporting.feature_expanse_sheet.presentation.daily_allowance.component
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,12 +19,24 @@ import com.neklaway.hme_reporting.utils.toDate
 fun DailyAllowanceItemCard(
     timeSheet: TimeSheet,
     dailyAllowanceChanged: (AllowanceType) -> Unit,
+    onCheckedChanged: (checked: Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
 
     Card(modifier = modifier) {
-        Row(modifier = Modifier.fillMaxWidth().padding(5.dp),
-        verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(5.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Checkbox(
+                checked = timeSheet.expanseSelected,
+                onCheckedChange = { checked ->
+                    onCheckedChanged(checked)
+                },
+                modifier = Modifier.weight(1f)
+            )
             Text(text = timeSheet.date.toDate(), Modifier.weight(3f))
 
             RadioButton(

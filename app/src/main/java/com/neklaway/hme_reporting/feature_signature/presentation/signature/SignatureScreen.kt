@@ -27,7 +27,6 @@ import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.neklaway.hme_reporting.common.ui.theme.HMEReportingTheme
 
 
 @Composable
@@ -59,65 +58,63 @@ fun SignatureScreen(
         viewModel.exitDone()
     }
 
-    HMEReportingTheme {
-        Dialog(onDismissRequest = { }
+    Dialog(onDismissRequest = { }
+    ) {
+        Box(
+            modifier = modifier
+                .clip(RoundedCornerShape(10.dp))
+                .border(
+                    2.dp, MaterialTheme.colorScheme.primary,
+                    RoundedCornerShape(10.dp)
+                )
+                .background(MaterialTheme.colorScheme.background)
         ) {
-            Box(
-                modifier = modifier
-                    .clip(RoundedCornerShape(10.dp))
-                    .border(
-                        2.dp, MaterialTheme.colorScheme.primary,
-                        RoundedCornerShape(10.dp)
-                    )
-                    .background(MaterialTheme.colorScheme.background)
+
+            Column(
+                modifier = Modifier
+                    .padding(5.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                Icon(
+                    Icons.Default.Close, modifier = Modifier
+                        .align(Alignment.End)
+                        .clickable { viewModel.exit() }, contentDescription = "Close"
+                )
+                Spacer(modifier = Modifier.height(5.dp))
 
-                Column(
-                    modifier = Modifier
-                        .padding(5.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Icon(
-                        Icons.Default.Close, modifier = Modifier
-                            .align(Alignment.End)
-                            .clickable { viewModel.exit() }, contentDescription = "Close"
-                    )
-                    Spacer(modifier = Modifier.height(5.dp))
+                Signature(viewModel = viewModel, path = state.path,
+                    canvasSize = {
+                        canvasSize = it
+                    })
 
-                    Signature(viewModel = viewModel, path = state.path,
-                        canvasSize = {
-                            canvasSize = it
+                AnimatedVisibility(visible = requireSignerName) {
+
+                    OutlinedTextField(value = state.signerName,
+                        label = { Text(text = "Signer Name") },
+                        modifier = Modifier.padding(5.dp),
+                        isError = state.errorSignerName,
+                        onValueChange = {
+                            viewModel.signerNameChanged(it)
                         })
-
-                    AnimatedVisibility(visible = requireSignerName) {
-
-                        OutlinedTextField(value = state.signerName,
-                            label = { Text(text = "Signer Name") },
-                            modifier = Modifier.padding(5.dp),
-                            isError = state.errorSignerName,
-                            onValueChange = {
-                                viewModel.signerNameChanged(it)
-                            })
-                    }
-
-                    Row(
-                        modifier = Modifier
-                            .padding(10.dp)
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ) {
-
-                        Button(onClick = viewModel::clearSignature) {
-                            Text(text = "Clear")
-                        }
-
-                        Button(onClick = { viewModel.saveSignature(canvasSize) }) {
-                            Text(text = "Save")
-                        }
-                    }
-
-
                 }
+
+                Row(
+                    modifier = Modifier
+                        .padding(10.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+
+                    Button(onClick = viewModel::clearSignature) {
+                        Text(text = "Clear")
+                    }
+
+                    Button(onClick = { viewModel.saveSignature(canvasSize) }) {
+                        Text(text = "Save")
+                    }
+                }
+
+
             }
         }
     }
@@ -160,4 +157,3 @@ fun Signature(
         }
     }
 }
-

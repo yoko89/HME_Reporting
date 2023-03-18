@@ -16,7 +16,6 @@ import androidx.navigation.navArgument
 import com.neklaway.hme_reporting.common.presentation.Screen
 import com.neklaway.hme_reporting.common.presentation.common.component.BottomNavigationBar
 import com.neklaway.hme_reporting.common.presentation.common.component.ComposableScreenAnimation
-import com.neklaway.hme_reporting.common.ui.theme.HMEReportingTheme
 import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.currency_exchange_rate.CurrencyExchangeScreen
 import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.daily_allowance.DailyAllowanceScreen
 import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.edit_expanse.EditExpanseScreen
@@ -29,49 +28,46 @@ private const val TAG = "ExpanseMainScreen"
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExpanseMainScreen(
-    showNavigationMenu: () ->Unit,
-    ) {
+    showNavigationMenu: () -> Unit,
+) {
     val navController = rememberNavController()
 
-    HMEReportingTheme {
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        topBar = {
+            TopAppBar(title = { Text(text = "Expanse Sheet") },
+                navigationIcon = {
+                    IconButton(onClick = showNavigationMenu) {
+                        Icon(Icons.Default.Menu, contentDescription = "Menu")
+                    }
+                })
+        },
+        bottomBar = {
+            val screens = mutableListOf(
+                Screen.ExpanseSheet,
+                Screen.DailyAllowance,
+                Screen.NewExpanse,
+                Screen.CurrencyExchange
+            )
 
-        Scaffold(
-            modifier = Modifier.fillMaxSize(),
-            topBar = {
-                TopAppBar(title = { Text(text = "Expanse Sheet") },
-                    navigationIcon = {
-                        IconButton(onClick = showNavigationMenu) {
-                            Icon(Icons.Default.Menu, contentDescription = "Menu")
-                        }
-                    })
-            },
-            bottomBar = {
-                val screens = mutableListOf(
-                    Screen.ExpanseSheet,
-                    Screen.DailyAllowance,
-                    Screen.NewExpanse,
-                    Screen.CurrencyExchange
-                )
+            Log.d(TAG, "ExpanseMainScreen: Screens are $screens")
 
-                Log.d(TAG, "ExpanseMainScreen: Screens are $screens")
-
-                BottomNavigationBar(
-                    screenList = screens, navController = navController
-                ) {
-                    navController.popBackStack()
-                    navController.navigate(it.route)
-                }
-            }
-        ) { paddingValues ->
-            Surface(
-                modifier = Modifier
-                    .padding(paddingValues)
-                    .fillMaxSize()
+            BottomNavigationBar(
+                screenList = screens, navController = navController
             ) {
-                Navigation(navController = navController, Screen.ExpanseSheet.route)
+                navController.popBackStack()
+                navController.navigate(it.route)
             }
-
         }
+    ) { paddingValues ->
+        Surface(
+            modifier = Modifier
+                .padding(paddingValues)
+                .fillMaxSize()
+        ) {
+            Navigation(navController = navController, Screen.ExpanseSheet.route)
+        }
+
     }
 }
 

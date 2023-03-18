@@ -26,7 +26,6 @@ import androidx.navigation.NavController
 import com.neklaway.hme_reporting.common.presentation.Screen
 import com.neklaway.hme_reporting.common.presentation.common.component.DropDown
 import com.neklaway.hme_reporting.common.presentation.common.component.ListDialog
-import com.neklaway.hme_reporting.common.ui.theme.HMEReportingTheme
 import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.edit_expanse.EditExpanseViewModel
 import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.expanse_sheet.component.ExpanseSheetHeader
 import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.expanse_sheet.component.ExpanseSheetItemCard
@@ -81,170 +80,165 @@ fun ExpanseSheetScreen(
     )
 
 
-    HMEReportingTheme {
-        Scaffold(floatingActionButton = {
-            Row {
-                AnimatedVisibility(
-                    visible = state.fabVisible,
-                    enter = slideInVertically(initialOffsetY = { it }).plus(fadeIn()),
-                    exit = slideOutVertically(targetOffsetY = { it }).plus(fadeOut())
-                ) {
-                    Row {
-                        FloatingActionButton(onClick = {
+    Scaffold(floatingActionButton = {
+        Row {
+            AnimatedVisibility(
+                visible = state.fabVisible,
+                enter = slideInVertically(initialOffsetY = { it }).plus(fadeIn()),
+                exit = slideOutVertically(targetOffsetY = { it }).plus(fadeOut())
+            ) {
+                Row {
+                    FloatingActionButton(onClick = {
 
-                            requestPermission = true
-                            //TODO: viewModel.createExpanseSheet()
-                        }) {
-                            Icon(
-                                imageVector = Icons.Default.PictureAsPdf,
-                                contentDescription = "Create ExpanseSheet PDF",
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.width(5.dp))
-                        FloatingActionButton(onClick = { viewModel.openExpanseSheets() }) {
-                            Icon(
-                                imageVector = Icons.Default.FolderOpen,
-                                contentDescription = "Open ExpanseSheet",
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(5.dp))
+                        requestPermission = true
+                        //TODO: viewModel.createExpanseSheet()
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.PictureAsPdf,
+                            contentDescription = "Create ExpanseSheet PDF",
+                        )
                     }
-                }
 
-                FloatingActionButton(onClick = { viewModel.showMoreFABClicked() }) {
-                    Icon(
-                        imageVector = Icons.Default.MoreHoriz,
-                        contentDescription = "Show More Floating action buttons",
-                        modifier = Modifier.rotate(fabRotation.value)
+                    Spacer(modifier = Modifier.width(5.dp))
+                    FloatingActionButton(onClick = { viewModel.openExpanseSheets() }) {
+                        Icon(
+                            imageVector = Icons.Default.FolderOpen,
+                            contentDescription = "Open ExpanseSheet",
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(5.dp))
+                }
+            }
+
+            FloatingActionButton(onClick = { viewModel.showMoreFABClicked() }) {
+                Icon(
+                    imageVector = Icons.Default.MoreHoriz,
+                    contentDescription = "Show More Floating action buttons",
+                    modifier = Modifier.rotate(fabRotation.value)
+                )
+            }
+        }
+    }, snackbarHost = {
+        SnackbarHost(hostState = snackbarHostState)
+    }
+
+    ) {
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues = it)
+                .padding(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top,
+        ) {
+            DropDown(modifier = Modifier.padding(vertical = 5.dp),
+                dropDownList = state.customers,
+                selectedValue = state.selectedCustomer?.name ?: "No Customer Selected",
+                label = "Customer",
+                dropDownContentDescription = "Select Customer",
+                onSelect = { customer ->
+                    viewModel.customerSelected(customer)
+                })
+
+            DropDown(modifier = Modifier.padding(bottom = 5.dp),
+                dropDownList = state.hmeCodes,
+                selectedValue = state.selectedHMECode?.code ?: "No HME Code Selected",
+                label = "HME Code",
+                dropDownContentDescription = "Select HME Code",
+                onSelect = { hmeCode ->
+                    viewModel.hmeSelected(hmeCode)
+                })
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(text = "Less than 24H")
+                    Text(
+                        text = state.lessThan24hDays.toString(),
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                    )
+                }
+                Column {
+                    Text(text = "Full 24H")
+                    Text(
+                        text = state.fullDays.toString(),
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                    )
+                }
+                Column {
+                    Text(text = "No Allowance")
+                    Text(
+                        text = state.noAllowanceDays.toString(),
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
                     )
                 }
             }
-        }, snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState)
+
+
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 5.dp)
+            ) {
+
+                item {
+                    AnimatedVisibility(
+                        visible = state.loading, enter = fadeIn(), exit = fadeOut()
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+
+                item {
+                    ExpanseSheetHeader(modifier = Modifier.fillMaxWidth())
+                }
+
+                items(items = state.expanseList) { expanse ->
+                    ExpanseSheetItemCard(
+                        expanse = expanse,
+                        currencyExchange = viewModel.getCurrencyExchangeName(expanse)
+                            .collectAsState(initial = ""),
+                        cardClicked = { viewModel.expanseClicked(expanse) },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                item {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.Start,
+                    ) {
+                        Text(
+                            text = "Total Payable = ${state.totalPaidAmount}",
+                            style = MaterialTheme.typography.headlineSmall
+                        )
+                    }
+                }
+            }
         }
 
-        ) {
+        AnimatedVisibility(visible = state.showFileList) {
+            val expansePdfDirectory =
+                File(context.filesDir.path + "/" + state.selectedHMECode?.code + "/" + EXPANSE_FOLDER)
+            val listOfFiles = expansePdfDirectory.listFiles()?.toList() ?: emptyList()
 
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues = it)
-                    .padding(8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Top,
-            ) {
-                DropDown(modifier = Modifier.padding(vertical = 5.dp),
-                    dropDownList = state.customers,
-                    selectedValue = state.selectedCustomer?.name ?: "No Customer Selected",
-                    label = "Customer",
-                    dropDownContentDescription = "Select Customer",
-                    onSelect = { customer ->
-                        viewModel.customerSelected(customer)
-                    })
+            ListDialog<File>(list = listOfFiles,
+                modifier = Modifier.fillMaxHeight(0.8f),
+                onClick = { file ->
+                    viewModel.fileSelected(file)
+                },
+                onCancel = {
+                    viewModel.fileSelectionCanceled()
+                })
+        }
 
-                DropDown(modifier = Modifier.padding(bottom = 5.dp),
-                    dropDownList = state.hmeCodes,
-                    selectedValue = state.selectedHMECode?.code ?: "No HME Code Selected",
-                    label = "HME Code",
-                    dropDownContentDescription = "Select HME Code",
-                    onSelect = { hmeCode ->
-                        viewModel.hmeSelected(hmeCode)
-                    })
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column {
-                        Text(text = "Less than 24H")
-                        Text(
-                            text = state.lessThan24hDays.toString(),
-                            modifier = Modifier.align(Alignment.CenterHorizontally)
-                        )
-                    }
-                    Column {
-                        Text(text = "Full 24H")
-                        Text(
-                            text = state.fullDays.toString(),
-                            modifier = Modifier.align(Alignment.CenterHorizontally)
-                        )
-                    }
-                    Column {
-                        Text(text = "No Allowance")
-                        Text(
-                            text = state.noAllowanceDays.toString(),
-                            modifier = Modifier.align(Alignment.CenterHorizontally)
-                        )
-                    }
-                }
-
-
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 5.dp)
-                ) {
-
-                    item {
-                        AnimatedVisibility(
-                            visible = state.loading, enter = fadeIn(), exit = fadeOut()
-                        ) {
-                            CircularProgressIndicator()
-                        }
-                    }
-
-                    item {
-                        ExpanseSheetHeader(modifier = Modifier.fillMaxWidth())
-                    }
-
-                    items(items = state.expanseList) { expanse ->
-                        ExpanseSheetItemCard(
-                            expanse = expanse,
-                            currencyExchange = viewModel.getCurrencyExchangeName(expanse)
-                                .collectAsState(initial = ""),
-                            cardClicked = { viewModel.expanseClicked(expanse) },
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-
-                    item {
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalAlignment = Alignment.Start,
-                        ) {
-                            Text(text = "Total Payable = ${state.totalPaidAmount}",
-                            style = MaterialTheme.typography.headlineSmall)
-                        }
-                    }
-                }
-            }
-
-            AnimatedVisibility(visible = state.showFileList) {
-                val expansePdfDirectory =
-                    File(context.filesDir.path + "/" + state.selectedHMECode?.code + "/" + EXPANSE_FOLDER)
-                val listOfFiles = expansePdfDirectory.listFiles()?.toList() ?: emptyList()
-
-                ListDialog<File>(list = listOfFiles,
-                    modifier = Modifier.fillMaxHeight(0.8f),
-                    onClick = { file ->
-                        viewModel.fileSelected(file)
-                    },
-                    onCancel = {
-                        viewModel.fileSelectionCanceled()
-                    })
-            }
-
-            if (requestPermission) {
-                NotificationPermissionRequest(context = context)
-                requestPermission = false
-            }
+        if (requestPermission) {
+            NotificationPermissionRequest(context = context)
+            requestPermission = false
         }
     }
-
-
 }
-
-
-

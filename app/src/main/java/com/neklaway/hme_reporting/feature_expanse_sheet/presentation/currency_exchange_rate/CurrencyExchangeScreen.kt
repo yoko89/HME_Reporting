@@ -20,7 +20,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.neklaway.hme_reporting.common.ui.theme.HMEReportingTheme
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -39,159 +38,157 @@ fun CurrencyExchangeScreen(
         }
     }
 
-    HMEReportingTheme {
-        Scaffold(
-            floatingActionButton = {
-                Row {
-                    AnimatedVisibility(
-                        state.selectedCurrency != null,
-                        enter = slideInVertically(initialOffsetY = { it }).plus(fadeIn()),
-                        exit = slideOutVertically(targetOffsetY = { it }).plus(fadeOut())
-                    ) {
-                        Row {
-                            FloatingActionButton(onClick = {
-                                viewModel.updateCurrency()
-                            }) {
-                                Icon(
-                                    imageVector = Icons.Default.Edit,
-                                    contentDescription = "Edit Currency"
-                                )
-                            }
-                            Spacer(modifier = Modifier.width(5.dp))
+    Scaffold(
+        floatingActionButton = {
+            Row {
+                AnimatedVisibility(
+                    state.selectedCurrency != null,
+                    enter = slideInVertically(initialOffsetY = { it }).plus(fadeIn()),
+                    exit = slideOutVertically(targetOffsetY = { it }).plus(fadeOut())
+                ) {
+                    Row {
+                        FloatingActionButton(onClick = {
+                            viewModel.updateCurrency()
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = "Edit Currency"
+                            )
                         }
-                    }
-
-                    FloatingActionButton(onClick = {
-                        viewModel.saveCurrency()
-                    }) {
-
-                        Icon(imageVector = Icons.Default.Add, contentDescription = "Add Currency")
+                        Spacer(modifier = Modifier.width(5.dp))
                     }
                 }
-            },
-            snackbarHost = {
-                SnackbarHost(hostState = snackbarHostState)
+
+                FloatingActionButton(onClick = {
+                    viewModel.saveCurrency()
+                }) {
+
+                    Icon(imageVector = Icons.Default.Add, contentDescription = "Add Currency")
+                }
             }
+        },
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        }
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(it)
+                .padding(5.dp)
         ) {
-            Column(
+
+            OutlinedTextField(
+                value = state.currencyName,
+                onValueChange = { name ->
+                    viewModel.currencyNameChange(name)
+                },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(text = "Currency Name") },
+                singleLine = true,
+                maxLines = 1
+            )
+
+
+
+            OutlinedTextField(
+                value = state.exchangeRate, onValueChange = { rate ->
+                    viewModel.currencyRateChanged(rate)
+                },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(text = "Exchange Rate") },
+                singleLine = true,
+                maxLines = 1
+            )
+
+
+            LazyColumn(
                 modifier = Modifier
-                    .padding(it)
-                    .padding(5.dp)
+                    .padding(vertical = 8.dp)
+                    .fillMaxWidth()
             ) {
+                item {
+                    AnimatedVisibility(
+                        visible = state.loading,
+                        enter = fadeIn(),
+                        exit = fadeOut()
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
 
-                OutlinedTextField(
-                    value = state.currencyName,
-                    onValueChange = { name ->
-                        viewModel.currencyNameChange(name)
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(text = "Currency Name") },
-                    singleLine = true,
-                    maxLines = 1
-                )
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Currency",
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Text(
+                            text = "Exchange Rate",
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.weight(1f)
+                        )
 
+                        Spacer(modifier = Modifier.weight(0.5f))
+                    }
+                }
 
-
-                OutlinedTextField(
-                    value = state.exchangeRate, onValueChange = { rate ->
-                        viewModel.currencyRateChanged(rate)
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(text = "Exchange Rate") },
-                    singleLine = true,
-                    maxLines = 1
-                )
-
-
-                LazyColumn(
-                    modifier = Modifier
-                        .padding(vertical = 8.dp)
-                        .fillMaxWidth()
-                ) {
-                    item {
-                        AnimatedVisibility(
-                            visible = state.loading,
-                            enter = fadeIn(),
-                            exit = fadeOut()
-                        ) {
-                            CircularProgressIndicator()
-                        }
+                items(items = state.currencyExchangeList) { currencyExchange ->
+                    val visibility = remember {
+                        mutableStateOf(false)
                     }
 
-                    item {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "Currency",
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.weight(1f)
-                            )
-                            Text(
-                                text = "Exchange Rate",
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.weight(1f)
-                            )
-
-                            Spacer(modifier = Modifier.weight(0.5f))
-                        }
+                    SideEffect {
+                        visibility.value = true
                     }
 
-                    items(items = state.currencyExchangeList) { currencyExchange ->
-                        val visibility = remember {
-                            mutableStateOf(false)
-                        }
+                    AnimatedVisibility(
+                        visible = visibility.value,
+                        enter = slideInHorizontally(),
+                        exit = slideOutHorizontally()
+                    ) {
 
-                        SideEffect {
-                            visibility.value = true
-                        }
-
-                        AnimatedVisibility(
-                            visible = visibility.value,
-                            enter = slideInHorizontally(),
-                            exit = slideOutHorizontally()
+                        Card(
+                            modifier = Modifier
+                                .padding(vertical = 2.dp)
+                                .clickable { viewModel.currencySelected(currencyExchange) }
                         ) {
 
-                            Card(
-                                modifier = Modifier
-                                    .padding(vertical = 2.dp)
-                                    .clickable { viewModel.currencySelected(currencyExchange) }
+                            Row(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(5.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
                             ) {
+                                Text(
+                                    text = currencyExchange.currencyName,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Text(
+                                    text = currencyExchange.rate.toString(),
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.weight(1f)
+                                )
 
-                                Row(
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .padding(5.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically,
+
+                                OutlinedIconButton(
+                                    onClick = {
+                                        viewModel.deleteRate(currencyExchange)
+                                    },
+                                    modifier = Modifier.weight(0.5f)
                                 ) {
-                                    Text(
-                                        text = currencyExchange.currencyName,
-                                        textAlign = TextAlign.Center,
-                                        modifier = Modifier.weight(1f)
+                                    Icon(
+                                        imageVector = Icons.Default.Delete,
+                                        contentDescription = "Delete Currency",
+                                        tint = Color.Red,
+                                        modifier = Modifier.alpha(.6f)
                                     )
-                                    Text(
-                                        text = currencyExchange.rate.toString(),
-                                        textAlign = TextAlign.Center,
-                                        modifier = Modifier.weight(1f)
-                                    )
-
-
-                                    OutlinedIconButton(
-                                        onClick = {
-                                            viewModel.deleteRate(currencyExchange)
-                                        },
-                                        modifier = Modifier.weight(0.5f)
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Delete,
-                                            contentDescription = "Delete Currency",
-                                            tint = Color.Red,
-                                            modifier = Modifier.alpha(.6f)
-                                        )
-                                    }
                                 }
                             }
                         }

@@ -14,6 +14,7 @@ import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.ti
 import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.time_sheet.hme_id.GetHMEIdUseCase
 import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.time_sheet.hme_id.SetHMEIdUseCase
 import com.neklaway.hme_reporting.common.domain.use_cases.time_sheet_use_cases.GetTimeSheetByHMECodeIdUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.time_sheet_use_cases.UpdateTimeSheetListUseCase
 import com.neklaway.hme_reporting.common.domain.use_cases.time_sheet_use_cases.UpdateTimeSheetUseCase
 import com.neklaway.hme_reporting.utils.Resource
 import com.neklaway.hme_reporting.utils.toDate
@@ -35,6 +36,7 @@ class DailyAllowanceViewModel @Inject constructor(
     private val getHmeIdUseCase: GetHMEIdUseCase,
     private val setHMEIdUseCase: SetHMEIdUseCase,
     private val updateTimeSheetUseCase: UpdateTimeSheetUseCase,
+    private val updateTimeSheetListUseCase: UpdateTimeSheetListUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(DailyAllowanceState())
@@ -155,6 +157,7 @@ class DailyAllowanceViewModel @Inject constructor(
                                     loading = false,
                                 )
                             }
+                            allCheckBoxSelected(timeSheetList)
                         }
                     }
                 }
@@ -181,6 +184,8 @@ class DailyAllowanceViewModel @Inject constructor(
                     noWorkDay = timeSheet.noWorkDay,
                     id = timeSheet.id,
                     created = timeSheet.created,
+                    expanseCreated = timeSheet.expanseCreated,
+                    expanseSelected = timeSheet.expanseSelected,
                     dailyAllowance = allowanceType
                 ).collect { resource ->
                     when (resource) {
@@ -198,6 +203,88 @@ class DailyAllowanceViewModel @Inject constructor(
 
     private suspend fun sendEvent(event: String) {
         _event.emit(event)
+    }
+
+    fun selectAll(checked: Boolean) {
+        val timeSheets = state.value.timeSheetList.map {
+            it.copy(expanseSelected = checked)
+        }
+        viewModelScope.launch {
+            updateTimeSheetListUseCase(timeSheets).collect{ resource ->
+                when (resource) {
+                    is Resource.Error -> {
+                        sendEvent(resource.message ?: "Error")
+                        _state.update { it.copy(loading = false) }
+                    }
+                    is Resource.Loading -> _state.update { it.copy(loading = true) }
+                    is Resource.Success -> _state.update { it.copy(loading = false) }
+                }
+            }
+        }
+    }
+
+    fun expanseSelectedChanged(timeSheet: TimeSheet, checked: Boolean) {
+        timeSheet.id?.let {
+            Log.d(TAG, "timeSheetClicked: ${timeSheet.date.toDate()} $checked")
+            viewModelScope.launch {
+                updateTimeSheetUseCase(
+                    HMEId = timeSheet.HMEId,
+                    IBAUId = timeSheet.IBAUId,
+                    date = timeSheet.date,
+                    travelStart = timeSheet.travelStart,
+                    workStart = timeSheet.workStart,
+                    workEnd = timeSheet.workEnd,
+                    travelEnd = timeSheet.travelEnd,
+                    breakDuration = timeSheet.breakDuration,
+                    traveledDistance = timeSheet.traveledDistance,
+                    overTimeDay = timeSheet.overTimeDay,
+                    travelDay = timeSheet.travelDay,
+                    noWorkDay = timeSheet.noWorkDay,
+                    id = timeSheet.id,
+                    created = timeSheet.created,
+                    expanseCreated = timeSheet.expanseCreated,
+                    expanseSelected = checked,
+                    dailyAllowance = timeSheet.dailyAllowance
+                ).collect { resource ->
+                    when (resource) {
+                        is Resource.Error -> {
+                            sendEvent(resource.message ?: "Error")
+                            _state.update { it.copy(loading = false) }
+                        }
+                        is Resource.Loading -> _state.update { it.copy(loading = true) }
+                        is Resource.Success -> _state.update { it.copy(loading = false) }
+                    }
+                }
+            }
+        }
+        }
+    private fun allCheckBoxSelected(timeSheetList: List<TimeSheet>) {
+        val checkBoxAllSelected = timeSheetList.all { it.expanseSelected }
+        _state.update { it.copy(selectAll = checkBoxAllSelected) }
+    }
+
+    fun autoCalculate(){
+        val timeSheetListAutoCalculated = state.value.timeSheetList.filter { it.expanseSelected }.toMutableList()
+        timeSheetListAutoCalculated.forEachIndexed { index, timeSheet ->
+            if(timeSheet == timeSheetListAutoCalculated.first() || timeSheet == timeSheetListAutoCalculated.last()){
+                timeSheetListAutoCalculated[index] = timeSheet.copy(dailyAllowance = AllowanceType._8hours)
+            }
+            else{
+                timeSheetListAutoCalculated[index] = timeSheet.copy(dailyAllowance = AllowanceType._24hours)
+            }
+        }
+        viewModelScope.launch{
+        updateTimeSheetListUseCase(timeSheetListAutoCalculated).collect{resource ->
+            when (resource) {
+                is Resource.Error -> {
+                    sendEvent(resource.message ?: "Error")
+                    _state.update { it.copy(loading = false) }
+                }
+                is Resource.Loading -> _state.update { it.copy(loading = true) }
+                is Resource.Success -> _state.update { it.copy(loading = false) }
+            }
+        }
+        }
     }
 
 }

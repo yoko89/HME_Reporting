@@ -29,9 +29,11 @@ data class TimeSheet(
     val traveledDistance: Int,
     val overTimeDay: Boolean = false,
     val created: Boolean = false,
+    val expanseCreated: Boolean= false,
     val travelDay: Boolean = false,
     val noWorkDay: Boolean = false,
     val selected: Boolean = !created,
+    val expanseSelected: Boolean = !expanseCreated,
     val dailyAllowance : AllowanceType? = null,
     val id: Long? = null,
     var overLap: Boolean = false,
@@ -101,8 +103,10 @@ fun TimeSheet.toTimeSheetEntity(): TimeSheetEntity {
         traveledDistance = traveledDistance,
         overTimeDay = overTimeDay,
         created = created,
+        expanseCreated = expanseCreated,
         travelDay = travelDay,
         noWorkDay = noWorkDay,
+        expanseSelected = expanseSelected,
         dailyAllowance = dailyAllowance,
         id = id
     )

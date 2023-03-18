@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 3,
-    "identityHash": "26273bc973fce20c9d57ce38d6b5d065",
+    "identityHash": "b83b946caa5f42d664c86ce0bd4bb54d",
     "entities": [
       {
         "tableName": "customerTable",
@@ -234,7 +234,7 @@
       },
       {
         "tableName": "timeSheetTable",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`HMEId` INTEGER NOT NULL, `IBAUId` INTEGER, `date` INTEGER NOT NULL, `travelStart` INTEGER, `workStart` INTEGER, `workEnd` INTEGER, `travelEnd` INTEGER, `breakDuration` REAL NOT NULL, `traveledDistance` INTEGER NOT NULL, `overTimeDay` INTEGER NOT NULL, `created` INTEGER NOT NULL, `travelDay` INTEGER NOT NULL, `noWorkDay` INTEGER NOT NULL, `dailyAllowance` TEXT, `id` INTEGER PRIMARY KEY AUTOINCREMENT, FOREIGN KEY(`HMEId`) REFERENCES `hmeCodeTable`(`id`) ON UPDATE CASCADE ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`HMEId` INTEGER NOT NULL, `IBAUId` INTEGER, `date` INTEGER NOT NULL, `travelStart` INTEGER, `workStart` INTEGER, `workEnd` INTEGER, `travelEnd` INTEGER, `breakDuration` REAL NOT NULL, `traveledDistance` INTEGER NOT NULL, `overTimeDay` INTEGER NOT NULL, `created` INTEGER NOT NULL, `expanseCreated` INTEGER NOT NULL DEFAULT false, `expanseSelected` INTEGER NOT NULL DEFAULT true, `travelDay` INTEGER NOT NULL, `noWorkDay` INTEGER NOT NULL, `dailyAllowance` TEXT, `id` INTEGER PRIMARY KEY AUTOINCREMENT, FOREIGN KEY(`HMEId`) REFERENCES `hmeCodeTable`(`id`) ON UPDATE CASCADE ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "HMEId",
@@ -301,6 +301,20 @@
             "columnName": "created",
             "affinity": "INTEGER",
             "notNull": true
+          },
+          {
+            "fieldPath": "expanseCreated",
+            "columnName": "expanseCreated",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "false"
+          },
+          {
+            "fieldPath": "expanseSelected",
+            "columnName": "expanseSelected",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "true"
           },
           {
             "fieldPath": "travelDay",
@@ -624,7 +638,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '26273bc973fce20c9d57ce38d6b5d065')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'b83b946caa5f42d664c86ce0bd4bb54d')"
     ]
   }
 }

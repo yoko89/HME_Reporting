@@ -183,6 +183,8 @@ class EditTimeSheetViewModel @Inject constructor(
                 noWorkDay = state.value.noWorkday,
                 id = state.value.timeSheetId,
                 created = false,
+                expanseCreated = false,
+                expanseSelected = true,
                 dailyAllowance = timeSheet.dailyAllowance
             ).collect { result ->
                 when (result) {

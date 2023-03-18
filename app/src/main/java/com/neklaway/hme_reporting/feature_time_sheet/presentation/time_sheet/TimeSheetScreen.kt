@@ -28,7 +28,6 @@ import androidx.navigation.NavController
 import com.neklaway.hme_reporting.common.presentation.Screen
 import com.neklaway.hme_reporting.common.presentation.common.component.DropDown
 import com.neklaway.hme_reporting.common.presentation.common.component.ListDialog
-import com.neklaway.hme_reporting.common.ui.theme.HMEReportingTheme
 import com.neklaway.hme_reporting.feature_signature.presentation.signature.SignatureScreen
 import com.neklaway.hme_reporting.feature_time_sheet.presentation.edit_time_sheet.EditTimeSheetViewModel
 import com.neklaway.hme_reporting.feature_time_sheet.presentation.time_sheet.component.TimeSheetHeader
@@ -91,186 +90,182 @@ fun TimeSheetScreen(
     )
 
 
-    HMEReportingTheme {
-        Scaffold(
-            floatingActionButton = {
-                Row {
-                    AnimatedVisibility(
-                        visible = state.fabVisible,
-                        enter = slideInVertically(initialOffsetY = { it }).plus(fadeIn()),
-                        exit = slideOutVertically(targetOffsetY = { it }).plus(fadeOut())
-                    ) {
-                        Row {
-                            FloatingActionButton(
-                                onClick = { viewModel.sign() },
-                                contentColor = if (state.signatureAvailable) Color.Green else MaterialTheme.colorScheme.tertiary
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Draw,
-                                    contentDescription = "Sign TimeSheet",
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.width(5.dp))
-
-                            AnimatedVisibility(visible = state.timeSheets.any { it.selected }) {
-                                FloatingActionButton(onClick = {
-
-                                    requestPermission = true
-                                    viewModel.createTimeSheet()
-                                }) {
-                                    Icon(
-                                        imageVector = Icons.Default.PictureAsPdf,
-                                        contentDescription = "Create TimeSheet PDF",
-                                    )
-                                }
-                            }
-                            Spacer(modifier = Modifier.width(5.dp))
-                            FloatingActionButton(onClick = { viewModel.openTimeSheets() }) {
-                                Icon(
-                                    imageVector = Icons.Default.FolderOpen,
-                                    contentDescription = "Open TimeSheet",
-                                )
-                            }
-                            Spacer(modifier = Modifier.width(5.dp))
+    Scaffold(
+        floatingActionButton = {
+            Row {
+                AnimatedVisibility(
+                    visible = state.fabVisible,
+                    enter = slideInVertically(initialOffsetY = { it }).plus(fadeIn()),
+                    exit = slideOutVertically(targetOffsetY = { it }).plus(fadeOut())
+                ) {
+                    Row {
+                        FloatingActionButton(
+                            onClick = { viewModel.sign() },
+                            contentColor = if (state.signatureAvailable) Color.Green else MaterialTheme.colorScheme.tertiary
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Draw,
+                                contentDescription = "Sign TimeSheet",
+                            )
                         }
-                    }
 
-                    FloatingActionButton(onClick = { viewModel.showMoreFABClicked() }) {
-                        Icon(
-                            imageVector = Icons.Default.MoreHoriz,
-                            contentDescription = "Show More Floating action buttons",
-                            modifier = Modifier.rotate(fabRotation.value)
-                        )
+                        Spacer(modifier = Modifier.width(5.dp))
+
+                        AnimatedVisibility(visible = state.timeSheets.any { it.selected }) {
+                            FloatingActionButton(onClick = {
+
+                                requestPermission = true
+                                viewModel.createTimeSheet()
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Default.PictureAsPdf,
+                                    contentDescription = "Create TimeSheet PDF",
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.width(5.dp))
+                        FloatingActionButton(onClick = { viewModel.openTimeSheets() }) {
+                            Icon(
+                                imageVector = Icons.Default.FolderOpen,
+                                contentDescription = "Open TimeSheet",
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(5.dp))
                     }
                 }
-            },
-            snackbarHost = {
-                SnackbarHost(hostState = snackbarHostState)
-            }
 
-        ) {
-
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues = it)
-                    .padding(8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Top,
-            ) {
-                DropDown(
-                    modifier = Modifier.padding(vertical = 5.dp),
-                    dropDownList = state.customers,
-                    selectedValue = state.selectedCustomer?.name ?: "No Customer Selected",
-                    label = "Customer",
-                    dropDownContentDescription = "Select Customer",
-                    onSelect = { customer ->
-                        viewModel.customerSelected(customer)
-                    }
-                )
-
-                DropDown(
-                    modifier = Modifier.padding(bottom = 5.dp),
-                    dropDownList = state.hmeCodes,
-                    selectedValue = state.selectedHMECode?.code ?: "No HME Code Selected",
-                    label = "HME Code",
-                    dropDownContentDescription = "Select HME Code",
-                    onSelect = { hmeCode ->
-                        viewModel.hmeSelected(hmeCode)
-                    }
-                )
-
-
-                AnimatedVisibility(
-                    visible = state.isIbau,
-                    enter = fadeIn(),
-                    exit = fadeOut()
-                ) {
-                    DropDown(
-                        modifier = Modifier.padding(bottom = 5.dp),
-                        dropDownList = state.ibauCodes,
-                        selectedValue = state.selectedIBAUCode?.code ?: "No IBAU Code Selected",
-                        label = "IBAU Code",
-                        dropDownContentDescription = "Select IBAU Code",
-                        onSelect = { ibauCode ->
-                            viewModel.ibauSelected(ibauCode)
-                        }
+                FloatingActionButton(onClick = { viewModel.showMoreFABClicked() }) {
+                    Icon(
+                        imageVector = Icons.Default.MoreHoriz,
+                        contentDescription = "Show More Floating action buttons",
+                        modifier = Modifier.rotate(fabRotation.value)
                     )
                 }
+            }
+        },
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        }
 
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 5.dp)
-                ) {
+    ) {
 
-                    item {
-                        AnimatedVisibility(
-                            visible = state.loading,
-                            enter = fadeIn(),
-                            exit = fadeOut()
-                        ) {
-                            CircularProgressIndicator()
-                        }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues = it)
+                .padding(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top,
+        ) {
+            DropDown(
+                modifier = Modifier.padding(vertical = 5.dp),
+                dropDownList = state.customers,
+                selectedValue = state.selectedCustomer?.name ?: "No Customer Selected",
+                label = "Customer",
+                dropDownContentDescription = "Select Customer",
+                onSelect = { customer ->
+                    viewModel.customerSelected(customer)
+                }
+            )
+
+            DropDown(
+                modifier = Modifier.padding(bottom = 5.dp),
+                dropDownList = state.hmeCodes,
+                selectedValue = state.selectedHMECode?.code ?: "No HME Code Selected",
+                label = "HME Code",
+                dropDownContentDescription = "Select HME Code",
+                onSelect = { hmeCode ->
+                    viewModel.hmeSelected(hmeCode)
+                }
+            )
+
+
+            AnimatedVisibility(
+                visible = state.isIbau,
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
+                DropDown(
+                    modifier = Modifier.padding(bottom = 5.dp),
+                    dropDownList = state.ibauCodes,
+                    selectedValue = state.selectedIBAUCode?.code ?: "No IBAU Code Selected",
+                    label = "IBAU Code",
+                    dropDownContentDescription = "Select IBAU Code",
+                    onSelect = { ibauCode ->
+                        viewModel.ibauSelected(ibauCode)
                     }
-                    item {
-                        TimeSheetHeader(
-                            selectAll = state.selectAll,
-                            onSelectAllChecked = { checked ->
-                                viewModel.selectAll(checked)
-                            })
-                    }
+                )
+            }
 
-                    items(items = state.timeSheets) { timeSheet ->
-                        TimeSheetItemCard(timeSheet = timeSheet,
-                            cardClicked = { viewModel.timesheetClicked(timeSheet) },
-                            onCheckedChanged = { checked ->
-                                viewModel.sheetSelectedChanged(timeSheet, checked)
-                            })
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 5.dp)
+            ) {
+
+                item {
+                    AnimatedVisibility(
+                        visible = state.loading,
+                        enter = fadeIn(),
+                        exit = fadeOut()
+                    ) {
+                        CircularProgressIndicator()
                     }
                 }
+                item {
+                    TimeSheetHeader(
+                        selectAll = state.selectAll,
+                        onSelectAllChecked = { checked ->
+                            viewModel.selectAll(checked)
+                        })
+                }
 
-                state.selectedHMECode?.id?.let {
-
-                    AnimatedVisibility(visible = state.showSignaturePad) {
-                        SignatureScreen(
-                            signatureFileName = it.toString(),
-                            signatureUpdatedAtExit = { signedSuccessfully, signerName ->
-                                if (signedSuccessfully) {
-                                    viewModel.signatureDone(signerName)
-                                } else {
-                                    viewModel.signatureCanceled()
-                                }
-
-                            },
-                            requireSignerName = true
-                        )
-                    }
+                items(items = state.timeSheets) { timeSheet ->
+                    TimeSheetItemCard(timeSheet = timeSheet,
+                        cardClicked = { viewModel.timesheetClicked(timeSheet) },
+                        onCheckedChanged = { checked ->
+                            viewModel.sheetSelectedChanged(timeSheet, checked)
+                        })
                 }
             }
 
-            AnimatedVisibility(visible = state.showFileList) {
-                val pdfDirectory = File(context.filesDir.path + "/" + state.selectedHMECode?.code)
-                val listOfFiles = pdfDirectory.listFiles()?.toList() ?: emptyList()
+            state.selectedHMECode?.id?.let {
 
-                ListDialog<File>(list = listOfFiles,
-                    modifier = Modifier.fillMaxHeight(0.8f),
-                    onClick = { file ->
-                        viewModel.fileSelected(file)
-                    }, onCancel = {
-                        viewModel.fileSelectionCanceled()
-                    })
-            }
+                AnimatedVisibility(visible = state.showSignaturePad) {
+                    SignatureScreen(
+                        signatureFileName = it.toString(),
+                        signatureUpdatedAtExit = { signedSuccessfully, signerName ->
+                            if (signedSuccessfully) {
+                                viewModel.signatureDone(signerName)
+                            } else {
+                                viewModel.signatureCanceled()
+                            }
 
-            if (requestPermission) {
-                NotificationPermissionRequest(context = context)
-                requestPermission = false
+                        },
+                        requireSignerName = true
+                    )
+                }
             }
         }
+
+        AnimatedVisibility(visible = state.showFileList) {
+            val pdfDirectory = File(context.filesDir.path + "/" + state.selectedHMECode?.code)
+            val listOfFiles = pdfDirectory.listFiles()?.toList() ?: emptyList()
+
+            ListDialog<File>(list = listOfFiles,
+                modifier = Modifier.fillMaxHeight(0.8f),
+                onClick = { file ->
+                    viewModel.fileSelected(file)
+                }, onCancel = {
+                    viewModel.fileSelectionCanceled()
+                })
+        }
+
+        if (requestPermission) {
+            NotificationPermissionRequest(context = context)
+            requestPermission = false
+        }
     }
-
-
 }
 
 

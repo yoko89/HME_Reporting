@@ -1,10 +1,7 @@
 package com.neklaway.hme_reporting.common.data.entity
 
-import androidx.room.Entity
-import androidx.room.ForeignKey
+import androidx.room.*
 import androidx.room.ForeignKey.Companion.CASCADE
-import androidx.room.Index
-import androidx.room.PrimaryKey
 import com.neklaway.hme_reporting.common.domain.model.TimeSheet
 import com.neklaway.hme_reporting.utils.toCalender
 
@@ -31,6 +28,10 @@ data class TimeSheetEntity(
     val traveledDistance: Int,
     val overTimeDay: Boolean = false,
     val created: Boolean = false,
+    @ColumnInfo(defaultValue = "false")
+    val expanseCreated: Boolean = false,
+    @ColumnInfo(defaultValue = "true")
+    val expanseSelected: Boolean = true,
     val travelDay: Boolean = false,
     val noWorkDay: Boolean = false,
     val dailyAllowance: AllowanceType? = null,
@@ -52,9 +53,11 @@ fun TimeSheetEntity.toTimeSheet(): TimeSheet {
         traveledDistance = traveledDistance,
         overTimeDay = overTimeDay,
         created = created,
+        expanseCreated = expanseCreated,
         travelDay = travelDay,
         noWorkDay = noWorkDay,
         selected = !created,
+        expanseSelected = expanseSelected,
         dailyAllowance = dailyAllowance,
         id = id
     )

@@ -26,7 +26,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.neklaway.hme_reporting.common.presentation.common.component.CustomDatePicker
 import com.neklaway.hme_reporting.common.presentation.common.component.CustomTimePicker
-import com.neklaway.hme_reporting.common.ui.theme.HMEReportingTheme
 import com.neklaway.hme_reporting.feature_car_mileage.presentation.component.CarMileageItemCard
 import com.neklaway.hme_reporting.utils.toDate
 import com.neklaway.hme_reporting.utils.toTime
@@ -130,218 +129,215 @@ fun CarMileageScreen(
         )
     }
 
-
-    HMEReportingTheme {
-        Scaffold(
-            topBar = {
-                TopAppBar(title = { Text(text = "Car Mileage") },
-                    navigationIcon = {
-                        IconButton(onClick = showNavigationMenu) {
-                            Icon(Icons.Default.Menu, contentDescription = "Menu")
-                        }
-                    })
-            },
-            floatingActionButton = {
-                Row {
-                    AnimatedVisibility(
-                        state.selectedCarMileage != null,
-                        enter = slideInVertically(initialOffsetY = { it }),
-                        exit = slideOutVertically(targetOffsetY = { it })
-                    ) {
-                        Row {
-                            FloatingActionButton(onClick = {
-                                viewModel.updateCarMileage()
-                            }) {
-                                Icon(
-                                    imageVector = Icons.Default.Edit,
-                                    contentDescription = "Edit Car Mileage"
-                                )
-                            }
-                            Spacer(modifier = Modifier.width(5.dp))
-                        }
+    Scaffold(
+        topBar = {
+            TopAppBar(title = { Text(text = "Car Mileage") },
+                navigationIcon = {
+                    IconButton(onClick = showNavigationMenu) {
+                        Icon(Icons.Default.Menu, contentDescription = "Menu")
                     }
-                    FloatingActionButton(onClick = {
-                        viewModel.saveCarMileage()
-                    }) {
-
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Add Car Mileage"
-                        )
+                })
+        },
+        floatingActionButton = {
+            Row {
+                AnimatedVisibility(
+                    state.selectedCarMileage != null,
+                    enter = slideInVertically(initialOffsetY = { it }),
+                    exit = slideOutVertically(targetOffsetY = { it })
+                ) {
+                    Row {
+                        FloatingActionButton(onClick = {
+                            viewModel.updateCarMileage()
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = "Edit Car Mileage"
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(5.dp))
                     }
                 }
-            }, snackbarHost = {
-                SnackbarHost(hostState = snackbarHostState)
-            }) {
-            Column(
+                FloatingActionButton(onClick = {
+                    viewModel.saveCarMileage()
+                }) {
+
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Add Car Mileage"
+                    )
+                }
+            }
+        }, snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        }) {
+        Column(
+            modifier = Modifier
+                .padding(it)
+                .padding(5.dp)
+        ) {
+
+            OutlinedTextField(
+                value = state.startDate.toDate(),
+                onValueChange = {},
+                label = { Text(text = "Start Date") },
+                modifier = Modifier.fillMaxWidth(),
+                readOnly = true,
+                interactionSource = startDateInteractionSource
+            )
+
+            OutlinedTextField(
+                value = state.startTime.toTime(),
+                onValueChange = {},
+                label = { Text(text = "Start Time") },
+                modifier = Modifier.fillMaxWidth(),
+                readOnly = true,
+                interactionSource = startTimeInteractionSource
+            )
+
+            OutlinedTextField(
+                value = state.startMileage,
+                onValueChange = { mileage ->
+                    viewModel.startMileageChanged(mileage)
+                },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(text = "Start Mileage") },
+                singleLine = true,
+                maxLines = 1,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+
+            OutlinedTextField(
+                value = state.endDate.toDate(),
+                onValueChange = {},
+                label = { Text(text = "End Date") },
+                modifier = Modifier.fillMaxWidth(),
+                readOnly = true,
+                interactionSource = endDateInteractionSource
+            )
+
+            OutlinedTextField(
+                value = state.endTime.toTime(),
+                onValueChange = {},
+                label = { Text(text = "End Time") },
+                modifier = Modifier.fillMaxWidth(),
+                readOnly = true,
+                interactionSource = endTimeInteractionSource
+            )
+
+            OutlinedTextField(
+                value = state.endMileage,
+                onValueChange = { mileage ->
+                    viewModel.endMileageChanged(mileage)
+                },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(text = "End Mileage") },
+                singleLine = true,
+                maxLines = 1,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+
+            val onSurfaceColor = MaterialTheme.colorScheme.onSurface
+
+            LazyColumn(
                 modifier = Modifier
-                    .padding(it)
-                    .padding(5.dp)
+                    .padding(vertical = 8.dp)
+                    .fillMaxWidth()
             ) {
+                item {
+                    AnimatedVisibility(
+                        visible = state.loading, enter = fadeIn(), exit = fadeOut()
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
 
-                OutlinedTextField(
-                    value = state.startDate.toDate(),
-                    onValueChange = {},
-                    label = { Text(text = "Start Date") },
-                    modifier = Modifier.fillMaxWidth(),
-                    readOnly = true,
-                    interactionSource = startDateInteractionSource
-                )
+                item {
+                    Column {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .drawBehind {
 
-                OutlinedTextField(
-                    value = state.startTime.toTime(),
-                    onValueChange = {},
-                    label = { Text(text = "Start Time") },
-                    modifier = Modifier.fillMaxWidth(),
-                    readOnly = true,
-                    interactionSource = startTimeInteractionSource
-                )
+                                    val strokeWidth = Dp.Hairline.value
+                                    val y = size.height
 
-                OutlinedTextField(
-                    value = state.startMileage,
-                    onValueChange = { mileage ->
-                        viewModel.startMileageChanged(mileage)
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(text = "Start Mileage") },
-                    singleLine = true,
-                    maxLines = 1,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                )
-
-                OutlinedTextField(
-                    value = state.endDate.toDate(),
-                    onValueChange = {},
-                    label = { Text(text = "End Date") },
-                    modifier = Modifier.fillMaxWidth(),
-                    readOnly = true,
-                    interactionSource = endDateInteractionSource
-                )
-
-                OutlinedTextField(
-                    value = state.endTime.toTime(),
-                    onValueChange = {},
-                    label = { Text(text = "End Time") },
-                    modifier = Modifier.fillMaxWidth(),
-                    readOnly = true,
-                    interactionSource = endTimeInteractionSource
-                )
-
-                OutlinedTextField(
-                    value = state.endMileage,
-                    onValueChange = { mileage ->
-                        viewModel.endMileageChanged(mileage)
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(text = "End Mileage") },
-                    singleLine = true,
-                    maxLines = 1,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                )
-
-                val onSurfaceColor = MaterialTheme.colorScheme.onSurface
-
-                LazyColumn(
-                    modifier = Modifier
-                        .padding(vertical = 8.dp)
-                        .fillMaxWidth()
-                ) {
-                    item {
-                        AnimatedVisibility(
-                            visible = state.loading, enter = fadeIn(), exit = fadeOut()
+                                    drawLine(
+                                        onSurfaceColor,
+                                        Offset(0f, y),
+                                        Offset((size.width * 0.85f), y),
+                                        strokeWidth
+                                    )
+                                },
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            CircularProgressIndicator()
+                            Text(
+                                text = "Start Date",
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.weight(1f)
+                            )
+
+                            Text(
+                                text = "Start Time",
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.weight(1f)
+                            )
+
+                            Text(
+                                text = "Start Mileage",
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.weight(1f)
+                            )
+
+                            Spacer(modifier = Modifier.weight(0.5f))
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "End Date",
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.weight(1f)
+                            )
+
+                            Text(
+                                text = "End Time",
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.weight(1f)
+                            )
+
+                            Text(
+                                text = "End Mileage",
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.weight(1f)
+                            )
+
+                            Spacer(modifier = Modifier.weight(0.5f))
                         }
                     }
+                }
 
-                    item {
-                        Column {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .drawBehind {
-
-                                        val strokeWidth = Dp.Hairline.value
-                                        val y = size.height
-
-                                        drawLine(
-                                            onSurfaceColor,
-                                            Offset(0f, y),
-                                            Offset((size.width * 0.85f), y),
-                                            strokeWidth
-                                        )
-                                    },
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = "Start Date",
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier.weight(1f)
-                                )
-
-                                Text(
-                                    text = "Start Time",
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier.weight(1f)
-                                )
-
-                                Text(
-                                    text = "Start Mileage",
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier.weight(1f)
-                                )
-
-                                Spacer(modifier = Modifier.weight(0.5f))
-                            }
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = "End Date",
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier.weight(1f)
-                                )
-
-                                Text(
-                                    text = "End Time",
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier.weight(1f)
-                                )
-
-                                Text(
-                                    text = "End Mileage",
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier.weight(1f)
-                                )
-
-                                Spacer(modifier = Modifier.weight(0.5f))
-                            }
-                        }
+                items(items = state.carMileageList) { carMileage ->
+                    var visibility by remember {
+                        mutableStateOf(false)
                     }
 
-                    items(items = state.carMileageList) { carMileage ->
-                        var visibility by remember {
-                            mutableStateOf(false)
-                        }
-
-                        LaunchedEffect(key1 = Unit) {
-                            visibility = true
-                        }
-                        AnimatedVisibility(visible = visibility) {
-
-                            CarMileageItemCard(carMileage = carMileage, cardClicked = {
-                                viewModel.carMileageClicked(carMileage)
-                            }, onDeleteClicked = {
-                                viewModel.deleteCarMileage(carMileage)
-                            })
-                        }
-
-
+                    LaunchedEffect(key1 = Unit) {
+                        visibility = true
                     }
+                    AnimatedVisibility(visible = visibility) {
+
+                        CarMileageItemCard(carMileage = carMileage, cardClicked = {
+                            viewModel.carMileageClicked(carMileage)
+                        }, onDeleteClicked = {
+                            viewModel.deleteCarMileage(carMileage)
+                        })
+                    }
+
+
                 }
             }
         }

@@ -20,7 +20,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.neklaway.hme_reporting.common.ui.theme.HMEReportingTheme
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -39,178 +38,176 @@ fun CustomerScreen(
         }
     }
 
-    HMEReportingTheme {
-        Scaffold(
-            floatingActionButton = {
-                Row {
-                    AnimatedVisibility(
-                        state.selectedCustomer != null,
-                        enter = slideInVertically(initialOffsetY = { it }),
-                        exit = slideOutVertically(targetOffsetY = { it })
-                    ) {
-                        Row {
-                            FloatingActionButton(onClick = {
-                                viewModel.updateCustomer()
-                            }) {
-                                Icon(
-                                    imageVector = Icons.Default.Edit,
-                                    contentDescription = "Edit Customer"
-                                )
-                            }
-                            Spacer(modifier = Modifier.width(5.dp))
+    Scaffold(
+        floatingActionButton = {
+            Row {
+                AnimatedVisibility(
+                    state.selectedCustomer != null,
+                    enter = slideInVertically(initialOffsetY = { it }),
+                    exit = slideOutVertically(targetOffsetY = { it })
+                ) {
+                    Row {
+                        FloatingActionButton(onClick = {
+                            viewModel.updateCustomer()
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = "Edit Customer"
+                            )
                         }
-                    }
-
-                    FloatingActionButton(onClick = {
-                        viewModel.saveCustomer()
-                    }) {
-
-                        Icon(imageVector = Icons.Default.Add, contentDescription = "Add Customer")
+                        Spacer(modifier = Modifier.width(5.dp))
                     }
                 }
-            },
-            snackbarHost = {
-                SnackbarHost(hostState = snackbarHostState)
+
+                FloatingActionButton(onClick = {
+                    viewModel.saveCustomer()
+                }) {
+
+                    Icon(imageVector = Icons.Default.Add, contentDescription = "Add Customer")
+                }
             }
+        },
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        }
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(it)
+                .padding(5.dp)
         ) {
-            Column(
+
+            OutlinedTextField(
+                value = state.customerName,
+                onValueChange = { name ->
+                    viewModel.customerNameChange(name)
+                },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(text = "Customer Name") },
+                singleLine = true,
+                maxLines = 1
+            )
+
+
+
+            OutlinedTextField(
+                value = state.customerCity, onValueChange = { city ->
+                    viewModel.customerCityChange(city)
+                },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(text = "Customer City") },
+                singleLine = true,
+                maxLines = 1
+            )
+
+            OutlinedTextField(
+                value = state.customerCountry, onValueChange = { country ->
+                    viewModel.customerCountryChange(country)
+                },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(text = "Customer Country") },
+                singleLine = true,
+                maxLines = 1
+            )
+
+            LazyColumn(
                 modifier = Modifier
-                    .padding(it)
-                    .padding(5.dp)
+                    .padding(vertical = 8.dp)
+                    .fillMaxWidth()
             ) {
+                item {
+                    AnimatedVisibility(
+                        visible = state.loading,
+                        enter = fadeIn(),
+                        exit = fadeOut()
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
 
-                OutlinedTextField(
-                    value = state.customerName,
-                    onValueChange = { name ->
-                        viewModel.customerNameChange(name)
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(text = "Customer Name") },
-                    singleLine = true,
-                    maxLines = 1
-                )
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Name",
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Text(
+                            text = "City",
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Text(
+                            text = "Country",
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Spacer(modifier = Modifier.weight(0.5f))
+                    }
+                }
 
-
-
-                OutlinedTextField(
-                    value = state.customerCity, onValueChange = { city ->
-                        viewModel.customerCityChange(city)
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(text = "Customer City") },
-                    singleLine = true,
-                    maxLines = 1
-                )
-
-                OutlinedTextField(
-                    value = state.customerCountry, onValueChange = { country ->
-                        viewModel.customerCountryChange(country)
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(text = "Customer Country") },
-                    singleLine = true,
-                    maxLines = 1
-                )
-
-                LazyColumn(
-                    modifier = Modifier
-                        .padding(vertical = 8.dp)
-                        .fillMaxWidth()
-                ) {
-                    item {
-                        AnimatedVisibility(
-                            visible = state.loading,
-                            enter = fadeIn(),
-                            exit = fadeOut()
-                        ) {
-                            CircularProgressIndicator()
-                        }
+                items(items = state.customers) { customer ->
+                    val visibility = remember {
+                        mutableStateOf(false)
                     }
 
-                    item {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "Name",
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.weight(1f)
-                            )
-                            Text(
-                                text = "City",
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.weight(1f)
-                            )
-                            Text(
-                                text = "Country",
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.weight(1f)
-                            )
-                            Spacer(modifier = Modifier.weight(0.5f))
-                        }
+                    SideEffect {
+                        visibility.value = true
                     }
 
-                    items(items = state.customers) { customer ->
-                        val visibility = remember {
-                            mutableStateOf(false)
-                        }
+                    AnimatedVisibility(
+                        visible = visibility.value,
+                        enter = slideInHorizontally(),
+                        exit = slideOutHorizontally()
+                    ) {
 
-                        SideEffect {
-                            visibility.value = true
-                        }
-
-                        AnimatedVisibility(
-                            visible = visibility.value,
-                            enter = slideInHorizontally(),
-                            exit = slideOutHorizontally()
+                        Card(
+                            modifier = Modifier
+                                .padding(vertical = 2.dp)
+                                .clickable { viewModel.customerSelected(customer) }
                         ) {
 
-                            Card(
-                                modifier = Modifier
-                                    .padding(vertical = 2.dp)
-                                    .clickable { viewModel.customerSelected(customer) }
+                            Row(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(5.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
                             ) {
+                                Text(
+                                    text = customer.name,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Text(
+                                    text = customer.city,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Text(
+                                    text = customer.country,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.weight(1f)
+                                )
 
-                                Row(
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .padding(5.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically,
+
+
+                                OutlinedIconButton(
+                                    onClick = {
+                                        viewModel.deleteCustomer(customer)
+                                    },
+                                    modifier = Modifier.weight(0.5f)
                                 ) {
-                                    Text(
-                                        text = customer.name,
-                                        textAlign = TextAlign.Center,
-                                        modifier = Modifier.weight(1f)
+                                    Icon(
+                                        imageVector = Icons.Default.Delete,
+                                        contentDescription = "Delete customer",
+                                        tint = Color.Red,
+                                        modifier = Modifier.alpha(.6f)
                                     )
-                                    Text(
-                                        text = customer.city,
-                                        textAlign = TextAlign.Center,
-                                        modifier = Modifier.weight(1f)
-                                    )
-                                    Text(
-                                        text = customer.country,
-                                        textAlign = TextAlign.Center,
-                                        modifier = Modifier.weight(1f)
-                                    )
-
-
-
-                                    OutlinedIconButton(
-                                        onClick = {
-                                            viewModel.deleteCustomer(customer)
-                                        },
-                                        modifier = Modifier.weight(0.5f)
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Delete,
-                                            contentDescription = "Delete customer",
-                                            tint = Color.Red,
-                                            modifier = Modifier.alpha(.6f)
-                                        )
-                                    }
                                 }
                             }
                         }

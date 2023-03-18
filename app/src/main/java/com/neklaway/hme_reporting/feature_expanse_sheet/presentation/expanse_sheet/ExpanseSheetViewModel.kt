@@ -175,13 +175,13 @@ class ExpanseSheetViewModel @Inject constructor(
                             "get timesheet by HME: collect $timeSheetList "
                         )
                         val lessThan24H = timeSheetList.count { timeSheet ->
-                            timeSheet.dailyAllowance == AllowanceType._8hours
+                            timeSheet.dailyAllowance == AllowanceType._8hours && timeSheet.expanseSelected
                         }
                         val fullDay = timeSheetList.count { timeSheet ->
-                            timeSheet.dailyAllowance == AllowanceType._24hours
+                            timeSheet.dailyAllowance == AllowanceType._24hours && timeSheet.expanseSelected
                         }
                         val noAllowance = timeSheetList.count { timeSheet ->
-                            timeSheet.dailyAllowance == AllowanceType.no
+                            timeSheet.dailyAllowance == AllowanceType.no && timeSheet.expanseSelected
                         }
 
                         _state.update {

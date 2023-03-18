@@ -32,7 +32,6 @@ import androidx.core.net.toFile
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.neklaway.hme_reporting.common.presentation.common.component.CustomDatePicker
 import com.neklaway.hme_reporting.common.presentation.common.component.DropDown
-import com.neklaway.hme_reporting.common.ui.theme.HMEReportingTheme
 import com.neklaway.hme_reporting.utils.toDate
 import java.util.*
 
@@ -89,174 +88,165 @@ fun NewExpanseScreen(
         )
     }
 
-
-
-    HMEReportingTheme {
-        Scaffold(
-            floatingActionButton = {
-                Row() {
-                    val context = LocalContext.current
-                    FloatingActionButton(onClick = { viewModel.takePicture(context) }) {
-                        Icon(
-                            imageVector = Icons.Default.DocumentScanner,
-                            contentDescription = "Add Invoice Image"
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(5.dp))
-                    FloatingActionButton(onClick = { viewModel.insertExpanse() }) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Add Expanse"
-                        )
-                    }
-                }
-            },
-            snackbarHost = {
-                SnackbarHost(hostState = snackbarHostState)
-            }
-        ) { paddingValues ->
-            val scrollState = rememberScrollState()
-
-            Column(
-                modifier = Modifier
-                    .verticalScroll(scrollState)
-                    .fillMaxSize()
-                    .padding(paddingValues = paddingValues)
-                    .padding(8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Top,
-            ) {
-                DropDown(
-                    modifier = Modifier.padding(vertical = 5.dp),
-                    dropDownList = state.customers,
-                    selectedValue = state.selectedCustomer?.name ?: "No Customer Selected",
-                    label = "Customer",
-                    dropDownContentDescription = "Select Customer",
-                    onSelect = { customer ->
-                        viewModel.customerSelected(customer)
-                    }
-                )
-
-                DropDown(
-                    modifier = Modifier.padding(bottom = 5.dp),
-                    dropDownList = state.hmeCodes,
-                    selectedValue = state.selectedHMECode?.code ?: "No HME Code Selected",
-                    label = "HME Code",
-                    dropDownContentDescription = "Select HME Code",
-                    onSelect = { hmeCode ->
-                        viewModel.hmeSelected(hmeCode)
-                    }
-                )
-
-                AnimatedVisibility(
-                    visible = state.loading,
-                    enter = slideInHorizontally(initialOffsetX = {
-                        -it
-                    }),
-                    exit = slideOutHorizontally(targetOffsetX = { -it })
-                ) {
-                    CircularProgressIndicator()
-                }
-                OutlinedTextField(
-                    value = state.date.toDate(),
-                    onValueChange = {},
-                    label = { Text(text = "Date") },
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    readOnly = true,
-                    interactionSource = dateInteractionSource
-                )
-
-                OutlinedTextField(
-                    value = state.invoiceNumber,
-                    onValueChange = viewModel::invoiceNumberChanged,
-                    label = { Text(text = "Invoice Number") },
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                )
-
-                OutlinedTextField(
-                    value = state.description,
-                    onValueChange = viewModel::descriptionChanged,
-                    label = { Text(text = "Description") },
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                )
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(text = "Paid in Cash")
-                    Checkbox(
-                        checked = state.personallyPaid,
-                        onCheckedChange = viewModel::cashCheckChanged
+    Scaffold(
+        floatingActionButton = {
+            Row() {
+                val context = LocalContext.current
+                FloatingActionButton(onClick = { viewModel.takePicture(context) }) {
+                    Icon(
+                        imageVector = Icons.Default.DocumentScanner,
+                        contentDescription = "Add Invoice Image"
                     )
-
                 }
+                Spacer(modifier = Modifier.width(5.dp))
+                FloatingActionButton(onClick = { viewModel.insertExpanse() }) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Add Expanse"
+                    )
+                }
+            }
+        },
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        }
+    ) { paddingValues ->
+        val scrollState = rememberScrollState()
 
-                OutlinedTextField(
-                    value = state.amount,
-                    onValueChange = viewModel::amountChanged,
-                    label = { Text(text = "Amount") },
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+        Column(
+            modifier = Modifier
+                .verticalScroll(scrollState)
+                .fillMaxSize()
+                .padding(paddingValues = paddingValues)
+                .padding(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top,
+        ) {
+            DropDown(
+                modifier = Modifier.padding(vertical = 5.dp),
+                dropDownList = state.customers,
+                selectedValue = state.selectedCustomer?.name ?: "No Customer Selected",
+                label = "Customer",
+                dropDownContentDescription = "Select Customer",
+                onSelect = { customer ->
+                    viewModel.customerSelected(customer)
+                }
+            )
+
+            DropDown(
+                modifier = Modifier.padding(bottom = 5.dp),
+                dropDownList = state.hmeCodes,
+                selectedValue = state.selectedHMECode?.code ?: "No HME Code Selected",
+                label = "HME Code",
+                dropDownContentDescription = "Select HME Code",
+                onSelect = { hmeCode ->
+                    viewModel.hmeSelected(hmeCode)
+                }
+            )
+
+            AnimatedVisibility(
+                visible = state.loading,
+                enter = slideInHorizontally(initialOffsetX = {
+                    -it
+                }),
+                exit = slideOutHorizontally(targetOffsetX = { -it })
+            ) {
+                CircularProgressIndicator()
+            }
+            OutlinedTextField(
+                value = state.date.toDate(),
+                onValueChange = {},
+                label = { Text(text = "Date") },
+                modifier = Modifier
+                    .fillMaxWidth(),
+                readOnly = true,
+                interactionSource = dateInteractionSource
+            )
+
+            OutlinedTextField(
+                value = state.invoiceNumber,
+                onValueChange = viewModel::invoiceNumberChanged,
+                label = { Text(text = "Invoice Number") },
+                modifier = Modifier
+                    .fillMaxWidth(),
+            )
+
+            OutlinedTextField(
+                value = state.description,
+                onValueChange = viewModel::descriptionChanged,
+                label = { Text(text = "Description") },
+                modifier = Modifier
+                    .fillMaxWidth(),
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(text = "Paid in Cash")
+                Checkbox(
+                    checked = state.personallyPaid,
+                    onCheckedChange = viewModel::cashCheckChanged
                 )
 
-                DropDown(
-                    dropDownList = state.currencyList,
-                    selectedValue = state.selectedCurrency?.currencyName ?: "",
-                    label = "Currency",
-                    dropDownContentDescription = "Currency",
-                    onSelect = viewModel::currencySelected
-                )
+            }
 
-                OutlinedTextField(
-                    value = state.amountAED,
-                    onValueChange = viewModel::amountAEDChanged,
-                    label = { Text(text = "Amount in AED") },
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                )
-                state.invoicesUris.forEach { uri ->
-                    val imageFile = uri.toFile()
-                    if (imageFile.exists()) {
-                        val path = imageFile.absolutePath
-                        val image = BitmapFactory.decodeFile(path)
-                        Box {
-                            Image(
-                                bitmap = image.asImageBitmap(),
-                                contentDescription = null,
-                                modifier = Modifier.padding(5.dp),
-                                contentScale = ContentScale.Fit
+            OutlinedTextField(
+                value = state.amount,
+                onValueChange = viewModel::amountChanged,
+                label = { Text(text = "Amount") },
+                modifier = Modifier
+                    .fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+
+            DropDown(
+                dropDownList = state.currencyList,
+                selectedValue = state.selectedCurrency?.currencyName ?: "",
+                label = "Currency",
+                dropDownContentDescription = "Currency",
+                onSelect = viewModel::currencySelected
+            )
+
+            OutlinedTextField(
+                value = state.amountAED,
+                onValueChange = viewModel::amountAEDChanged,
+                label = { Text(text = "Amount in AED") },
+                modifier = Modifier
+                    .fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+            state.invoicesUris.forEach { uri ->
+                val imageFile = uri.toFile()
+                if (imageFile.exists()) {
+                    val path = imageFile.absolutePath
+                    val image = BitmapFactory.decodeFile(path)
+                    Box {
+                        Image(
+                            bitmap = image.asImageBitmap(),
+                            contentDescription = null,
+                            modifier = Modifier.padding(5.dp),
+                            contentScale = ContentScale.Fit
+                        )
+                        IconButton(
+                            onClick = {
+                                viewModel.deleteImage(uri)
+                            },
+                            modifier = Modifier.align(
+                                Alignment.TopEnd
                             )
-                            IconButton(
-                                onClick = {
-                                    viewModel.deleteImage(uri)
-                                },
-                                modifier = Modifier.align(
-                                    Alignment.TopEnd
-                                )
-                            ) {
-                                Icon(
-                                    Icons.Default.Close,
-                                    contentDescription = null,
-                                )
-                            }
+                        ) {
+                            Icon(
+                                Icons.Default.Close,
+                                contentDescription = null,
+                            )
                         }
                     }
-
                 }
-            }
 
+            }
         }
+
     }
 }
-
-
-
-
-
