@@ -1,5 +1,6 @@
 package com.neklaway.hme_reporting.common.domain.use_cases.hme_code_use_cases
 
+import com.neklaway.hme_reporting.common.data.entity.Accommodation
 import com.neklaway.hme_reporting.common.domain.model.HMECode
 import com.neklaway.hme_reporting.common.domain.model.toHMECodeEntity
 import com.neklaway.hme_reporting.common.domain.repository.HMECodeRepository
@@ -24,8 +25,10 @@ class UpdateHMECodeUseCase @Inject constructor(
         machineNumber: String?,
         workDescription: String?,
         fileNumber: Int,
+        expanseNumber:Int,
         signerName: String? = null,
-        signatureDate: Calendar? = null
+        signatureDate: Calendar? = null,
+        accommodation: Accommodation?=null
     ): Flow<Resource<Boolean>> = flow {
         emit(Resource.Loading())
 
@@ -54,8 +57,10 @@ class UpdateHMECodeUseCase @Inject constructor(
                 machineNumber?.trim(),
                 workDescription?.trim(),
                 fileNumber,
+                expanseNumber,
                 signerName?.trim(),
                 signatureDate,
+                accommodation,
                 id
             )
         try {

@@ -47,15 +47,13 @@ class SettingsViewModel @Inject constructor(
     private val startRestore: StartRestore,
     private val getFullDayAllowanceUseCase: GetFullDayAllowanceUseCase,
     private val get8HDayAllowanceUseCase: Get8HDayAllowanceUseCase,
-    private val getNoAllowanceUseCase: GetNoAllowanceUseCase,
     private val setFullDayAllowanceUseCase: SetFullDayAllowanceUseCase,
     private val set8HAllowanceUseCase: Set8HAllowanceUseCase,
-    private val setNoAllowanceUseCase: SetNoAllowanceUseCase,
     private val setSavingDeductibleUseCase: SetSavingDeductibleUseCase,
     private val getSavingDeductibleUseCase: GetSavingDeductibleUseCase,
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(SettingsState(noAllowance = ""))
+    private val _state = MutableStateFlow(SettingsState())
     val state = _state.asStateFlow()
 
     private val _userMessage = MutableSharedFlow<String>()
@@ -70,7 +68,6 @@ class SettingsViewModel @Inject constructor(
         getVisaReminder()
         getFullDayAllowance()
         get8HDayAllowance()
-        getNoAllowance()
         getSavingDeductible()
     }
 
@@ -121,13 +118,6 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             val _8HDayAllowance = get8HDayAllowanceUseCase()
             _state.update { it.copy(_8HAllowance = _8HDayAllowance.toString()) }
-        }
-    }
-
-    private fun getNoAllowance() {
-        viewModelScope.launch {
-            val noAllowance = getNoAllowanceUseCase()
-            _state.update { it.copy(noAllowance = noAllowance.toString()) }
         }
     }
 
@@ -277,25 +267,6 @@ class SettingsViewModel @Inject constructor(
                     }
                 }
                 _state.update { it.copy(_8HAllowance = resourceWithString.string ?: "") }
-
-            }
-        }
-    }
-
-    fun setNoAllowance(allowance: String) {
-        viewModelScope.launch {
-            allowance.toIntWithString().let { resourceWithString ->
-                when (resourceWithString) {
-                    is ResourceWithString.Error -> {
-                        _userMessage.emit(resourceWithString.message ?: "Error")
-
-                    }
-                    is ResourceWithString.Loading -> Unit
-                    is ResourceWithString.Success -> {
-                        setNoAllowanceUseCase(resourceWithString.data!!)
-                    }
-                }
-                _state.update { it.copy(noAllowance = resourceWithString.string ?: "") }
 
             }
         }

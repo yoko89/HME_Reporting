@@ -1,9 +1,10 @@
 package com.neklaway.hme_reporting.common.domain.model
 
+import com.neklaway.hme_reporting.common.data.entity.Accommodation
 import com.neklaway.hme_reporting.common.data.entity.HMECodeEntity
 import com.neklaway.hme_reporting.utils.CalendarAsLongSerializer
 import kotlinx.serialization.Serializable
-import java.util.Calendar
+import java.util.*
 
 @Serializable
 data class HMECode(
@@ -12,10 +13,12 @@ data class HMECode(
     val machineType: String?,
     val machineNumber: String?,
     val workDescription: String?,
-    val fileNumber : Int = 0,
-    val signerName : String? = null,
+    val fileNumber: Int = 0,
+    val expanseNumber: Int = 0,
+    val signerName: String? = null,
     @Serializable(with = CalendarAsLongSerializer::class)
     val signatureDate: Calendar? = null,
+    val accommodation: Accommodation? = null,
     val id: Long? = null
 ) {
     override fun toString(): String {
@@ -37,5 +40,17 @@ data class HMECode(
 
 
 fun HMECode.toHMECodeEntity(): HMECodeEntity {
-    return HMECodeEntity(id, customerId, code, machineType, machineNumber, workDescription,fileNumber,signerName,signatureDate?.timeInMillis)
+    return HMECodeEntity(
+        id = id,
+        customerId = customerId,
+        code = code,
+        machineType = machineType,
+        machineNumber = machineNumber,
+        workDescription = workDescription,
+        fileNumber = fileNumber,
+        expanseNumber = expanseNumber,
+        signerName = signerName,
+        signatureDate = signatureDate?.timeInMillis,
+        accommodation = accommodation
+    )
 }

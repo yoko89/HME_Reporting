@@ -13,7 +13,7 @@ class GetAllTimeSheetUseCase @Inject constructor(
 
     suspend operator fun invoke(): Resource<List<TimeSheet>> {
         return try {
-            Resource.Success(repo.getAll().map { timeSheetEntity ->
+            Resource.Success(repo.getAll().sortedBy { it.date }.map { timeSheetEntity ->
                 timeSheetEntity.toTimeSheet()
             })
         } catch (e: IOException) {

@@ -3,11 +3,13 @@ package com.neklaway.hme_reporting.feature_expanse_sheet.presentation.expanse_sh
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.neklaway.hme_reporting.common.data.entity.Accommodation
 import com.neklaway.hme_reporting.common.data.entity.AllowanceType
 import com.neklaway.hme_reporting.common.domain.model.Customer
 import com.neklaway.hme_reporting.common.domain.model.HMECode
 import com.neklaway.hme_reporting.common.domain.use_cases.customer_use_cases.GetAllCustomersFlowUseCase
 import com.neklaway.hme_reporting.common.domain.use_cases.hme_code_use_cases.GetHMECodeByCustomerIdUseCase
+import com.neklaway.hme_reporting.common.domain.use_cases.hme_code_use_cases.UpdateHMECodeUseCase
 import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.time_sheet.customer_id.GetCustomerIdUseCase
 import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.time_sheet.customer_id.SetCustomerIdUseCase
 import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.time_sheet.hme_id.GetHMEIdUseCase
@@ -15,12 +17,14 @@ import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.ti
 import com.neklaway.hme_reporting.common.domain.use_cases.time_sheet_use_cases.GetTimeSheetByHMECodeIdUseCase
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.Expanse
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.use_cases.currency_exchange_use_cases.GetCurrencyExchangeByIdUseCase
+import com.neklaway.hme_reporting.feature_expanse_sheet.domain.use_cases.expanse_pdf_worker_use_case.ExpansePDFWorkerUseCase
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.use_cases.expanse_use_cases.GetExpanseByHMEIdUseCase
 import com.neklaway.hme_reporting.utils.CalculateAllowance
 import com.neklaway.hme_reporting.utils.CalculateExpanse
 import com.neklaway.hme_reporting.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.io.File
@@ -41,6 +45,8 @@ class ExpanseSheetViewModel @Inject constructor(
     private val getExpanseByHMEIdUseCase: GetExpanseByHMEIdUseCase,
     private val calculateAllowance: CalculateAllowance,
     private val calculateExpanse: CalculateExpanse,
+    private val updateHMECodeUseCase: UpdateHMECodeUseCase,
+    private val expansePDFWorkerUseCase: ExpansePDFWorkerUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ExpanseSheetState())
@@ -145,6 +151,7 @@ class ExpanseSheetViewModel @Inject constructor(
         _state.update {
             it.copy(
                 selectedHMECode = hmeCode,
+                accommodation = hmeCode.accommodation,
             )
         }
 
@@ -181,8 +188,9 @@ class ExpanseSheetViewModel @Inject constructor(
                             timeSheet.dailyAllowance == AllowanceType._24hours && timeSheet.expanseSelected
                         }
                         val noAllowance = timeSheetList.count { timeSheet ->
-                            timeSheet.dailyAllowance == AllowanceType.no && timeSheet.expanseSelected
+                            timeSheet.dailyAllowance == AllowanceType.No && timeSheet.expanseSelected
                         }
+
 
                         _state.update {
                             it.copy(
@@ -191,16 +199,23 @@ class ExpanseSheetViewModel @Inject constructor(
                                 fullDays = fullDay,
                                 noAllowanceDays = noAllowance,
                                 loading = false,
-                            )
+                                missingDailyAllowance = timeSheetList.any {
+                                    it.dailyAllowance == null && it.expanseSelected
+                                })
                         }
                         totalAllowance.emit(
-                            calculateAllowance.invoke(fullDay, lessThan24H, noAllowance)
+                            calculateAllowance.invoke(fullDay, lessThan24H)
                         )
+
+                        if (timeSheetList.any {
+                                it.dailyAllowance == null && it.expanseSelected
+                            }) {
+                            sendEvent(ExpanseSheetEvents.UserMessage("Daily Allowance is missing, please Check"))
+                        }
                     }
                 }
             }
         }.launchIn(viewModelScope)
-
 
         getExpanseByHMEIdUseCase(hmeCode.id).onEach { result ->
             when (result) {
@@ -250,33 +265,38 @@ class ExpanseSheetViewModel @Inject constructor(
     }
 
 
-//TODO
-//    fun createExpanseSheet() {
-//        viewModelScope.launch {
-//            expansePdfWorkerUseCase(state.value.timeSheetList,state.value.expanseList).collect { resource ->
-//                when (resource) {
-//                    is Resource.Error -> {
-//                        _state.update { it.copy(loading = false) }
-//                        delay(1000)
-//                        sendEvent(TimeSheetEvents.UserMessage("PDF Creation Error"))
-//                    }
-//                    is Resource.Loading -> _state.update { it.copy(loading = true) }
-//                    is Resource.Success -> {
-//                        sendEvent(TimeSheetEvents.UserMessage("PDF Created"))
-//                        _state.update { it.copy(loading = false) }
-//                    }
-//                }
-//                Log.d(
-//                    com.neklaway.hme_reporting.feature_time_sheet.presentation.time_sheet.TAG,
-//                    "createTimeSheet: $resource"
-//                )
-//            }
-//        }
-//    }
+    fun createExpanseSheet() {
+        viewModelScope.launch {
+            expansePDFWorkerUseCase(
+                state.value.timeSheetList.filter { it.expanseSelected },
+                state.value.expanseList
+            ).collect { resource ->
+                when (resource) {
+                    is Resource.Error -> {
+                        _state.update { it.copy(loading = false) }
+                        delay(1000)
+                        sendEvent(ExpanseSheetEvents.UserMessage("PDF Creation Error"))
+                    }
+                    is Resource.Loading -> _state.update { it.copy(loading = true) }
+                    is Resource.Success -> {
+                        _state.update { it.copy(loading = false) }
+                        sendEvent(ExpanseSheetEvents.UserMessage("PDF Created"))
+                    }
+                }
+                Log.d(
+                    TAG,
+                    "createExpanseSheet: $resource"
+                )
+            }
+        }
+    }
 
 
-    private suspend fun sendEvent(event: ExpanseSheetEvents) {
-        _event.emit(event)
+    private fun sendEvent(event: ExpanseSheetEvents) {
+        viewModelScope.launch {
+            _event.emit(event)
+            Log.d(TAG, "sendEvent: $event")
+        }
     }
 
     fun fileSelected(file: File) {
@@ -299,6 +319,39 @@ class ExpanseSheetViewModel @Inject constructor(
                     is Resource.Success -> resource.data?.currencyName ?: "Error"
                 }
             )
+        }
+    }
+
+    fun accommodationChanged(accommodation: Accommodation) {
+        viewModelScope.launch {
+            state.value.selectedHMECode?.let { hmeCode ->
+                updateHMECodeUseCase(
+                    id = hmeCode.id!!,
+                    customerId = hmeCode.customerId,
+                    code = hmeCode.code,
+                    machineType = hmeCode.machineType,
+                    machineNumber = hmeCode.machineNumber,
+                    workDescription = hmeCode.workDescription,
+                    fileNumber = hmeCode.fileNumber,
+                    expanseNumber = hmeCode.expanseNumber,
+                    signerName = hmeCode.signerName,
+                    signatureDate = hmeCode.signatureDate,
+                    accommodation = accommodation
+                ).collect { result ->
+                    when (result) {
+                        is Resource.Error -> sendEvent(
+                            ExpanseSheetEvents.UserMessage(
+                                result.message ?: "Error"
+                            )
+                        )
+                        is Resource.Loading -> Unit
+                        is Resource.Success -> {
+                            _state.update { it.copy(accommodation = accommodation) }
+                        }
+                    }
+
+                }
+            }
         }
     }
 

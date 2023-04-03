@@ -3,6 +3,7 @@ package com.neklaway.hme_reporting.utils
 object Constants {
 
 
+
     //Signature related
     const val SIGNATURES_FOLDER = "signatures"
 
@@ -12,8 +13,13 @@ object Constants {
     //PDF Notification
     const val PDF_CHANNEL_ID = "pdf_channel_id"
     const val PDF_CHANNEL_NAME = "PDF Creator"
-
     const val PDF_NOTIFICATION_ID = 1
+
+    //Expanse Notification
+    const val EXPANSE_PDF_CHANNEL_ID = "expanse_channel_id"
+    const val EXPANSE_PDF_CHANNEL_NAME = "Expanse PDF Creator"
+    const val EXPANSE_PDF_NOTIFICATION_ID = 2
+
 
     //Visa Notification
     const val VISA_CHANNEL_ID = "visa_channel_id"
@@ -33,6 +39,9 @@ object Constants {
 
     //PDF Worker
     const val PDF_WORKER_TAG = "pdf_tag"
+
+    //Expanse Worker
+    const val EXPANSE_WORKER_TAG = "expanse_tag"
 
     //Visa Worker
     const val Visa_WORKER_TAG = "visa_tag"

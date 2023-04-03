@@ -64,5 +64,7 @@ fun TimeSheetEntity.toTimeSheet(): TimeSheet {
 }
 
 enum class AllowanceType {
-    _8hours, _24hours, no
+    _8hours, _24hours, No
 }
+
+

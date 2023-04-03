@@ -41,7 +41,7 @@ import java.io.IOException
 import java.util.*
 
 
-private const val TAG = "PDFCreatorWorker"
+private const val TAG = "TimeSheetPDFCreatorWorker"
 //Times new roman font
 
 private const val HEADER_TEXT_SIZE = 20f
@@ -1148,6 +1148,7 @@ class TimeSheetPDFCreatorWorker @AssistedInject constructor(
                     hmeCode.machineNumber,
                     hmeCode.workDescription,
                     hmeCode.fileNumber + 1,
+                    hmeCode.expanseNumber,
                     hmeCode.signerName,
                     Calendar.getInstance()
                 ).collect()

@@ -112,7 +112,7 @@ class TimeSheetViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             setCustomerIdUseCase(customer.id!!)
 
-            getHMECodeByCustomerIdUseCase(customer.id).collect { result ->
+            getHMECodeByCustomerIdUseCase(customer.id).onEach { result ->
                 when (result) {
                     is Resource.Error -> {
                         sendEvent(
@@ -140,7 +140,7 @@ class TimeSheetViewModel @Inject constructor(
                         }
                     }
                 }
-            }
+            }.launchIn(viewModelScope)
         }
     }
 
@@ -365,6 +365,7 @@ class TimeSheetViewModel @Inject constructor(
                     machineNumber = hmeCode.machineNumber,
                     workDescription = hmeCode.workDescription,
                     fileNumber = hmeCode.fileNumber,
+                    expanseNumber = hmeCode.expanseNumber,
                     signerName = signerName,
                     signatureDate = Calendar.getInstance()
                 ).collect { resource ->

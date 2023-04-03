@@ -13,7 +13,6 @@ data class SettingsState(
     val visaReminder: String = "",
     val fullDayAllowance :String ="",
     val _8HAllowance: String = "",
-    val noAllowance: String = "",
     val savingDeductible:String = "",
 ) {
 }

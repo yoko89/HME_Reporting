@@ -28,10 +28,10 @@ interface TimeSheetDao {
     @Query("SELECT * FROM timeSheetTable WHERE id = :id")
     fun getById(id: Long): TimeSheetEntity
 
-    @Query("SELECT * FROM timeSheetTable WHERE HMEId = :id")
+    @Query("SELECT * FROM timeSheetTable WHERE HMEId = :id ORDER BY Date")
     fun getByHMECodeId(id: Long): Flow<List<TimeSheetEntity>>
 
-    @Query("SELECT * FROM timeSheetTable WHERE IBAUId = :id")
+    @Query("SELECT * FROM timeSheetTable WHERE IBAUId = :id ORDER BY Date")
     fun getByIBAUCodeId(id: Long): Flow<List<TimeSheetEntity>>
 
 }

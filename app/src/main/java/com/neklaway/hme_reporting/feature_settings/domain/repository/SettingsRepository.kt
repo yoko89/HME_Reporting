@@ -23,10 +23,8 @@ interface SettingsRepository {
     suspend fun setVisaReminder(reminder: Int)
 
     fun getVisaReminder(): Flow<Int>
-    suspend fun setNoAllowance(allowance: Int)
     suspend fun set8HDayAllowance(allowance: Int)
     suspend fun setFullDayAllowance(allowance: Int)
-    fun getNoAllowance(): Flow<Int>
     fun get8HDayAllowance(): Flow<Int>
     fun getFullDayAllowance(): Flow<Int>
     suspend fun setSavingDeductible(deductible:Int)

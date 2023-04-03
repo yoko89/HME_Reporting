@@ -4,8 +4,8 @@ package com.neklaway.hme_reporting.feature_expanse_sheet.presentation.expanse_sh
 
 import android.content.Intent
 import androidx.compose.animation.*
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -18,11 +18,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.neklaway.hme_reporting.common.data.entity.Accommodation
 import com.neklaway.hme_reporting.common.presentation.Screen
 import com.neklaway.hme_reporting.common.presentation.common.component.DropDown
 import com.neklaway.hme_reporting.common.presentation.common.component.ListDialog
@@ -50,7 +52,7 @@ fun ExpanseSheetScreen(
     val context = LocalContext.current
 
     LaunchedEffect(
-        key1 = events, key2 = state
+        events
     ) {
         events.collect { event ->
             when (event) {
@@ -91,7 +93,7 @@ fun ExpanseSheetScreen(
                     FloatingActionButton(onClick = {
 
                         requestPermission = true
-                        //TODO: viewModel.createExpanseSheet()
+                        viewModel.createExpanseSheet()
                     }) {
                         Icon(
                             imageVector = Icons.Default.PictureAsPdf,
@@ -150,10 +152,41 @@ fun ExpanseSheetScreen(
                     viewModel.hmeSelected(hmeCode)
                 })
 
+            val infiniteTransition = rememberInfiniteTransition()
+
+            DropDown(
+                modifier = Modifier
+                    .padding(bottom = 5.dp),
+                dropDownList = Accommodation.values().toList(),
+                selectedValue = state.accommodation?.name ?: "Not Selected",
+                label = "Accommodation paid by",
+                dropDownContentDescription = "Accommodation type",
+                onSelect = { accommodation ->
+                    viewModel.accommodationChanged(accommodation)
+                },
+                warning = state.accommodation == null,
+            )
+
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        if (state.missingDailyAllowance) {
+                            infiniteTransition.animateColor(
+                                initialValue = MaterialTheme.colorScheme.background,
+                                targetValue = Color.Yellow,
+                                animationSpec = infiniteRepeatable(
+                                    animation = tween(
+                                        durationMillis = 500,
+                                        delayMillis = 1000,
+                                        easing = LinearEasing
+                                    ), repeatMode = RepeatMode.Reverse
+                                )
+                            ).value
+                        } else MaterialTheme.colorScheme.background
+                    ),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column {
                     Text(text = "Less than 24H")
@@ -177,7 +210,6 @@ fun ExpanseSheetScreen(
                     )
                 }
             }
-
 
             LazyColumn(
                 modifier = Modifier

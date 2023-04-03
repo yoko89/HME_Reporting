@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
-private const val TAG:String = "MarkCreatedTimeSheetUseCase"
+private const val TAG: String = "MarkCreatedTimeSheet"
 
 class MarkCreatedTimeSheetUseCase @Inject constructor(
     val repo: TimeSheetRepository

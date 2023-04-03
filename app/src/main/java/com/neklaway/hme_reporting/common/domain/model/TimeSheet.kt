@@ -1,6 +1,7 @@
 package com.neklaway.hme_reporting.common.domain.model
 
 import android.util.Log
+import com.neklaway.hme_reporting.common.data.entity.Accommodation
 import com.neklaway.hme_reporting.common.data.entity.AllowanceType
 import com.neklaway.hme_reporting.common.data.entity.TimeSheetEntity
 import com.neklaway.hme_reporting.utils.CalendarAsLongSerializer

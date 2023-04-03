@@ -1,5 +1,8 @@
 package com.neklaway.hme_reporting.common.presentation.common.component
 
+import androidx.compose.animation.animateColor
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -13,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
@@ -23,6 +27,7 @@ fun <T> DropDown(
     selectedValue: String,
     label: String,
     dropDownContentDescription: String,
+    warning: Boolean = false,
     onSelect: ((T) -> Unit),
     modifier: Modifier = Modifier,
 ) {
@@ -34,11 +39,30 @@ fun <T> DropDown(
         val dropDown = remember {
             mutableStateOf(false)
         }
+        val infiniteTransition = rememberInfiniteTransition()
+
         OutlinedTextField(
             value = selectedValue,
             onValueChange = {},
             label = { Text(text = label) },
-            modifier = Modifier.fillMaxWidth().clickable(false){},
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(false) {}
+                .background(
+                    if (warning) {
+                        infiniteTransition.animateColor(
+                            initialValue = MaterialTheme.colorScheme.background,
+                            targetValue = Color.Yellow,
+                            animationSpec = infiniteRepeatable(
+                                animation = tween(
+                                    durationMillis = 500,
+                                    delayMillis = 1000,
+                                    easing = LinearEasing
+                                ), repeatMode = RepeatMode.Reverse
+                            )
+                        ).value
+                    } else MaterialTheme.colorScheme.background
+                ),
             readOnly = true,
             trailingIcon = {
                 Icon(
@@ -48,7 +72,7 @@ fun <T> DropDown(
                         dropDown.value = true
                     }
                 )
-            }
+            },
         )
 
         if (dropDown.value) {

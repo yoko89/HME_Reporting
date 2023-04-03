@@ -11,4 +11,15 @@
     <string name="hours">Hours</string>
     <string name="overtime">OverTime</string>
     <string name="distance">Distance</string>
+    <string name="particulars">Particulars</string>
+    <string name="total_daily_allowance">Total Daily Allowance</string>
+    <string name="accrued_saving">Accured Saving</string>
+    <string name="amount_payable">Amount Payable</string>
+    <string name="category">Category</string>
+    <string name="no_of_days">No. of Days</string>
+    <string name="rate">Rate</string>
+    <string name="amount">Amount</string>
+    <string name="less24h"><![CDATA[<24 hours]]></string>
+    <string name="full24h">Full 24H</string>
+    <string name="sub_totals">Sub-Totals</string>
 </resources>

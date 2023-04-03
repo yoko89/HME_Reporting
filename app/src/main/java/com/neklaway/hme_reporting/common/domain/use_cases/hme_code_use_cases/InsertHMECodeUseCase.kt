@@ -51,11 +51,11 @@ class InsertHMECodeUseCase @Inject constructor(
         Log.d(TAG, "invoke: no errors")
         val hmeCode =
             HMECode(
-                customerId,
-                code.trim(),
-                machineType?.trim(),
-                machineNumber?.trim(),
-                workDescription?.trim()
+                customerId = customerId,
+                code = code.trim(),
+                machineType = machineType?.trim(),
+                machineNumber = machineNumber?.trim(),
+                workDescription = workDescription?.trim()
             )
         try {
             Log.d(TAG, "invoke: trying to insert $hmeCode")

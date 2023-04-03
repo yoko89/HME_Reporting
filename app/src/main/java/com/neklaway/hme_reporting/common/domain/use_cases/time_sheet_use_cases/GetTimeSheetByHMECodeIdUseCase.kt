@@ -14,7 +14,7 @@ class GetTimeSheetByHMECodeIdUseCase @Inject constructor(
     operator fun invoke(hmeId: Long): Flow<Resource<List<TimeSheet>>> = flow {
         emit(Resource.Loading())
         emitAll(repo.getByHMECodeId(hmeId).map {
-             Resource.Success(it.map { it.toTimeSheet()})
+            Resource.Success(it.map { it.toTimeSheet() })
         })
     }
 }

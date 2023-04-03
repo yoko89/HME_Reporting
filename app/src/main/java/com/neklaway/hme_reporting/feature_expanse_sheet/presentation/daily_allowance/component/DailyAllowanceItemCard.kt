@@ -51,8 +51,8 @@ fun DailyAllowanceItemCard(
             )
 
             RadioButton(
-                selected = (timeSheet.dailyAllowance == AllowanceType.no),
-                onClick = { dailyAllowanceChanged(AllowanceType.no) },
+                selected = (timeSheet.dailyAllowance == AllowanceType.No),
+                onClick = { dailyAllowanceChanged(AllowanceType.No) },
                 Modifier.weight(1f)
             )
 

@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 3,
-    "identityHash": "b83b946caa5f42d664c86ce0bd4bb54d",
+    "identityHash": "ed87d9e4bf830704471008a450f03e34",
     "entities": [
       {
         "tableName": "customerTable",
@@ -54,7 +54,7 @@
       },
       {
         "tableName": "hmeCodeTable",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `customerId` INTEGER NOT NULL, `code` TEXT NOT NULL, `machineType` TEXT, `machineNumber` TEXT, `workDescription` TEXT, `fileNumber` INTEGER NOT NULL, `signerName` TEXT, `signatureDate` INTEGER, FOREIGN KEY(`customerId`) REFERENCES `customerTable`(`id`) ON UPDATE CASCADE ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `customerId` INTEGER NOT NULL, `code` TEXT NOT NULL, `machineType` TEXT, `machineNumber` TEXT, `workDescription` TEXT, `fileNumber` INTEGER NOT NULL, `expanseNumber` INTEGER NOT NULL DEFAULT 0, `signerName` TEXT, `signatureDate` INTEGER, `accommodation` TEXT, FOREIGN KEY(`customerId`) REFERENCES `customerTable`(`id`) ON UPDATE CASCADE ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -99,6 +99,13 @@
             "notNull": true
           },
           {
+            "fieldPath": "expanseNumber",
+            "columnName": "expanseNumber",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
             "fieldPath": "signerName",
             "columnName": "signerName",
             "affinity": "TEXT",
@@ -108,6 +115,12 @@
             "fieldPath": "signatureDate",
             "columnName": "signatureDate",
             "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "accommodation",
+            "columnName": "accommodation",
+            "affinity": "TEXT",
             "notNull": false
           }
         ],
@@ -638,7 +651,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'b83b946caa5f42d664c86ce0bd4bb54d')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ed87d9e4bf830704471008a450f03e34')"
     ]
   }
 }

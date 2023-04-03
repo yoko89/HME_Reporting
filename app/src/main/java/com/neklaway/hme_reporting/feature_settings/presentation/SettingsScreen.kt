@@ -172,19 +172,6 @@ fun SettingsScreen(
 
             item {
                 OutlinedTextField(
-                    value = state.noAllowance,
-                    onValueChange = {
-                        viewModel.setNoAllowance(it)
-                    },
-                    label = { Text(text = "No Allowance") },
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    singleLine = true,
-                )
-            }
-            item {
-                OutlinedTextField(
                     value = state.savingDeductible,
                     onValueChange = {
                         viewModel.setSavingDeductible(it)
