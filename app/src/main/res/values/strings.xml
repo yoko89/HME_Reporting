@@ -22,4 +22,5 @@
     <string name="less24h"><![CDATA[<24 hours]]></string>
     <string name="full24h">Full 24H</string>
     <string name="sub_totals">Sub-Totals</string>
+    <string name="no_allowance">No Allowance</string>
 </resources>

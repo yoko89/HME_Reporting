@@ -23,6 +23,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.neklaway.hme_reporting.common.data.entity.Accommodation
 import com.neklaway.hme_reporting.common.presentation.Screen
@@ -42,7 +43,7 @@ fun ExpanseSheetScreen(
     navController: NavController,
     viewModel: ExpanseSheetViewModel = hiltViewModel(),
 ) {
-    val state by viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var requestPermission by remember {
         mutableStateOf(false)
