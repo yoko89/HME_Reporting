@@ -3,7 +3,6 @@ package com.neklaway.hme_reporting.feature_time_sheet.data.worker
 import android.app.Notification
 import android.content.Context
 import android.graphics.*
-import android.graphics.Typeface.BOLD
 import android.graphics.pdf.PdfDocument
 import android.util.Log
 import androidx.core.app.NotificationCompat
@@ -177,6 +176,55 @@ class TimeSheetPDFCreatorWorker @AssistedInject constructor(
         const val TIME_SHEET_LIST_KEY = "time_sheet_list"
     }
 
+    /***  PDF SETUP  ***/
+    //Font
+    private val timesFontFamily: Typeface = applicationContext.resources.getFont(R.font.times)
+    private val timesBold = Typeface.create(timesFontFamily, Typeface.BOLD)
+
+    //Expanse Sheet Header
+    private val paintHeader = Paint()
+
+    // Normal Text
+    private val paintText = Paint()
+
+    //Row Height
+    private val textRowHeight = paintText.descent() - paintText.ascent()
+
+    // Bold Text
+    private val paintBoldText = Paint()
+
+    // Thick Line for border
+    private val paintThickLineTableBoarderLine = Paint()
+
+    private val paintBlue = Paint()
+
+    // Thick blue for Table outline
+    private val paintThickLineTableBorder = Paint()
+
+    // Paint to Fill pdf Header Data
+    private val paintHeaderData = Paint()
+
+    // Bitmap for Signatures
+    private val bitmapOptions = BitmapFactory.Options()
+
+    /*** PDF Setup End ***/
+
+    //create PDF
+    private val pdfDocument = PdfDocument()
+
+    //Create page description List
+    private val pageInfo = mutableListOf<PdfDocument.PageInfo>()
+
+    // Page List
+    private val page = mutableListOf<PdfDocument.Page>()
+
+    // Canvas List
+    private val canvas = mutableListOf<Canvas>()
+
+    //Page counter
+    private var currentPageCount = 0
+    private var lastPageCreated = -1
+
 
     // Global variables
     private var userSignHeight = 100f
@@ -194,10 +242,8 @@ class TimeSheetPDFCreatorWorker @AssistedInject constructor(
 
     private fun createNotification(): Notification {
         return NotificationCompat.Builder(applicationContext, Constants.PDF_CHANNEL_ID)
-            .setSmallIcon(R.drawable.hb_logo)
-            .setContentTitle("PDF Creation on going")
-            .setContentText("PDF is under preparation")
-            .build()
+            .setSmallIcon(R.drawable.hb_logo).setContentTitle("PDF Creation on going")
+            .setContentText("PDF is under preparation").build()
     }
 
     override suspend fun doWork(
@@ -285,83 +331,47 @@ class TimeSheetPDFCreatorWorker @AssistedInject constructor(
 
 
         /***  PDF SETUP  ***/
-        //Font
-        val timesFontFamily: Typeface = applicationContext.resources.getFont(R.font.times)
-        val timesBold = Typeface.create(timesFontFamily, BOLD)
-
         //Time Sheet Header
-        val paintHeader = Paint()
         paintHeader.textSize = HEADER_TEXT_SIZE
         paintHeader.typeface = timesBold
 
         // Normal Text
-        val paintText = Paint()
         paintText.textSize = NORMAL_TEXT_SIZE
         paintText.typeface = timesFontFamily
 
         //Row Height
-        val textRowHeight = paintText.descent() - paintText.ascent()
         val yPositionStart = Y_TABLE_TOP + 2 * (textRowHeight)
         var yPositionForCurrentItem = yPositionStart
 
 
         // Bold Text
-        val paintBoldText = Paint()
         paintBoldText.textSize = NORMAL_TEXT_SIZE
         paintBoldText.typeface = timesBold
 
         // Thick Line for border
-        val paintThickLineTableBoarderLine = Paint()
         paintThickLineTableBoarderLine.strokeWidth = THICK_LINE_STROKE_WIDTH
         paintThickLineTableBoarderLine.color = THICK_LINE_COLOR
         paintThickLineTableBoarderLine.style = Paint.Style.STROKE
 
-        val paintBlue = Paint()
         paintBlue.color = NORMAL_LINE_COLOR
 
         // Thick blue for Table outline
-        val paintThickLineTableBorder = Paint()
         paintThickLineTableBorder.strokeWidth = TABLE_THICK_BORDER_WIDTH
 
         // Paint to Fill pdf Header Data
-        val paintHeaderData = Paint()
         paintHeaderData.textSize = HEADER_DATA_TEXT_SIZE
         paintHeaderData.typeface = timesBold
 
         // Bitmap for Signatures
-        val bitmapOptions = BitmapFactory.Options()
         bitmapOptions.inScaled = true
 
-        /*** PDF Setup End ***/
-
-
-        //create PDF
-        val pdfDocument = PdfDocument()
-
-        //Create page description List
-        val pageInfo = mutableListOf<PdfDocument.PageInfo>()
-
-        // Page List
-        val page = mutableListOf<PdfDocument.Page>()
-
-        // Canvas List
-        val canvas = mutableListOf<Canvas>()
-
-
-        /*** PDF Creation ***/
-
-        //Page counter
-        var currentPageCount = 0
-        var lastPageCreated = -1
 
         for (currentItem in timeSheets) {
 
             if (currentPageCount > lastPageCreated) {
                 pageInfo.add(
                     PdfDocument.PageInfo.Builder(
-                        PAGE_WIDTH,
-                        PAGE_HEIGHT,
-                        currentPageCount + 1
+                        PAGE_WIDTH, PAGE_HEIGHT, currentPageCount + 1
                     ).create()
                 )
                 page.add(pdfDocument.startPage(pageInfo[currentPageCount]))
@@ -391,19 +401,12 @@ class TimeSheetPDFCreatorWorker @AssistedInject constructor(
                 // Header
 
                 val hbLogo = BitmapFactory.decodeResource(
-                    applicationContext.resources,
-                    R.drawable.haver_middle_east,
-                    bitmapOptions
+                    applicationContext.resources, R.drawable.haver_middle_east, bitmapOptions
                 )
 
                 canvas[currentPageCount].drawBitmap(
-                    hbLogo,
-                    null,
-                    RectF(
-                        LOGO_X_START,
-                        LOGO_Y_START,
-                        LOGO_X_END,
-                        LOGO_Y_END
+                    hbLogo, null, RectF(
+                        LOGO_X_START, LOGO_Y_START, LOGO_X_END, LOGO_Y_END
                     ), null
                 )
 
@@ -453,31 +456,19 @@ class TimeSheetPDFCreatorWorker @AssistedInject constructor(
 
 
                 canvas[currentPageCount].drawText(
-                    "Customer:",
-                    LEFT_DATA_START,
-                    DATA_TOP,
-                    paintBoldText
+                    "Customer:", LEFT_DATA_START, DATA_TOP, paintBoldText
                 )
 
                 canvas[currentPageCount].drawText(
-                    "Project City:",
-                    LEFT_DATA_START,
-                    DATA_TOP + 2 * (textRowHeight),
-                    paintBoldText
+                    "Project City:", LEFT_DATA_START, DATA_TOP + 2 * (textRowHeight), paintBoldText
                 )
 
                 canvas[currentPageCount].drawText(
-                    "Machine Type:",
-                    LEFT_DATA_START,
-                    DATA_TOP + 4 * (textRowHeight),
-                    paintBoldText
+                    "Machine Type:", LEFT_DATA_START, DATA_TOP + 4 * (textRowHeight), paintBoldText
                 )
 
                 canvas[currentPageCount].drawText(
-                    "Departure:",
-                    LEFT_DATA_START,
-                    DATA_TOP + 6 * (textRowHeight),
-                    paintBoldText
+                    "Departure:", LEFT_DATA_START, DATA_TOP + 6 * (textRowHeight), paintBoldText
                 )
 
                 canvas[currentPageCount].drawText(
@@ -505,8 +496,12 @@ class TimeSheetPDFCreatorWorker @AssistedInject constructor(
                 }
 
 
-                canvas[currentPageCount]
-                    .drawText("Service Engineer:", RIGHT_DATA_START, DATA_TOP, paintBoldText)
+                canvas[currentPageCount].drawText(
+                    "Service Engineer:",
+                    RIGHT_DATA_START,
+                    DATA_TOP,
+                    paintBoldText
+                )
                 canvas[currentPageCount].drawText(
                     "Project Country:",
                     RIGHT_DATA_START,
@@ -519,19 +514,12 @@ class TimeSheetPDFCreatorWorker @AssistedInject constructor(
                     DATA_TOP + 4 * (textRowHeight),
                     paintBoldText
                 )
-                canvas[currentPageCount]
-                    .drawText(
-                        "Arrival:",
-                        RIGHT_DATA_START,
-                        DATA_TOP + 6 * (textRowHeight),
-                        paintBoldText
-                    )
+                canvas[currentPageCount].drawText(
+                    "Arrival:", RIGHT_DATA_START, DATA_TOP + 6 * (textRowHeight), paintBoldText
+                )
 
                 canvas[currentPageCount].drawText(
-                    customer.name,
-                    LEFT_DATA_START + CUSTOMER_SHIFT,
-                    DATA_TOP,
-                    paintText
+                    customer.name, LEFT_DATA_START + CUSTOMER_SHIFT, DATA_TOP, paintText
                 )
 
                 canvas[currentPageCount].drawText(
@@ -570,10 +558,7 @@ class TimeSheetPDFCreatorWorker @AssistedInject constructor(
                     paintText
                 )
                 canvas[currentPageCount].drawText(
-                    userName.await(),
-                    RIGHT_DATA_START + SERVICE_ENGINEER_SHIFT,
-                    DATA_TOP,
-                    paintText
+                    userName.await(), RIGHT_DATA_START + SERVICE_ENGINEER_SHIFT, DATA_TOP, paintText
                 )
                 canvas[currentPageCount].drawText(
                     customer.country,
@@ -582,8 +567,7 @@ class TimeSheetPDFCreatorWorker @AssistedInject constructor(
                     paintText
                 )
                 canvas[currentPageCount].drawText(
-                    if (isIbau.await()) ibau.machineNumber else hmeCode.machineNumber
-                        ?: "Error",
+                    if (isIbau.await()) ibau.machineNumber else hmeCode.machineNumber ?: "Error",
                     RIGHT_DATA_START + MACHINE_NUMBER_SHIFT,
                     DATA_TOP + 4 * (textRowHeight),
                     paintText
@@ -595,8 +579,7 @@ class TimeSheetPDFCreatorWorker @AssistedInject constructor(
                     paintText
                 )
 
-                if (isIbau.await()
-                ) {
+                if (isIbau.await()) {
                     canvas[currentPageCount].drawText(
                         "IBAU Service Order:",
                         RIGHT_DATA_START,
@@ -783,9 +766,7 @@ class TimeSheetPDFCreatorWorker @AssistedInject constructor(
                     userSignHeight = ENGINEER_SIGN_WIDTH * ratio
 
                     canvas[currentPageCount].drawBitmap(
-                        userSignature,
-                        null,
-                        RectF(
+                        userSignature, null, RectF(
                             ENGINEER_SIGNATURE_IMG_SHIFT,
                             (SIGNATURE_BOTTOM - textRowHeight - userSignHeight),
                             (ENGINEER_SIGNATURE_IMG_SHIFT + ENGINEER_SIGN_WIDTH),
@@ -810,9 +791,7 @@ class TimeSheetPDFCreatorWorker @AssistedInject constructor(
                     )
 
                     canvas[currentPageCount].drawBitmap(
-                        customerSignature,
-                        null,
-                        RectF(
+                        customerSignature, null, RectF(
                             CUSTOMER_SIGNATURE_IMG_SHIFT,
                             (SIGNATURE_BOTTOM - textRowHeight - customerSignHeight - (paintText.descent() - paintText.ascent())),
                             (CUSTOMER_SIGN_SHIFT + CUSTOMER_SIGN_WIDTH + CUSTOMER_SIGN_WIDTH),
@@ -851,8 +830,12 @@ class TimeSheetPDFCreatorWorker @AssistedInject constructor(
 
                 // --- Signature ---
                 //Checked by HME
-                canvas[currentPageCount]
-                    .drawText("Check by HME", CHECKED_SHIFT, SIGNATURE_BOTTOM, paintText)
+                canvas[currentPageCount].drawText(
+                    "Check by HME",
+                    CHECKED_SHIFT,
+                    SIGNATURE_BOTTOM,
+                    paintText
+                )
                 canvas[currentPageCount].drawLine(
                     CHECKED_SHIFT + SIGNATURE_LINE_SHIFT,
                     SIGNATURE_BOTTOM + paintText.ascent() - paintText.descent(),
@@ -862,13 +845,9 @@ class TimeSheetPDFCreatorWorker @AssistedInject constructor(
                 )
 
                 // Customer name and Sign
-                canvas[currentPageCount]
-                    .drawText(
-                        "Customer Signature",
-                        CUSTOMER_SIGN_SHIFT,
-                        SIGNATURE_BOTTOM,
-                        paintText
-                    )
+                canvas[currentPageCount].drawText(
+                    "Customer Signature", CUSTOMER_SIGN_SHIFT, SIGNATURE_BOTTOM, paintText
+                )
                 canvas[currentPageCount].drawLine(
                     CUSTOMER_SIGN_SHIFT + SIGNATURE_LINE_SHIFT,
                     SIGNATURE_BOTTOM + paintText.ascent() - paintText.descent(),
@@ -878,13 +857,9 @@ class TimeSheetPDFCreatorWorker @AssistedInject constructor(
                 )
 
                 //Engineer Sign
-                canvas[currentPageCount]
-                    .drawText(
-                        "Engineer Signature",
-                        ENGINEER_SIGN_SHIFT,
-                        SIGNATURE_BOTTOM,
-                        paintText
-                    )
+                canvas[currentPageCount].drawText(
+                    "Engineer Signature", ENGINEER_SIGN_SHIFT, SIGNATURE_BOTTOM, paintText
+                )
                 canvas[currentPageCount].drawLine(
                     ENGINEER_SIGN_SHIFT + SIGNATURE_LINE_SHIFT,
                     SIGNATURE_BOTTOM + paintText.ascent() - paintText.descent(),
@@ -905,29 +880,25 @@ class TimeSheetPDFCreatorWorker @AssistedInject constructor(
             }
 
 
-            if (currentItem == timeSheets.last())
-                canvas[currentPageCount].drawLine(
-                    X_TABLE_LEFT,
-                    yPositionForCurrentItem + paintText.descent(),
-                    X_TABLE_LEFT + TABLE_WIDTH,
-                    yPositionForCurrentItem + paintText.descent(),
-                    paintThickLineTableBorder
-                )
-            else
-                canvas[currentPageCount].drawLine(
-                    X_TABLE_LEFT,
-                    yPositionForCurrentItem + paintText.descent(),
-                    X_TABLE_LEFT + TABLE_WIDTH,
-                    yPositionForCurrentItem + paintText.descent(),
-                    paintText
-                )
+            if (currentItem == timeSheets.last()) canvas[currentPageCount].drawLine(
+                X_TABLE_LEFT,
+                yPositionForCurrentItem + paintText.descent(),
+                X_TABLE_LEFT + TABLE_WIDTH,
+                yPositionForCurrentItem + paintText.descent(),
+                paintThickLineTableBorder
+            )
+            else canvas[currentPageCount].drawLine(
+                X_TABLE_LEFT,
+                yPositionForCurrentItem + paintText.descent(),
+                X_TABLE_LEFT + TABLE_WIDTH,
+                yPositionForCurrentItem + paintText.descent(),
+                paintText
+            )
 
 
             canvas[currentPageCount].drawText(
                 currentItem.date.getDisplayName(
-                    Calendar.DAY_OF_WEEK,
-                    Calendar.SHORT_STANDALONE,
-                    Locale.getDefault()
+                    Calendar.DAY_OF_WEEK, Calendar.SHORT_STANDALONE, Locale.getDefault()
                 ) ?: "Error", X_TABLE_LEFT + DAY_SHIFT, yPositionForCurrentItem, paintText
             )
 
@@ -1096,7 +1067,7 @@ class TimeSheetPDFCreatorWorker @AssistedInject constructor(
         for (i in 7..11) {
             canvas[currentPageCount].drawLine(
                 X_TABLE_LEFT + i * COLUMN_SHIFT,
-                yPositionForCurrentItem + paintText.ascent(),
+                yPositionForCurrentItem + paintText.descent() - textRowHeight,
                 X_TABLE_LEFT + i * COLUMN_SHIFT,
                 yPositionForCurrentItem + paintText.descent(),
                 paintThickLineTableBorder
@@ -1131,8 +1102,7 @@ class TimeSheetPDFCreatorWorker @AssistedInject constructor(
                     pdfDocument.writeTo(
                         FileOutputStream(
                             File(
-                                directory,
-                                hmeCode.code + "_" + fileNumber + ".pdf"
+                                directory, hmeCode.code + "_" + fileNumber + ".pdf"
                             )
                         )
                     )
