@@ -6,6 +6,8 @@ import android.graphics.*
 import android.graphics.pdf.PdfDocument
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.core.net.toFile
+import androidx.core.net.toUri
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
@@ -18,6 +20,7 @@ import com.neklaway.hme_reporting.common.domain.use_cases.customer_use_cases.Get
 import com.neklaway.hme_reporting.common.domain.use_cases.hme_code_use_cases.GetHMECodeByIdUseCase
 import com.neklaway.hme_reporting.common.domain.use_cases.hme_code_use_cases.UpdateHMECodeUseCase
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.Expanse
+import com.neklaway.hme_reporting.feature_expanse_sheet.domain.use_cases.currency_exchange_use_cases.GetCurrencyExchangeByIdUseCase
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.allowance.Get8HDayAllowanceUseCase
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.allowance.GetFullDayAllowanceUseCase
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.allowance.GetSavingDeductibleUseCase
@@ -48,6 +51,24 @@ private const val NORMAL_TEXT_SIZE = 10f
 private const val PAGE_WIDTH = 595
 private const val PAGE_HEIGHT = 842
 
+//Invoice locations
+private const val HME_CODE_X = 30f
+private const val HME_CODE_Y = 30f
+private const val INVOICE_DESCRIPTION_X = 250f
+private const val INVOICE_DESCRIPTION_Y = 30f
+private const val INVOICE_AMOUNT_AND_CURRENCY_X = 30f
+private const val INVOICE_AMOUNT_AND_CURRENCY_Y = 50f
+private const val INVOICE_AMOUNT_AED_X = 250f
+private const val INVOICE_AMOUNT_AED_Y = 50f
+
+//Invoice Image Location
+private const val INVOICE_IMAGE_TOP_POSITION = 150f
+private const val INVOICE_IMAGE_LEFT_POSITION = 10f
+
+//Invoice Image max size
+private const val IMAGE_MAX_WIDTH = PAGE_WIDTH - (2 * INVOICE_IMAGE_LEFT_POSITION)
+private const val IMAGE_MAX_HEIGHT = PAGE_HEIGHT - (2 * INVOICE_IMAGE_TOP_POSITION)
+
 // Title position
 private const val TITLE_X = 10f
 private const val TITLE_Y = 5f
@@ -76,6 +97,7 @@ private const val X_TABLE_LEFT = 15f
 private const val TABLE_WIDTH = 560f
 private const val SUMMARY_COLUMN_SHIFT = TABLE_WIDTH / 8
 private const val DETAILS_COLUMN_SHIFT = TABLE_WIDTH / 5
+private const val Expanse_COLUMN_SHIFT = TABLE_WIDTH / 7
 
 
 //Y position start initialization
@@ -122,11 +144,22 @@ private const val TOTAL_DAILY_ALLOWANCE_HEADER_SHIFT = 25
 private const val RATE_HEADER_SHIFT = 25
 private const val RATE_SHIFT = 25
 private const val AMOUNT_HEADER_SHIFT = 15
+private const val EXPANSE_AMOUNT_HEADER_SHIFT = 5
+private const val EXPANSE_AMOUNT_SHIFT = 5
 private const val AMOUNT_SHIFT = 25
 private const val DATE_SHIFT = 2
 private const val ACCRUED_SAVING_HEADER_SHIFT = 25
 private const val AMOUNT_PAYABLE_HEADER_SHIFT = 25
+private const val EXPANSE_SUMMERY_HEADER_SHIFT = 25
 private const val TOTAL_PAYABLE_AMOUNT_SHIFT = 20
+private const val INVOICE_NUMBER_HEADER_SHIFT = 5
+private const val INVOICE_NUMBER_SHIFT = 2
+private const val DESCRIPTION_HEADER_SHIFT = 2
+private const val DESCRIPTION_SHIFT = 2
+private const val CURRENCY_HEADER_SHIFT = 2
+private const val CURRENCY_SHIFT = 2
+private const val AMOUNT_AED_HEADER_SHIFT = 2
+private const val AMOUNT_AED_SHIFT = 2
 
 
 //Create Signature and date
@@ -151,7 +184,7 @@ class ExpanseSheetPDFCreatorWorker @AssistedInject constructor(
     private val get8HDayAllowanceUseCase: Get8HDayAllowanceUseCase,
     private val getSavingDeductibleUseCase: GetSavingDeductibleUseCase,
     private val calculateAllowance: CalculateAllowance,
-    private val calculateExpanse: CalculateExpanse
+    private val getCurrencyExchangeByIdUseCase: GetCurrencyExchangeByIdUseCase,
 ) : CoroutineWorker(appContext, workerParameters) {
 
 
@@ -308,444 +341,11 @@ class ExpanseSheetPDFCreatorWorker @AssistedInject constructor(
         bitmapOptions.inScaled = true
 
 
-
-
         /*** PDF Creation ***/
 
 
-        suspend fun createAllowanceSummeryTable() {
-            //*** Allowance table overview ***//
-            // Draw Lines
-            canvas[currentPageCount].drawLine(
-                X_TABLE_LEFT,
-                Y_TABLE_TOP + paintThickLineTableBorder.ascent(),
-                X_TABLE_LEFT + TABLE_WIDTH,
-                Y_TABLE_TOP + paintThickLineTableBorder.ascent(),
-                paintThickLineTableBorder
-            )
-            canvas[currentPageCount].drawLine(
-                X_TABLE_LEFT,
-                Y_TABLE_TOP + paintThickLineTableBorder.descent(),
-                X_TABLE_LEFT + TABLE_WIDTH,
-                Y_TABLE_TOP + paintThickLineTableBorder.descent(),
-                paintText
-            )
-            canvas[currentPageCount].drawLine(
-                X_TABLE_LEFT,
-                Y_TABLE_TOP + textRowHeight + paintThickLineTableBorder.descent(),
-                X_TABLE_LEFT + TABLE_WIDTH,
-                Y_TABLE_TOP + textRowHeight + paintThickLineTableBorder.descent(),
-                paintText
-            )
-            canvas[currentPageCount].drawLine(
-                X_TABLE_LEFT,
-                Y_TABLE_TOP + 2 * textRowHeight + paintThickLineTableBorder.descent(),
-                X_TABLE_LEFT + TABLE_WIDTH,
-                Y_TABLE_TOP + 2 * textRowHeight + paintThickLineTableBorder.descent(),
-                paintText
-            )
-            canvas[currentPageCount].drawLine(
-                X_TABLE_LEFT,
-                Y_TABLE_TOP + 3 * textRowHeight + paintThickLineTableBorder.descent(),
-                X_TABLE_LEFT + TABLE_WIDTH,
-                Y_TABLE_TOP + 3 * textRowHeight + paintThickLineTableBorder.descent(),
-                paintText
-            )
-            canvas[currentPageCount].drawLine(
-                X_TABLE_LEFT,
-                Y_TABLE_TOP + 4 * textRowHeight + paintThickLineTableBorder.descent(),
-                X_TABLE_LEFT + TABLE_WIDTH,
-                Y_TABLE_TOP + 4 * textRowHeight + paintThickLineTableBorder.descent(),
-                paintThickLineTableBorder
-            )
-            canvas[currentPageCount].drawLine(
-                X_TABLE_LEFT,
-                Y_TABLE_TOP + paintThickLineTableBorder.ascent(),
-                X_TABLE_LEFT,
-                Y_TABLE_TOP + 4 * textRowHeight + paintThickLineTableBorder.descent(),
-                paintThickLineTableBorder
-            )
-            canvas[currentPageCount].drawLine(
-                X_TABLE_LEFT + TABLE_WIDTH,
-                Y_TABLE_TOP + paintThickLineTableBorder.ascent(),
-                X_TABLE_LEFT + TABLE_WIDTH,
-                Y_TABLE_TOP + 4 * textRowHeight + paintThickLineTableBorder.descent(),
-                paintThickLineTableBorder
-            )
-            //Vertical lines
-            canvas[currentPageCount].drawLine(
-                X_TABLE_LEFT + SUMMARY_COLUMN_SHIFT,
-                Y_TABLE_TOP + paintThickLineTableBorder.descent(),
-                X_TABLE_LEFT + SUMMARY_COLUMN_SHIFT,
-                Y_TABLE_TOP + 4 * textRowHeight + paintThickLineTableBorder.descent(),
-                paintText
-            )
-            canvas[currentPageCount].drawLine(
-                X_TABLE_LEFT + 2 * SUMMARY_COLUMN_SHIFT,
-                Y_TABLE_TOP + paintThickLineTableBorder.ascent(),
-                X_TABLE_LEFT + 2 * SUMMARY_COLUMN_SHIFT,
-                Y_TABLE_TOP + 4 * textRowHeight + paintThickLineTableBorder.descent(),
-                paintText
-            )
-            canvas[currentPageCount].drawLine(
-                X_TABLE_LEFT + 3 * SUMMARY_COLUMN_SHIFT,
-                Y_TABLE_TOP + paintThickLineTableBorder.descent(),
-                X_TABLE_LEFT + 3 * SUMMARY_COLUMN_SHIFT,
-                Y_TABLE_TOP + 4 * textRowHeight + paintThickLineTableBorder.descent(),
-                paintText
-            )
-            canvas[currentPageCount].drawLine(
-                X_TABLE_LEFT + 4 * SUMMARY_COLUMN_SHIFT,
-                Y_TABLE_TOP + paintThickLineTableBorder.ascent(),
-                X_TABLE_LEFT + 4 * SUMMARY_COLUMN_SHIFT,
-                Y_TABLE_TOP + 4 * textRowHeight + paintThickLineTableBorder.descent(),
-                paintText
-            )
-            canvas[currentPageCount].drawLine(
-                X_TABLE_LEFT + 5 * SUMMARY_COLUMN_SHIFT,
-                Y_TABLE_TOP + paintThickLineTableBorder.descent(),
-                X_TABLE_LEFT + 5 * SUMMARY_COLUMN_SHIFT,
-                Y_TABLE_TOP + 4 * textRowHeight + paintThickLineTableBorder.descent(),
-                paintText
-            )
-            canvas[currentPageCount].drawLine(
-                X_TABLE_LEFT + 6 * SUMMARY_COLUMN_SHIFT,
-                Y_TABLE_TOP + paintThickLineTableBorder.ascent(),
-                X_TABLE_LEFT + 6 * SUMMARY_COLUMN_SHIFT,
-                Y_TABLE_TOP + 4 * textRowHeight + paintThickLineTableBorder.descent(),
-                paintText
-            )
-            canvas[currentPageCount].drawLine(
-                X_TABLE_LEFT + 7 * SUMMARY_COLUMN_SHIFT,
-                Y_TABLE_TOP + paintThickLineTableBorder.descent(),
-                X_TABLE_LEFT + 7 * SUMMARY_COLUMN_SHIFT,
-                Y_TABLE_TOP + 4 * textRowHeight + paintThickLineTableBorder.descent(),
-                paintText
-            )
-            canvas[currentPageCount].drawLine(
-                X_TABLE_LEFT + 8 * SUMMARY_COLUMN_SHIFT,
-                Y_TABLE_TOP + paintThickLineTableBorder.ascent(),
-                X_TABLE_LEFT + 8 * SUMMARY_COLUMN_SHIFT,
-                Y_TABLE_TOP + 4 * textRowHeight + paintThickLineTableBorder.descent(),
-                paintText
-            )
-
-            //Particulars
-            canvas[currentPageCount].drawText(
-                applicationContext.resources.getString(R.string.particulars),
-                X_TABLE_LEFT + PARTICULARS_HEADER_SHIFT,
-                Y_TABLE_TOP,
-                paintBoldText
-            )
-
-            //Category
-            canvas[currentPageCount].drawText(
-                applicationContext.resources.getString(R.string.category),
-                X_TABLE_LEFT + CATEGORY_HEADER_SHIFT,
-                Y_TABLE_TOP + textRowHeight,
-                paintBoldText
-            )
-
-            //No. of Days
-            canvas[currentPageCount].drawText(
-                applicationContext.resources.getString(R.string.no_of_days),
-                X_TABLE_LEFT + SUMMARY_COLUMN_SHIFT + NO_OF_DAYS_HEADER_SHIFT,
-                Y_TABLE_TOP + textRowHeight,
-                paintBoldText
-            )
-
-            //Total daily Allowance
-            canvas[currentPageCount].drawText(
-                applicationContext.resources.getString(R.string.total_daily_allowance),
-                X_TABLE_LEFT + 2 * SUMMARY_COLUMN_SHIFT + TOTAL_DAILY_ALLOWANCE_HEADER_SHIFT,
-                Y_TABLE_TOP,
-                paintBoldText
-            )
-
-
-            //Rate
-            canvas[currentPageCount].drawText(
-                applicationContext.resources.getString(R.string.rate),
-                X_TABLE_LEFT + 2 * SUMMARY_COLUMN_SHIFT + RATE_HEADER_SHIFT,
-                Y_TABLE_TOP + textRowHeight,
-                paintBoldText
-            )
-
-            //Amount
-            canvas[currentPageCount].drawText(
-                applicationContext.resources.getString(R.string.amount),
-                X_TABLE_LEFT + 3 * SUMMARY_COLUMN_SHIFT + AMOUNT_HEADER_SHIFT,
-                Y_TABLE_TOP + textRowHeight,
-                paintBoldText
-            )
-
-
-            //Accrued Saving
-            canvas[currentPageCount].drawText(
-                applicationContext.resources.getString(R.string.accrued_saving),
-                X_TABLE_LEFT + 4 * SUMMARY_COLUMN_SHIFT + ACCRUED_SAVING_HEADER_SHIFT,
-                Y_TABLE_TOP,
-                paintBoldText
-            )
-
-
-            //Rate
-            canvas[currentPageCount].drawText(
-                applicationContext.resources.getString(R.string.rate),
-                X_TABLE_LEFT + 4 * SUMMARY_COLUMN_SHIFT + RATE_HEADER_SHIFT,
-                Y_TABLE_TOP + textRowHeight,
-                paintBoldText
-            )
-
-            //Amount
-            canvas[currentPageCount].drawText(
-                applicationContext.resources.getString(R.string.amount),
-                X_TABLE_LEFT + 5 * SUMMARY_COLUMN_SHIFT + AMOUNT_HEADER_SHIFT,
-                Y_TABLE_TOP + textRowHeight,
-                paintBoldText
-            )
-
-            //Amount Payable
-            canvas[currentPageCount].drawText(
-                applicationContext.resources.getString(R.string.amount_payable),
-                X_TABLE_LEFT + 6 * SUMMARY_COLUMN_SHIFT + AMOUNT_PAYABLE_HEADER_SHIFT,
-                Y_TABLE_TOP,
-                paintBoldText
-            )
-
-
-            //Rate
-            canvas[currentPageCount].drawText(
-                applicationContext.resources.getString(R.string.rate),
-                X_TABLE_LEFT + 6 * SUMMARY_COLUMN_SHIFT + RATE_HEADER_SHIFT,
-                Y_TABLE_TOP + textRowHeight,
-                paintBoldText
-            )
-
-            //Amount
-            canvas[currentPageCount].drawText(
-                applicationContext.resources.getString(R.string.amount),
-                X_TABLE_LEFT + 7 * SUMMARY_COLUMN_SHIFT + AMOUNT_HEADER_SHIFT,
-                Y_TABLE_TOP + textRowHeight,
-                paintBoldText
-            )
-
-
-            //less than 24H
-            canvas[currentPageCount].drawText(
-                applicationContext.resources.getString(R.string.less24h),
-                X_TABLE_LEFT + LESS24H_SHIFT,
-                Y_TABLE_TOP + 2 * textRowHeight,
-                paintText
-            )
-
-            val less24HDays = timeSheets.count { it.dailyAllowance == AllowanceType._8hours }
-            val fullDays = timeSheets.count { it.dailyAllowance == AllowanceType._24hours }
-            //less than 24H Count
-            canvas[currentPageCount].drawText(
-                less24HDays.toString(),
-                X_TABLE_LEFT + SUMMARY_COLUMN_SHIFT + DAYS_COUNT_SHIFT,
-                Y_TABLE_TOP + 2 * textRowHeight,
-                paintText
-            )
-            val less24HRate = get8HDayAllowanceUseCase()
-            val fullRate = getFullDayAllowanceUseCase()
-
-            //less than 24H Rate
-            canvas[currentPageCount].drawText(
-                less24HRate.toString(),
-                X_TABLE_LEFT + 2 * SUMMARY_COLUMN_SHIFT + RATE_SHIFT,
-                Y_TABLE_TOP + 2 * textRowHeight,
-                paintText
-            )
-            //less than 24H Amount
-            canvas[currentPageCount].drawText(
-                (less24HRate * less24HDays).toString(),
-                X_TABLE_LEFT + 3 * SUMMARY_COLUMN_SHIFT + AMOUNT_SHIFT,
-                Y_TABLE_TOP + 2 * textRowHeight,
-                paintText
-            )
-            //less than 24H Saving Rate
-            canvas[currentPageCount].drawText(
-                "---",
-                X_TABLE_LEFT + 4 * SUMMARY_COLUMN_SHIFT + RATE_SHIFT,
-                Y_TABLE_TOP + 2 * textRowHeight,
-                paintText
-            )
-            //less than 24H Saving Amount
-            canvas[currentPageCount].drawText(
-                "---",
-                X_TABLE_LEFT + 5 * SUMMARY_COLUMN_SHIFT + AMOUNT_SHIFT,
-                Y_TABLE_TOP + 2 * textRowHeight,
-                paintText
-            )
-            //less than 24H payable Rate
-            canvas[currentPageCount].drawText(
-                less24HRate.toString(),
-                X_TABLE_LEFT + 6 * SUMMARY_COLUMN_SHIFT + RATE_SHIFT,
-                Y_TABLE_TOP + 2 * textRowHeight,
-                paintText
-            )
-            //less than 24H payable Amount
-            canvas[currentPageCount].drawText(
-                (less24HRate * less24HDays).toString(),
-                X_TABLE_LEFT + 7 * SUMMARY_COLUMN_SHIFT + AMOUNT_SHIFT,
-                Y_TABLE_TOP + 2 * textRowHeight,
-                paintText
-            )
-
-            //Full 24H
-            canvas[currentPageCount].drawText(
-                applicationContext.resources.getString(R.string.full24h),
-                X_TABLE_LEFT + FULL24H_SHIFT,
-                Y_TABLE_TOP + 3 * textRowHeight,
-                paintText
-            )
-            //Full 24H Count
-            canvas[currentPageCount].drawText(
-                fullDays.toString(),
-                X_TABLE_LEFT + SUMMARY_COLUMN_SHIFT + DAYS_COUNT_SHIFT,
-                Y_TABLE_TOP + 3 * textRowHeight,
-                paintText
-            )
-            //Full24H Rate
-            canvas[currentPageCount].drawText(
-                fullRate.toString(),
-                X_TABLE_LEFT + 2 * SUMMARY_COLUMN_SHIFT + RATE_SHIFT,
-                Y_TABLE_TOP + 3 * textRowHeight,
-                paintText
-            )
-            //Full 24H Amount
-            canvas[currentPageCount].drawText(
-                (fullRate * fullDays).toString(),
-                X_TABLE_LEFT + 3 * SUMMARY_COLUMN_SHIFT + AMOUNT_SHIFT,
-                Y_TABLE_TOP + 3 * textRowHeight,
-                paintText
-            )
-            val savingRate = getSavingDeductibleUseCase()
-            //Full24H Saving Rate
-            canvas[currentPageCount].drawText(
-                savingRate.toString(),
-                X_TABLE_LEFT + 4 * SUMMARY_COLUMN_SHIFT + RATE_SHIFT,
-                Y_TABLE_TOP + 3 * textRowHeight,
-                paintText
-            )
-            //Full 24H Saving Amount
-            canvas[currentPageCount].drawText(
-                (savingRate * fullDays).toString(),
-                X_TABLE_LEFT + 5 * SUMMARY_COLUMN_SHIFT + AMOUNT_SHIFT,
-                Y_TABLE_TOP + 3 * textRowHeight,
-                paintText
-            )
-            //Full 24H payable Rate
-            canvas[currentPageCount].drawText(
-                (fullRate - savingRate).toString(),
-                X_TABLE_LEFT + 6 * SUMMARY_COLUMN_SHIFT + RATE_SHIFT,
-                Y_TABLE_TOP + 3 * textRowHeight,
-                paintText
-            )
-            //less than 24H payable Amount
-            canvas[currentPageCount].drawText(
-                ((fullRate - savingRate) * fullDays).toString(),
-                X_TABLE_LEFT + 7 * SUMMARY_COLUMN_SHIFT + AMOUNT_SHIFT,
-                Y_TABLE_TOP + 3 * textRowHeight,
-                paintText
-            )
-            //Sub-totals
-            canvas[currentPageCount].drawText(
-                applicationContext.resources.getString(R.string.sub_totals),
-                X_TABLE_LEFT + SUB_TOTAL_SHIFT,
-                Y_TABLE_TOP + 4 * textRowHeight,
-                paintBoldText
-            )
-            //Total Days Count
-            canvas[currentPageCount].drawText(
-                (less24HDays + fullDays).toString(),
-                X_TABLE_LEFT + SUMMARY_COLUMN_SHIFT + DAYS_COUNT_SHIFT,
-                Y_TABLE_TOP + 4 * textRowHeight,
-                paintBoldText
-            )
-            //Total Amount
-            canvas[currentPageCount].drawText(
-                ((fullRate * fullDays) + (less24HRate * less24HDays)).toString(),
-                X_TABLE_LEFT + 3 * SUMMARY_COLUMN_SHIFT + RATE_SHIFT,
-                Y_TABLE_TOP + 4 * textRowHeight,
-                paintBoldText
-            )
-
-            //Total Saving Amount
-            canvas[currentPageCount].drawText(
-                (savingRate * fullDays).toString(),
-                X_TABLE_LEFT + 5 * SUMMARY_COLUMN_SHIFT + RATE_SHIFT,
-                Y_TABLE_TOP + 4 * textRowHeight,
-                paintBoldText
-            )
-            //Total Payable Amount
-            canvas[currentPageCount].drawText(
-                calculateAllowance(fullDays, less24HDays).toString(),
-                X_TABLE_LEFT + 7 * SUMMARY_COLUMN_SHIFT + TOTAL_PAYABLE_AMOUNT_SHIFT,
-                Y_TABLE_TOP + 4 * textRowHeight,
-                paintBoldText
-            )
-        }
-
-        fun createAllowanceDetailsHeader(headerLocationY: Float) {
-
-            //Draw Lines
-            canvas[currentPageCount].drawLine(
-                X_TABLE_LEFT,
-                headerLocationY + paintThickLineTableBorder.ascent(),
-                X_TABLE_LEFT + TABLE_WIDTH,
-                headerLocationY + paintThickLineTableBorder.ascent(),
-                paintThickLineTableBorder
-            )
-            canvas[currentPageCount].drawLine(
-                X_TABLE_LEFT,
-                headerLocationY + paintThickLineTableBorder.descent(),
-                X_TABLE_LEFT + TABLE_WIDTH,
-                headerLocationY + paintThickLineTableBorder.descent(),
-                paintText
-            )
-            //Day
-            canvas[currentPageCount].drawText(
-                applicationContext.resources.getString(R.string.day),
-                X_TABLE_LEFT + DAY_SHIFT,
-                headerLocationY,
-                paintBoldText
-            )
-            //Date
-            canvas[currentPageCount].drawText(
-                applicationContext.resources.getString(R.string.date),
-                X_TABLE_LEFT + DETAILS_COLUMN_SHIFT + DATE_SHIFT,
-                headerLocationY,
-                paintBoldText
-            )
-            //Full 24H Day
-            canvas[currentPageCount].drawText(
-                applicationContext.resources.getString(R.string.full24h),
-                X_TABLE_LEFT + 2 * DETAILS_COLUMN_SHIFT + FULL24H_HEADER_SHIFT,
-                headerLocationY,
-                paintBoldText
-            )
-
-            //less than 24H
-            canvas[currentPageCount].drawText(
-                applicationContext.resources.getString(R.string.less24h),
-                X_TABLE_LEFT + 3 * DETAILS_COLUMN_SHIFT + LESS24H_HEADER_SHIFT,
-                headerLocationY,
-                paintBoldText
-            )
-            //No Allowance
-            canvas[currentPageCount].drawText(
-                applicationContext.resources.getString(R.string.no_allowance),
-                X_TABLE_LEFT + 4 * DETAILS_COLUMN_SHIFT + NO_ALLOWANCE_HEADER_SHIFT,
-                headerLocationY,
-                paintBoldText
-            )
-        }
-
-        createNewPage(timeSheets,userName.await())
-        createAllowanceSummeryTable()
+        createNewPage(timeSheets, userName.await())
+        createAllowanceSummeryTable(timeSheets)
 
         //Y position for Details Table
         val yPositionDetailsStart = Y_TABLE_TOP + 6 * (textRowHeight)
@@ -756,13 +356,6 @@ class ExpanseSheetPDFCreatorWorker @AssistedInject constructor(
 
         for (currentItem in timeSheets) {
 
-            if (currentPageCount > lastPageCreated) {
-                createNewEmptyPage()
-                createAllowanceDetailsHeader(TITLE_Y + 2 * textRowHeight)
-
-                //wait till new page created
-                lastPageCreated = currentPageCount
-            }
 
             if (currentItem == timeSheets.last())
                 canvas[currentPageCount].drawLine(
@@ -842,9 +435,30 @@ class ExpanseSheetPDFCreatorWorker @AssistedInject constructor(
                 }
 
             }
+
+            if (currentPageCount > lastPageCreated) {
+                createNewEmptyPage()
+                createAllowanceDetailsHeader(TITLE_Y + 2 * textRowHeight)
+            }
         }
 
         pdfDocument.finishPage(page[currentPageCount])
+
+        val ccExpanses = expanses.filter { !it.personallyPaid }
+        if (ccExpanses.isNotEmpty()) {
+            currentPageCount++
+            createNewPage(timeSheets, userName.await())
+            createExpanseTable(ccExpanses, false)
+
+        }
+
+        val cashExpanses = expanses.filter { it.personallyPaid }
+        if (cashExpanses.isNotEmpty()) {
+            currentPageCount++
+            createNewPage(timeSheets, userName.await())
+            createExpanseTable(cashExpanses, true)
+
+        }
 
 
         // Save PDF
@@ -902,12 +516,13 @@ class ExpanseSheetPDFCreatorWorker @AssistedInject constructor(
     }
 
     private suspend fun createNewEmptyPage() {
+        Log.d(TAG, "createNewEmptyPage: Current page $currentPageCount")
         //Create PDF page
         pageInfo.add(
             PdfDocument.PageInfo.Builder(
                 PAGE_WIDTH,
                 PAGE_HEIGHT,
-                currentPageCount + 1
+                currentPageCount
             ).create()
         )
         page.add(pdfDocument.startPage(pageInfo[currentPageCount]))
@@ -968,9 +583,12 @@ class ExpanseSheetPDFCreatorWorker @AssistedInject constructor(
             ROUND_Y_BORDER,
             paintThickLineTableBoarderLine
         )
+
+        //Update page counter
+        lastPageCreated = currentPageCount
     }
 
-    private suspend fun createNewPage(timeSheets:List<TimeSheet>,userName:String) {
+    private suspend fun createNewPage(timeSheets: List<TimeSheet>, userName: String) {
         createNewEmptyPage()
 
         canvas[currentPageCount].drawText(
@@ -1149,4 +767,749 @@ class ExpanseSheetPDFCreatorWorker @AssistedInject constructor(
         )
     }
 
+    private suspend fun createAllowanceSummeryTable(timeSheets: List<TimeSheet>) {
+        //*** Allowance table overview ***//
+        // Draw Lines
+        canvas[currentPageCount].drawLine(
+            X_TABLE_LEFT,
+            Y_TABLE_TOP + paintThickLineTableBorder.ascent(),
+            X_TABLE_LEFT + TABLE_WIDTH,
+            Y_TABLE_TOP + paintThickLineTableBorder.ascent(),
+            paintThickLineTableBorder
+        )
+        canvas[currentPageCount].drawLine(
+            X_TABLE_LEFT,
+            Y_TABLE_TOP + paintThickLineTableBorder.descent(),
+            X_TABLE_LEFT + TABLE_WIDTH,
+            Y_TABLE_TOP + paintThickLineTableBorder.descent(),
+            paintText
+        )
+        canvas[currentPageCount].drawLine(
+            X_TABLE_LEFT,
+            Y_TABLE_TOP + textRowHeight + paintThickLineTableBorder.descent(),
+            X_TABLE_LEFT + TABLE_WIDTH,
+            Y_TABLE_TOP + textRowHeight + paintThickLineTableBorder.descent(),
+            paintText
+        )
+        canvas[currentPageCount].drawLine(
+            X_TABLE_LEFT,
+            Y_TABLE_TOP + 2 * textRowHeight + paintThickLineTableBorder.descent(),
+            X_TABLE_LEFT + TABLE_WIDTH,
+            Y_TABLE_TOP + 2 * textRowHeight + paintThickLineTableBorder.descent(),
+            paintText
+        )
+        canvas[currentPageCount].drawLine(
+            X_TABLE_LEFT,
+            Y_TABLE_TOP + 3 * textRowHeight + paintThickLineTableBorder.descent(),
+            X_TABLE_LEFT + TABLE_WIDTH,
+            Y_TABLE_TOP + 3 * textRowHeight + paintThickLineTableBorder.descent(),
+            paintText
+        )
+        canvas[currentPageCount].drawLine(
+            X_TABLE_LEFT,
+            Y_TABLE_TOP + 4 * textRowHeight + paintThickLineTableBorder.descent(),
+            X_TABLE_LEFT + TABLE_WIDTH,
+            Y_TABLE_TOP + 4 * textRowHeight + paintThickLineTableBorder.descent(),
+            paintThickLineTableBorder
+        )
+        canvas[currentPageCount].drawLine(
+            X_TABLE_LEFT,
+            Y_TABLE_TOP + paintThickLineTableBorder.ascent(),
+            X_TABLE_LEFT,
+            Y_TABLE_TOP + 4 * textRowHeight + paintThickLineTableBorder.descent(),
+            paintThickLineTableBorder
+        )
+        canvas[currentPageCount].drawLine(
+            X_TABLE_LEFT + TABLE_WIDTH,
+            Y_TABLE_TOP + paintThickLineTableBorder.ascent(),
+            X_TABLE_LEFT + TABLE_WIDTH,
+            Y_TABLE_TOP + 4 * textRowHeight + paintThickLineTableBorder.descent(),
+            paintThickLineTableBorder
+        )
+        //Vertical lines
+        canvas[currentPageCount].drawLine(
+            X_TABLE_LEFT + SUMMARY_COLUMN_SHIFT,
+            Y_TABLE_TOP + paintThickLineTableBorder.descent(),
+            X_TABLE_LEFT + SUMMARY_COLUMN_SHIFT,
+            Y_TABLE_TOP + 4 * textRowHeight + paintThickLineTableBorder.descent(),
+            paintText
+        )
+        canvas[currentPageCount].drawLine(
+            X_TABLE_LEFT + 2 * SUMMARY_COLUMN_SHIFT,
+            Y_TABLE_TOP + paintThickLineTableBorder.ascent(),
+            X_TABLE_LEFT + 2 * SUMMARY_COLUMN_SHIFT,
+            Y_TABLE_TOP + 4 * textRowHeight + paintThickLineTableBorder.descent(),
+            paintText
+        )
+        canvas[currentPageCount].drawLine(
+            X_TABLE_LEFT + 3 * SUMMARY_COLUMN_SHIFT,
+            Y_TABLE_TOP + paintThickLineTableBorder.descent(),
+            X_TABLE_LEFT + 3 * SUMMARY_COLUMN_SHIFT,
+            Y_TABLE_TOP + 4 * textRowHeight + paintThickLineTableBorder.descent(),
+            paintText
+        )
+        canvas[currentPageCount].drawLine(
+            X_TABLE_LEFT + 4 * SUMMARY_COLUMN_SHIFT,
+            Y_TABLE_TOP + paintThickLineTableBorder.ascent(),
+            X_TABLE_LEFT + 4 * SUMMARY_COLUMN_SHIFT,
+            Y_TABLE_TOP + 4 * textRowHeight + paintThickLineTableBorder.descent(),
+            paintText
+        )
+        canvas[currentPageCount].drawLine(
+            X_TABLE_LEFT + 5 * SUMMARY_COLUMN_SHIFT,
+            Y_TABLE_TOP + paintThickLineTableBorder.descent(),
+            X_TABLE_LEFT + 5 * SUMMARY_COLUMN_SHIFT,
+            Y_TABLE_TOP + 4 * textRowHeight + paintThickLineTableBorder.descent(),
+            paintText
+        )
+        canvas[currentPageCount].drawLine(
+            X_TABLE_LEFT + 6 * SUMMARY_COLUMN_SHIFT,
+            Y_TABLE_TOP + paintThickLineTableBorder.ascent(),
+            X_TABLE_LEFT + 6 * SUMMARY_COLUMN_SHIFT,
+            Y_TABLE_TOP + 4 * textRowHeight + paintThickLineTableBorder.descent(),
+            paintText
+        )
+        canvas[currentPageCount].drawLine(
+            X_TABLE_LEFT + 7 * SUMMARY_COLUMN_SHIFT,
+            Y_TABLE_TOP + paintThickLineTableBorder.descent(),
+            X_TABLE_LEFT + 7 * SUMMARY_COLUMN_SHIFT,
+            Y_TABLE_TOP + 4 * textRowHeight + paintThickLineTableBorder.descent(),
+            paintText
+        )
+        canvas[currentPageCount].drawLine(
+            X_TABLE_LEFT + 8 * SUMMARY_COLUMN_SHIFT,
+            Y_TABLE_TOP + paintThickLineTableBorder.ascent(),
+            X_TABLE_LEFT + 8 * SUMMARY_COLUMN_SHIFT,
+            Y_TABLE_TOP + 4 * textRowHeight + paintThickLineTableBorder.descent(),
+            paintText
+        )
+
+        //Particulars
+        canvas[currentPageCount].drawText(
+            applicationContext.getString(R.string.particulars),
+            X_TABLE_LEFT + PARTICULARS_HEADER_SHIFT,
+            Y_TABLE_TOP,
+            paintBoldText
+        )
+
+        //Category
+        canvas[currentPageCount].drawText(
+            applicationContext.getString(R.string.category),
+            X_TABLE_LEFT + CATEGORY_HEADER_SHIFT,
+            Y_TABLE_TOP + textRowHeight,
+            paintBoldText
+        )
+
+        //No. of Days
+        canvas[currentPageCount].drawText(
+            applicationContext.getString(R.string.no_of_days),
+            X_TABLE_LEFT + SUMMARY_COLUMN_SHIFT + NO_OF_DAYS_HEADER_SHIFT,
+            Y_TABLE_TOP + textRowHeight,
+            paintBoldText
+        )
+
+        //Total daily Allowance
+        canvas[currentPageCount].drawText(
+            applicationContext.getString(R.string.total_daily_allowance),
+            X_TABLE_LEFT + 2 * SUMMARY_COLUMN_SHIFT + TOTAL_DAILY_ALLOWANCE_HEADER_SHIFT,
+            Y_TABLE_TOP,
+            paintBoldText
+        )
+
+
+        //Rate
+        canvas[currentPageCount].drawText(
+            applicationContext.getString(R.string.rate),
+            X_TABLE_LEFT + 2 * SUMMARY_COLUMN_SHIFT + RATE_HEADER_SHIFT,
+            Y_TABLE_TOP + textRowHeight,
+            paintBoldText
+        )
+
+        //Amount
+        canvas[currentPageCount].drawText(
+            applicationContext.getString(R.string.amount),
+            X_TABLE_LEFT + 3 * SUMMARY_COLUMN_SHIFT + AMOUNT_HEADER_SHIFT,
+            Y_TABLE_TOP + textRowHeight,
+            paintBoldText
+        )
+
+
+        //Accrued Saving
+        canvas[currentPageCount].drawText(
+            applicationContext.getString(R.string.accrued_saving),
+            X_TABLE_LEFT + 4 * SUMMARY_COLUMN_SHIFT + ACCRUED_SAVING_HEADER_SHIFT,
+            Y_TABLE_TOP,
+            paintBoldText
+        )
+
+
+        //Rate
+        canvas[currentPageCount].drawText(
+            applicationContext.getString(R.string.rate),
+            X_TABLE_LEFT + 4 * SUMMARY_COLUMN_SHIFT + RATE_HEADER_SHIFT,
+            Y_TABLE_TOP + textRowHeight,
+            paintBoldText
+        )
+
+        //Amount
+        canvas[currentPageCount].drawText(
+            applicationContext.getString(R.string.amount),
+            X_TABLE_LEFT + 5 * SUMMARY_COLUMN_SHIFT + AMOUNT_HEADER_SHIFT,
+            Y_TABLE_TOP + textRowHeight,
+            paintBoldText
+        )
+
+        //Amount Payable
+        canvas[currentPageCount].drawText(
+            applicationContext.getString(R.string.amount_payable),
+            X_TABLE_LEFT + 6 * SUMMARY_COLUMN_SHIFT + AMOUNT_PAYABLE_HEADER_SHIFT,
+            Y_TABLE_TOP,
+            paintBoldText
+        )
+
+
+        //Rate
+        canvas[currentPageCount].drawText(
+            applicationContext.getString(R.string.rate),
+            X_TABLE_LEFT + 6 * SUMMARY_COLUMN_SHIFT + RATE_HEADER_SHIFT,
+            Y_TABLE_TOP + textRowHeight,
+            paintBoldText
+        )
+
+        //Amount
+        canvas[currentPageCount].drawText(
+            applicationContext.getString(R.string.amount),
+            X_TABLE_LEFT + 7 * SUMMARY_COLUMN_SHIFT + AMOUNT_HEADER_SHIFT,
+            Y_TABLE_TOP + textRowHeight,
+            paintBoldText
+        )
+
+
+        //less than 24H
+        canvas[currentPageCount].drawText(
+            applicationContext.getString(R.string.less24h),
+            X_TABLE_LEFT + LESS24H_SHIFT,
+            Y_TABLE_TOP + 2 * textRowHeight,
+            paintText
+        )
+
+        val less24HDays = timeSheets.count { it.dailyAllowance == AllowanceType._8hours }
+        val fullDays = timeSheets.count { it.dailyAllowance == AllowanceType._24hours }
+        //less than 24H Count
+        canvas[currentPageCount].drawText(
+            less24HDays.toString(),
+            X_TABLE_LEFT + SUMMARY_COLUMN_SHIFT + DAYS_COUNT_SHIFT,
+            Y_TABLE_TOP + 2 * textRowHeight,
+            paintText
+        )
+        val less24HRate = get8HDayAllowanceUseCase()
+        val fullRate = getFullDayAllowanceUseCase()
+
+        //less than 24H Rate
+        canvas[currentPageCount].drawText(
+            less24HRate.toString(),
+            X_TABLE_LEFT + 2 * SUMMARY_COLUMN_SHIFT + RATE_SHIFT,
+            Y_TABLE_TOP + 2 * textRowHeight,
+            paintText
+        )
+        //less than 24H Amount
+        canvas[currentPageCount].drawText(
+            (less24HRate * less24HDays).toString(),
+            X_TABLE_LEFT + 3 * SUMMARY_COLUMN_SHIFT + AMOUNT_SHIFT,
+            Y_TABLE_TOP + 2 * textRowHeight,
+            paintText
+        )
+        //less than 24H Saving Rate
+        canvas[currentPageCount].drawText(
+            "---",
+            X_TABLE_LEFT + 4 * SUMMARY_COLUMN_SHIFT + RATE_SHIFT,
+            Y_TABLE_TOP + 2 * textRowHeight,
+            paintText
+        )
+        //less than 24H Saving Amount
+        canvas[currentPageCount].drawText(
+            "---",
+            X_TABLE_LEFT + 5 * SUMMARY_COLUMN_SHIFT + AMOUNT_SHIFT,
+            Y_TABLE_TOP + 2 * textRowHeight,
+            paintText
+        )
+        //less than 24H payable Rate
+        canvas[currentPageCount].drawText(
+            less24HRate.toString(),
+            X_TABLE_LEFT + 6 * SUMMARY_COLUMN_SHIFT + RATE_SHIFT,
+            Y_TABLE_TOP + 2 * textRowHeight,
+            paintText
+        )
+        //less than 24H payable Amount
+        canvas[currentPageCount].drawText(
+            (less24HRate * less24HDays).toString(),
+            X_TABLE_LEFT + 7 * SUMMARY_COLUMN_SHIFT + AMOUNT_SHIFT,
+            Y_TABLE_TOP + 2 * textRowHeight,
+            paintText
+        )
+
+        //Full 24H
+        canvas[currentPageCount].drawText(
+            applicationContext.getString(R.string.full24h),
+            X_TABLE_LEFT + FULL24H_SHIFT,
+            Y_TABLE_TOP + 3 * textRowHeight,
+            paintText
+        )
+        //Full 24H Count
+        canvas[currentPageCount].drawText(
+            fullDays.toString(),
+            X_TABLE_LEFT + SUMMARY_COLUMN_SHIFT + DAYS_COUNT_SHIFT,
+            Y_TABLE_TOP + 3 * textRowHeight,
+            paintText
+        )
+        //Full24H Rate
+        canvas[currentPageCount].drawText(
+            fullRate.toString(),
+            X_TABLE_LEFT + 2 * SUMMARY_COLUMN_SHIFT + RATE_SHIFT,
+            Y_TABLE_TOP + 3 * textRowHeight,
+            paintText
+        )
+        //Full 24H Amount
+        canvas[currentPageCount].drawText(
+            (fullRate * fullDays).toString(),
+            X_TABLE_LEFT + 3 * SUMMARY_COLUMN_SHIFT + AMOUNT_SHIFT,
+            Y_TABLE_TOP + 3 * textRowHeight,
+            paintText
+        )
+        val savingRate = getSavingDeductibleUseCase()
+        //Full24H Saving Rate
+        canvas[currentPageCount].drawText(
+            savingRate.toString(),
+            X_TABLE_LEFT + 4 * SUMMARY_COLUMN_SHIFT + RATE_SHIFT,
+            Y_TABLE_TOP + 3 * textRowHeight,
+            paintText
+        )
+        //Full 24H Saving Amount
+        canvas[currentPageCount].drawText(
+            (savingRate * fullDays).toString(),
+            X_TABLE_LEFT + 5 * SUMMARY_COLUMN_SHIFT + AMOUNT_SHIFT,
+            Y_TABLE_TOP + 3 * textRowHeight,
+            paintText
+        )
+        //Full 24H payable Rate
+        canvas[currentPageCount].drawText(
+            (fullRate - savingRate).toString(),
+            X_TABLE_LEFT + 6 * SUMMARY_COLUMN_SHIFT + RATE_SHIFT,
+            Y_TABLE_TOP + 3 * textRowHeight,
+            paintText
+        )
+        //less than 24H payable Amount
+        canvas[currentPageCount].drawText(
+            ((fullRate - savingRate) * fullDays).toString(),
+            X_TABLE_LEFT + 7 * SUMMARY_COLUMN_SHIFT + AMOUNT_SHIFT,
+            Y_TABLE_TOP + 3 * textRowHeight,
+            paintText
+        )
+        //Sub-totals
+        canvas[currentPageCount].drawText(
+            applicationContext.getString(R.string.sub_totals),
+            X_TABLE_LEFT + SUB_TOTAL_SHIFT,
+            Y_TABLE_TOP + 4 * textRowHeight,
+            paintBoldText
+        )
+        //Total Days Count
+        canvas[currentPageCount].drawText(
+            (less24HDays + fullDays).toString(),
+            X_TABLE_LEFT + SUMMARY_COLUMN_SHIFT + DAYS_COUNT_SHIFT,
+            Y_TABLE_TOP + 4 * textRowHeight,
+            paintBoldText
+        )
+        //Total Amount
+        canvas[currentPageCount].drawText(
+            ((fullRate * fullDays) + (less24HRate * less24HDays)).toString(),
+            X_TABLE_LEFT + 3 * SUMMARY_COLUMN_SHIFT + RATE_SHIFT,
+            Y_TABLE_TOP + 4 * textRowHeight,
+            paintBoldText
+        )
+
+        //Total Saving Amount
+        canvas[currentPageCount].drawText(
+            (savingRate * fullDays).toString(),
+            X_TABLE_LEFT + 5 * SUMMARY_COLUMN_SHIFT + RATE_SHIFT,
+            Y_TABLE_TOP + 4 * textRowHeight,
+            paintBoldText
+        )
+        //Total Payable Amount
+        canvas[currentPageCount].drawText(
+            calculateAllowance(fullDays, less24HDays).toString(),
+            X_TABLE_LEFT + 7 * SUMMARY_COLUMN_SHIFT + TOTAL_PAYABLE_AMOUNT_SHIFT,
+            Y_TABLE_TOP + 4 * textRowHeight,
+            paintBoldText
+        )
+    }
+
+    private fun createAllowanceDetailsHeader(headerLocationY: Float) {
+
+        //Draw Lines
+        canvas[currentPageCount].drawLine(
+            X_TABLE_LEFT,
+            headerLocationY + paintThickLineTableBorder.ascent(),
+            X_TABLE_LEFT + TABLE_WIDTH,
+            headerLocationY + paintThickLineTableBorder.ascent(),
+            paintThickLineTableBorder
+        )
+        canvas[currentPageCount].drawLine(
+            X_TABLE_LEFT,
+            headerLocationY + paintThickLineTableBorder.descent(),
+            X_TABLE_LEFT + TABLE_WIDTH,
+            headerLocationY + paintThickLineTableBorder.descent(),
+            paintText
+        )
+        //Day
+        canvas[currentPageCount].drawText(
+            applicationContext.getString(R.string.day),
+            X_TABLE_LEFT + DAY_SHIFT,
+            headerLocationY,
+            paintBoldText
+        )
+        //Date
+        canvas[currentPageCount].drawText(
+            applicationContext.getString(R.string.date),
+            X_TABLE_LEFT + DETAILS_COLUMN_SHIFT + DATE_SHIFT,
+            headerLocationY,
+            paintBoldText
+        )
+        //Full 24H Day
+        canvas[currentPageCount].drawText(
+            applicationContext.getString(R.string.full24h),
+            X_TABLE_LEFT + 2 * DETAILS_COLUMN_SHIFT + FULL24H_HEADER_SHIFT,
+            headerLocationY,
+            paintBoldText
+        )
+
+        //less than 24H
+        canvas[currentPageCount].drawText(
+            applicationContext.getString(R.string.less24h),
+            X_TABLE_LEFT + 3 * DETAILS_COLUMN_SHIFT + LESS24H_HEADER_SHIFT,
+            headerLocationY,
+            paintBoldText
+        )
+        //No Allowance
+        canvas[currentPageCount].drawText(
+            applicationContext.getString(R.string.no_allowance),
+            X_TABLE_LEFT + 4 * DETAILS_COLUMN_SHIFT + NO_ALLOWANCE_HEADER_SHIFT,
+            headerLocationY,
+            paintBoldText
+        )
+    }
+
+    private fun createExpanseHeader(headerLocationY: Float) {
+        // Draw Lines
+        canvas[currentPageCount].drawLine(
+            X_TABLE_LEFT,
+            headerLocationY + paintThickLineTableBorder.ascent(),
+            X_TABLE_LEFT + TABLE_WIDTH,
+            headerLocationY + paintThickLineTableBorder.ascent(),
+            paintThickLineTableBorder
+        )
+        canvas[currentPageCount].drawLine(
+            X_TABLE_LEFT,
+            headerLocationY + paintThickLineTableBorder.descent(),
+            X_TABLE_LEFT + TABLE_WIDTH,
+            headerLocationY + paintThickLineTableBorder.descent(),
+            paintText
+        )
+
+        //Date
+        canvas[currentPageCount].drawText(
+            applicationContext.getString(R.string.date),
+            X_TABLE_LEFT + DATE_SHIFT,
+            headerLocationY,
+            paintBoldText
+        )
+
+        //Invoice No
+        canvas[currentPageCount].drawText(
+            applicationContext.getString(R.string.invoice_no),
+            X_TABLE_LEFT + Expanse_COLUMN_SHIFT + INVOICE_NUMBER_HEADER_SHIFT,
+            headerLocationY,
+            paintBoldText
+        )
+
+        //Description
+        canvas[currentPageCount].drawText(
+            applicationContext.getString(R.string.description),
+            X_TABLE_LEFT + 2 * Expanse_COLUMN_SHIFT + DESCRIPTION_HEADER_SHIFT,
+            headerLocationY,
+            paintBoldText
+        )
+
+        //Amount
+        canvas[currentPageCount].drawText(
+            applicationContext.getString(R.string.amount),
+            X_TABLE_LEFT + 4 * Expanse_COLUMN_SHIFT + EXPANSE_AMOUNT_HEADER_SHIFT,
+            headerLocationY,
+            paintBoldText
+        )
+
+        //Currency
+        canvas[currentPageCount].drawText(
+            applicationContext.getString(R.string.currency),
+            X_TABLE_LEFT + 5 * Expanse_COLUMN_SHIFT + CURRENCY_HEADER_SHIFT,
+            headerLocationY,
+            paintBoldText
+        )
+        //Amount AED
+        canvas[currentPageCount].drawText(
+            applicationContext.getString(R.string.amount_AED),
+            X_TABLE_LEFT + 6 * Expanse_COLUMN_SHIFT + AMOUNT_AED_HEADER_SHIFT,
+            headerLocationY,
+            paintBoldText
+        )
+
+    }
+
+    private suspend fun createExpanseTable(expanses: List<Expanse>, personal: Boolean) {
+
+        // Subtitle
+        canvas[currentPageCount].drawText(
+            if (personal) applicationContext.getString(R.string.cash) else applicationContext.getString(
+                R.string.company_cc
+            ),
+            LEFT_DATA_START + EXPANSE_SUMMERY_HEADER_SHIFT,
+            DATA_TOP + 8 * (textRowHeight),
+            paintHeaderData
+        )
+        canvas[currentPageCount].drawText(
+            applicationContext.getText(R.string.accomodation)
+                .toString() + ": " + hmeCode.accommodation?.name,
+            LEFT_DATA_START + EXPANSE_SUMMERY_HEADER_SHIFT,
+            DATA_TOP + 9 * (textRowHeight),
+            paintHeaderData
+        )
+
+        var yPositionForCurrentItem = Y_TABLE_TOP + textRowHeight
+        var firstExpansePage = true
+        createExpanseHeader(Y_TABLE_TOP)
+
+        var totalInAED = 0f
+
+        for (currentItem in expanses) {
+
+            totalInAED += currentItem.amountAED
+
+            if (currentItem == expanses.last())
+                canvas[currentPageCount].drawLine(
+                    X_TABLE_LEFT,
+                    yPositionForCurrentItem + paintThickLineTableBorder.descent(),
+                    X_TABLE_LEFT + TABLE_WIDTH,
+                    yPositionForCurrentItem + paintThickLineTableBorder.descent(),
+                    paintThickLineTableBorder
+                )
+            else
+                canvas[currentPageCount].drawLine(
+                    X_TABLE_LEFT,
+                    yPositionForCurrentItem + paintText.descent(),
+                    X_TABLE_LEFT + TABLE_WIDTH,
+                    yPositionForCurrentItem + paintText.descent(),
+                    paintText
+                )
+
+            canvas[currentPageCount].drawText(
+                currentItem.date.toStdDate(),
+                X_TABLE_LEFT + DATE_SHIFT,
+                yPositionForCurrentItem,
+                paintText
+            )
+            canvas[currentPageCount].drawText(
+                currentItem.invoiceNumber,
+                X_TABLE_LEFT + Expanse_COLUMN_SHIFT + INVOICE_NUMBER_SHIFT,
+                yPositionForCurrentItem,
+                paintText
+            )
+            canvas[currentPageCount].drawText(
+                currentItem.description,
+                X_TABLE_LEFT + 2 * Expanse_COLUMN_SHIFT + DESCRIPTION_SHIFT,
+                yPositionForCurrentItem,
+                paintText
+            )
+            canvas[currentPageCount].drawText(
+                currentItem.amount.toString(),
+                X_TABLE_LEFT + 4 * Expanse_COLUMN_SHIFT + EXPANSE_AMOUNT_SHIFT,
+                yPositionForCurrentItem,
+                paintText
+            )
+            val currency = getCurrencyExchangeByIdUseCase(currentItem.currencyID).let { resource ->
+                when (resource) {
+                    is Resource.Error -> "Error"
+                    is Resource.Success -> resource.data?.currencyName ?: "Error"
+                    else -> "Error"
+                }
+            }
+
+            canvas[currentPageCount].drawText(
+                currency,
+                X_TABLE_LEFT + 5 * Expanse_COLUMN_SHIFT + CURRENCY_SHIFT,
+                yPositionForCurrentItem,
+                paintText
+            )
+            canvas[currentPageCount].drawText(
+                currentItem.amountAED.toString(),
+                X_TABLE_LEFT + 6 * Expanse_COLUMN_SHIFT + AMOUNT_AED_SHIFT,
+                yPositionForCurrentItem,
+                paintText
+            )
+
+            yPositionForCurrentItem += (textRowHeight)
+            if (yPositionForCurrentItem > SIGNATURE_BOTTOM - textRowHeight - userSignHeight || currentItem == expanses.last()) {
+
+                // Draw Table Columns
+                for (i in 0..7) {
+                    when (i) {
+                        0, 7 -> {
+                            canvas[currentPageCount].drawLine(
+                                X_TABLE_LEFT + i * Expanse_COLUMN_SHIFT,
+                                (if (firstExpansePage) Y_TABLE_TOP else TITLE_Y + 2 * textRowHeight) + paintThickLineTableBorder.ascent(),
+                                X_TABLE_LEFT + i * Expanse_COLUMN_SHIFT,
+                                yPositionForCurrentItem - textRowHeight + paintThickLineTableBorder.descent(),
+                                paintThickLineTableBorder
+                            )
+                        }
+                        3 -> Unit
+                        else -> {
+                            canvas[currentPageCount].drawLine(
+                                X_TABLE_LEFT + i * Expanse_COLUMN_SHIFT,
+                                (if (firstExpansePage) Y_TABLE_TOP else TITLE_Y + 2 * textRowHeight) + paintThickLineTableBorder.ascent(),
+                                X_TABLE_LEFT + i * Expanse_COLUMN_SHIFT,
+                                yPositionForCurrentItem - textRowHeight + paintThickLineTableBorder.descent(),
+                                paintText
+                            )
+                        }
+                    }
+                }
+
+                // End Current Page if new page will start
+
+                if (yPositionForCurrentItem > SIGNATURE_BOTTOM - textRowHeight - userSignHeight) {
+                    pdfDocument.finishPage(page[currentPageCount])
+                    yPositionForCurrentItem = TITLE_Y + 3 * textRowHeight
+                    currentPageCount++
+                    firstExpansePage = false
+                }
+
+            }
+
+            if (currentPageCount > lastPageCreated) {
+                createNewEmptyPage()
+                createExpanseHeader(TITLE_Y + 2 * textRowHeight)
+            }
+
+        }
+        if (personal) {
+            canvas[currentPageCount].drawText(
+                applicationContext.getString(R.string.totalInAED),
+                X_TABLE_LEFT + 5 * Expanse_COLUMN_SHIFT + AMOUNT_AED_SHIFT,
+                yPositionForCurrentItem,
+                paintBoldText
+            )
+            canvas[currentPageCount].drawText(
+                totalInAED.toString(),
+                X_TABLE_LEFT + 6 * Expanse_COLUMN_SHIFT + AMOUNT_AED_SHIFT,
+                yPositionForCurrentItem,
+                paintText
+            )
+
+            canvas[currentPageCount].drawLine(
+                X_TABLE_LEFT + 5 * Expanse_COLUMN_SHIFT,
+                yPositionForCurrentItem + paintThickLineTableBorder.descent(),
+                X_TABLE_LEFT + TABLE_WIDTH,
+                yPositionForCurrentItem + paintThickLineTableBorder.descent(),
+                paintThickLineTableBorder
+            )
+
+            for (i in 5..7)
+                canvas[currentPageCount].drawLine(
+                    X_TABLE_LEFT + i * Expanse_COLUMN_SHIFT,
+                    yPositionForCurrentItem + paintThickLineTableBorder.descent(),
+                    X_TABLE_LEFT + i * Expanse_COLUMN_SHIFT,
+                    yPositionForCurrentItem - textRowHeight + paintThickLineTableBorder.descent(),
+                    paintThickLineTableBorder
+                )
+        }
+
+        pdfDocument.finishPage(page[currentPageCount])
+
+        for (currentItem in expanses) {
+            Log.d(
+                TAG,
+                "createExpanseTable: Expanse ${currentItem.description} is checked for invoices"
+            )
+            if (currentItem.invoicesUri.isEmpty()) continue
+            for (imageUriAsString in currentItem.invoicesUri) {
+                val imageUri = imageUriAsString.toUri()
+                val imageFile = imageUri.toFile()
+                if (!imageFile.exists()) continue
+
+                val path = imageFile.absolutePath
+                val image = BitmapFactory.decodeFile(path)
+                val widthRatio =
+                    if (image.width > IMAGE_MAX_WIDTH) {
+                        IMAGE_MAX_WIDTH / image.width
+                    } else 1f
+                Log.d(TAG, "createExpanseTable: width ratio $widthRatio")
+                val heightRatio =
+                    if (image.height > IMAGE_MAX_HEIGHT) {
+                        IMAGE_MAX_HEIGHT / image.height
+                    } else 1f
+                Log.d(TAG, "createExpanseTable: height ratio $heightRatio")
+
+                val ratio = if (widthRatio < heightRatio) widthRatio else heightRatio
+                Log.d(TAG, "createExpanseTable: Ratio $ratio")
+                currentPageCount++
+                createNewEmptyPage()
+                //HME Code
+                canvas[currentPageCount].drawText(
+                    hmeCode.code,
+                    HME_CODE_X,
+                    HME_CODE_Y,
+                    paintHeaderData
+                    )
+
+                //Description
+                canvas[currentPageCount].drawText(
+                    currentItem.description,
+                    INVOICE_DESCRIPTION_X,
+                    INVOICE_DESCRIPTION_Y,
+                    paintHeaderData
+                    )
+
+                val currency = getCurrencyExchangeByIdUseCase(currentItem.currencyID)
+                //Amount and currency
+                canvas[currentPageCount].drawText(
+                    currentItem.amount.toString() + if (currency is Resource.Success) currency.data?.currencyName else "",
+                    INVOICE_AMOUNT_AND_CURRENCY_X,
+                    INVOICE_AMOUNT_AND_CURRENCY_Y,
+                    paintHeaderData
+                    )
+                if (personal && currency.data?.currencyName !="AED"){
+                    //Amount in AED
+                    canvas[currentPageCount].drawText(
+                        currentItem.amountAED.toString() + "AED",
+                        INVOICE_AMOUNT_AED_X,
+                        INVOICE_AMOUNT_AED_Y,
+                        paintHeaderData
+                    )
+                }
+
+                canvas[currentPageCount].drawBitmap(
+                    image,
+                    null,
+                    RectF(
+                        INVOICE_IMAGE_LEFT_POSITION,
+                        INVOICE_IMAGE_TOP_POSITION,
+                        INVOICE_IMAGE_LEFT_POSITION + (ratio * image.width),
+                        INVOICE_IMAGE_TOP_POSITION + (ratio * image.height)
+                    ),
+                    null
+                )
+                pdfDocument.finishPage(page[currentPageCount])
+            }
+        }
+
+    }
 }

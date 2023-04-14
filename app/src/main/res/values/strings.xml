@@ -23,4 +23,12 @@
     <string name="full24h">Full 24H</string>
     <string name="sub_totals">Sub-Totals</string>
     <string name="no_allowance">No Allowance</string>
+    <string name="invoice_no">Inv No.</string>
+    <string name="description">Description</string>
+    <string name="currency">Currency</string>
+    <string name="company_cc">CompanyCC</string>
+    <string name="cash">Cash</string>
+    <string name="accomodation">Accommodation</string>
+    <string name="amount_AED">Amount in AED</string>
+    <string name="totalInAED">Total in AED</string>
 </resources>

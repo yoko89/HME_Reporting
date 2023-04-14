@@ -40,7 +40,7 @@ class UpdateCurrencyExchangeUseCase @Inject constructor(
             return@flow
         }
         try {
-            val currencyExchange = CurrencyExchange(currencyName, rate)
+            val currencyExchange = CurrencyExchange(currencyName, rate,id)
             val result = repo.update(currencyExchange.toCurrencyExchangeEntity())
             if (result > 0) {
                 emit(Resource.Success(true))

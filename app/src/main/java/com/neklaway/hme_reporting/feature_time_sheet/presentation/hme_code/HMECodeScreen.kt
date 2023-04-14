@@ -79,15 +79,14 @@ fun HMECodeScreen(
         ) {
 
             DropDown(
-                modifier = Modifier.padding(bottom = 5.dp),
                 dropDownList = state.customers,
                 selectedValue = state.selectedCustomer?.name ?: "No Customer Selected",
                 label = "Customer",
                 dropDownContentDescription = "Select Customer",
-                onSelect = { customer ->
-                    viewModel.customerSelected(customer)
-                }
-            )
+                modifier = Modifier.padding(bottom = 5.dp)
+            ) { customer ->
+                viewModel.customerSelected(customer)
+            }
 
             OutlinedTextField(
                 value = state.hmeCode,

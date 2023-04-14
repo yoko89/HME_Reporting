@@ -79,26 +79,24 @@ fun IBAUCodeScreen(
         ) {
 
             DropDown(
-                modifier = Modifier.padding(bottom = 5.dp),
                 dropDownList = state.customers,
                 selectedValue = state.selectedCustomer?.name ?: "No Customer Selected",
                 label = "Customer",
                 dropDownContentDescription = "Select Customer",
-                onSelect = { customer ->
-                    viewModel.customerSelected(customer)
-                }
-            )
+                modifier = Modifier.padding(bottom = 5.dp)
+            ) { customer ->
+                viewModel.customerSelected(customer)
+            }
 
             DropDown(
-                modifier = Modifier.padding(bottom = 5.dp),
                 dropDownList = state.hmeCodes,
                 selectedValue = state.selectedHMECode?.code ?: "No HME Code Selected",
                 label = "HME Code",
                 dropDownContentDescription = "Select HME Code",
-                onSelect = { hmeCode ->
-                    viewModel.hmeCodeSelected(hmeCode)
-                }
-            )
+                modifier = Modifier.padding(bottom = 5.dp)
+            ) { hmeCode ->
+                viewModel.hmeCodeSelected(hmeCode)
+            }
 
             OutlinedTextField(
                 value = state.ibauCode,

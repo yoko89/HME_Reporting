@@ -21,7 +21,7 @@ class GetExpanseByHMEIdUseCase @Inject constructor(
         try {
             emitAll(repo.getByHMECodeId(id).map { expanseList ->
                 Log.d(TAG, "invoke: $expanseList")
-                Resource.Success(expanseList.map { it.toExpanse() })
+                Resource.Success(expanseList.map { it.toExpanse() }.sortedBy { it.date })
             }
             )
         } catch (e: java.lang.Exception) {

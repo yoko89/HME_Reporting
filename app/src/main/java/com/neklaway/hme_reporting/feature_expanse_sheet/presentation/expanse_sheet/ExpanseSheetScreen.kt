@@ -36,7 +36,7 @@ import com.neklaway.hme_reporting.utils.Constants.EXPANSE_FOLDER
 import com.neklaway.hme_reporting.utils.NotificationPermissionRequest
 import java.io.File
 
-private const val TAG = "ExpanseSheetScreen"
+//private const val TAG = "ExpanseSheetScreen"
 
 @Composable
 fun ExpanseSheetScreen(
@@ -135,38 +135,39 @@ fun ExpanseSheetScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top,
         ) {
-            DropDown(modifier = Modifier.padding(vertical = 5.dp),
+            DropDown(
                 dropDownList = state.customers,
                 selectedValue = state.selectedCustomer?.name ?: "No Customer Selected",
                 label = "Customer",
                 dropDownContentDescription = "Select Customer",
-                onSelect = { customer ->
-                    viewModel.customerSelected(customer)
-                })
+                modifier = Modifier.padding(vertical = 5.dp)
+            ) { customer ->
+                viewModel.customerSelected(customer)
+            }
 
-            DropDown(modifier = Modifier.padding(bottom = 5.dp),
+            DropDown(
                 dropDownList = state.hmeCodes,
                 selectedValue = state.selectedHMECode?.code ?: "No HME Code Selected",
                 label = "HME Code",
                 dropDownContentDescription = "Select HME Code",
-                onSelect = { hmeCode ->
-                    viewModel.hmeSelected(hmeCode)
-                })
+                modifier = Modifier.padding(bottom = 5.dp)
+            ) { hmeCode ->
+                viewModel.hmeSelected(hmeCode)
+            }
 
             val infiniteTransition = rememberInfiniteTransition()
 
             DropDown(
-                modifier = Modifier
-                    .padding(bottom = 5.dp),
                 dropDownList = Accommodation.values().toList(),
                 selectedValue = state.accommodation?.name ?: "Not Selected",
                 label = "Accommodation paid by",
                 dropDownContentDescription = "Accommodation type",
-                onSelect = { accommodation ->
-                    viewModel.accommodationChanged(accommodation)
-                },
+                modifier = Modifier
+                    .padding(bottom = 5.dp),
                 warning = state.accommodation == null,
-            )
+            ) { accommodation ->
+                viewModel.accommodationChanged(accommodation)
+            }
 
             Row(
                 modifier = Modifier
@@ -233,8 +234,7 @@ fun ExpanseSheetScreen(
                 items(items = state.expanseList) { expanse ->
                     ExpanseSheetItemCard(
                         expanse = expanse,
-                        currencyExchange = viewModel.getCurrencyExchangeName(expanse)
-                            .collectAsState(initial = ""),
+                        currencyExchange = viewModel.getCurrencyExchangeName(expanse).collectAsState(""),
                         cardClicked = { viewModel.expanseClicked(expanse) },
                         modifier = Modifier.fillMaxWidth()
                     )

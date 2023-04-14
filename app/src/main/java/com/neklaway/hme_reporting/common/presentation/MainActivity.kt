@@ -42,7 +42,7 @@ class MainActivity @Inject constructor(
 
 
         setContent {
-            HMEReportingTheme {
+            HMEReportingTheme{
                 val navController = rememberNavController()
                 val drawerState = rememberDrawerState(DrawerValue.Closed)
                 val scope = rememberCoroutineScope()

@@ -158,26 +158,24 @@ fun TimeSheetScreen(
             verticalArrangement = Arrangement.Top,
         ) {
             DropDown(
-                modifier = Modifier.padding(vertical = 5.dp),
                 dropDownList = state.customers,
                 selectedValue = state.selectedCustomer?.name ?: "No Customer Selected",
                 label = "Customer",
                 dropDownContentDescription = "Select Customer",
-                onSelect = { customer ->
-                    viewModel.customerSelected(customer)
-                }
-            )
+                modifier = Modifier.padding(vertical = 5.dp)
+            ) { customer ->
+                viewModel.customerSelected(customer)
+            }
 
             DropDown(
-                modifier = Modifier.padding(bottom = 5.dp),
                 dropDownList = state.hmeCodes,
                 selectedValue = state.selectedHMECode?.code ?: "No HME Code Selected",
                 label = "HME Code",
                 dropDownContentDescription = "Select HME Code",
-                onSelect = { hmeCode ->
-                    viewModel.hmeSelected(hmeCode)
-                }
-            )
+                modifier = Modifier.padding(bottom = 5.dp)
+            ) { hmeCode ->
+                viewModel.hmeSelected(hmeCode)
+            }
 
 
             AnimatedVisibility(
@@ -186,15 +184,14 @@ fun TimeSheetScreen(
                 exit = fadeOut()
             ) {
                 DropDown(
-                    modifier = Modifier.padding(bottom = 5.dp),
                     dropDownList = state.ibauCodes,
                     selectedValue = state.selectedIBAUCode?.code ?: "No IBAU Code Selected",
                     label = "IBAU Code",
                     dropDownContentDescription = "Select IBAU Code",
-                    onSelect = { ibauCode ->
-                        viewModel.ibauSelected(ibauCode)
-                    }
-                )
+                    modifier = Modifier.padding(bottom = 5.dp)
+                ) { ibauCode ->
+                    viewModel.ibauSelected(ibauCode)
+                }
             }
 
             LazyColumn(

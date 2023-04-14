@@ -1,5 +1,6 @@
 package com.neklaway.hme_reporting.common.presentation.common.component
 
+import android.util.Log
 import androidx.compose.animation.animateColor
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
@@ -20,16 +21,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
-@OptIn(ExperimentalMaterial3Api::class)
+private const val TAG = "DropDown"
+
 @Composable
 fun <T> DropDown(
     dropDownList: List<T>,
     selectedValue: String,
     label: String,
     dropDownContentDescription: String,
-    warning: Boolean = false,
-    onSelect: ((T) -> Unit),
     modifier: Modifier = Modifier,
+    warning: Boolean = false,
+    onSelect: (T) -> Unit,
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -100,6 +102,7 @@ fun <T> DropDown(
                     },
                     onClick = {
                         onSelect(item)
+                        Log.d(TAG, "DropDown: selected ${item.toString()}")
                         dropDown.value = false
                     },
                     modifier = Modifier

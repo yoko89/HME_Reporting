@@ -229,7 +229,7 @@ class ExpanseSheetViewModel @Inject constructor(
                 }
                 is Resource.Loading -> _state.update { it.copy(loading = true) }
                 is Resource.Success -> {
-                    val expanseList = result.data ?: emptyList()
+                    val expanseList = result.data?.sortedBy { it.date } ?: emptyList()
                     Log.d(
                         TAG,
                         "get Expanse by HME: collect $expanseList "
@@ -311,7 +311,7 @@ class ExpanseSheetViewModel @Inject constructor(
     }
 
     fun getCurrencyExchangeName(expanse: Expanse): Flow<String> = flow {
-        getCurrencyExchangeByIdUseCase(expanse.currencyID).collect { resource ->
+        getCurrencyExchangeByIdUseCase(expanse.currencyID).let { resource ->
             emit(
                 when (resource) {
                     is Resource.Error -> "Error"

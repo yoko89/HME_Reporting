@@ -23,10 +23,17 @@ import com.neklaway.hme_reporting.utils.ResourceWithString
 import com.neklaway.hme_reporting.utils.toFloatWithString
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.File
-import java.util.*
+import java.util.Calendar
+import java.util.TimeZone
 import javax.inject.Inject
 
 private const val TAG = "NewExpanseViewModel"
@@ -69,6 +76,7 @@ class NewExpanseViewModel @Inject constructor(
                     )
                     _state.update { it.copy(loading = false) }
                 }
+
                 is Resource.Loading -> _state.update { it.copy(loading = true) }
                 is Resource.Success -> {
                     val savedCustomerId = getCustomerIdUseCase()
@@ -111,6 +119,7 @@ class NewExpanseViewModel @Inject constructor(
                             )
                             _state.update { it.copy(loading = false) }
                         }
+
                         is Resource.Loading -> _state.update { it.copy(loading = true) }
                         is Resource.Success -> {
                             val savedSelectedHmeId = getHmeIdUseCase()
@@ -157,6 +166,7 @@ class NewExpanseViewModel @Inject constructor(
                         _event.emit(NewExpanseEvents.UserMessage(resource.message ?: "Error"))
                         resource.data
                     }
+
                     is ResourceWithString.Loading -> null
                     is ResourceWithString.Success -> {
                         resource.data
@@ -170,6 +180,7 @@ class NewExpanseViewModel @Inject constructor(
                         _event.emit(NewExpanseEvents.UserMessage(resource.message ?: "Error"))
                         resource.data
                     }
+
                     is ResourceWithString.Loading -> null
                     is ResourceWithString.Success -> {
                         resource.data
@@ -200,6 +211,7 @@ class NewExpanseViewModel @Inject constructor(
                         )
                         _state.update { it.copy(loading = false) }
                     }
+
                     is Resource.Success -> {
                         _event.emit(NewExpanseEvents.UserMessage("Expanse Saved"))
                         _state.update { it.copy(loading = false) }
@@ -261,6 +273,7 @@ class NewExpanseViewModel @Inject constructor(
                         )
                         _state.update { it.copy(amount = resourceWithString.string ?: "") }
                     }
+
                     is ResourceWithString.Loading -> Unit
                     is ResourceWithString.Success -> {
                         _state.update { it.copy(amount = resourceWithString.string ?: "") }
@@ -283,6 +296,7 @@ class NewExpanseViewModel @Inject constructor(
                         )
                         _state.update { it.copy(amountAED = resourceWithString.string ?: "") }
                     }
+
                     is ResourceWithString.Loading -> Unit
                     is ResourceWithString.Success -> {
                         _state.update { it.copy(amountAED = resourceWithString.string ?: "") }
@@ -304,9 +318,11 @@ class NewExpanseViewModel @Inject constructor(
                         )
                         _state.update { it.copy(loading = false) }
                     }
+
                     is Resource.Loading -> {
                         _state.update { it.copy(loading = true) }
                     }
+
                     is Resource.Success -> {
                         _state.update {
                             it.copy(
@@ -335,6 +351,7 @@ class NewExpanseViewModel @Inject constructor(
                     _event.emit(NewExpanseEvents.UserMessage(resource.message ?: "Error"))
                     ""
                 }
+
                 is ResourceWithString.Loading -> ""
                 is ResourceWithString.Success -> {
                     resource.data?.let { amount ->

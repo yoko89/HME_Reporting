@@ -79,7 +79,7 @@ class EditExpanseViewModel @Inject constructor(
                         val expanse = result.data ?: return@let
                         Log.d(TAG, "expanse is: $expanse")
                         val currency =
-                            getCurrencyExchangeByIdUseCase(expanse.currencyID).last().data
+                            getCurrencyExchangeByIdUseCase(expanse.currencyID).data
                         _state.update {
                             it.copy(
                                 date = expanse.date,
@@ -88,7 +88,8 @@ class EditExpanseViewModel @Inject constructor(
                                 personallyPaid = expanse.personallyPaid,
                                 amount = expanse.amount.toString(),
                                 amountAED = expanse.amountAED.toString(),
-                                invoicesUris = expanse.invoicesUri.map { it.toUri() },
+                                invoicesUris = expanse.invoicesUri.map { uriString ->
+                                    uriString.toUri() },
                                 selectedCurrency = currency,
                                 expanseId = expanseId,
                                 loading = false
@@ -336,7 +337,7 @@ class EditExpanseViewModel @Inject constructor(
         }
     }
 
-    fun photoTaken(successful: Boolean) {
+    fun photoTaken(successful:Boolean) {
         val list = mutableUriList.toList()
         _state.update { it.copy(invoicesUris = list) }
     }

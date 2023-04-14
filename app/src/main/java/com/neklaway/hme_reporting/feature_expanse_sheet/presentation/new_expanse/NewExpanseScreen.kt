@@ -123,26 +123,24 @@ fun NewExpanseScreen(
             verticalArrangement = Arrangement.Top,
         ) {
             DropDown(
-                modifier = Modifier.padding(vertical = 5.dp),
                 dropDownList = state.customers,
                 selectedValue = state.selectedCustomer?.name ?: "No Customer Selected",
                 label = "Customer",
                 dropDownContentDescription = "Select Customer",
-                onSelect = { customer ->
-                    viewModel.customerSelected(customer)
-                }
-            )
+                modifier = Modifier.padding(vertical = 5.dp)
+            ) { customer ->
+                viewModel.customerSelected(customer)
+            }
 
             DropDown(
-                modifier = Modifier.padding(bottom = 5.dp),
                 dropDownList = state.hmeCodes,
                 selectedValue = state.selectedHMECode?.code ?: "No HME Code Selected",
                 label = "HME Code",
                 dropDownContentDescription = "Select HME Code",
-                onSelect = { hmeCode ->
-                    viewModel.hmeSelected(hmeCode)
-                }
-            )
+                modifier = Modifier.padding(bottom = 5.dp)
+            ) { hmeCode ->
+                viewModel.hmeSelected(hmeCode)
+            }
 
             AnimatedVisibility(
                 visible = state.loading,
