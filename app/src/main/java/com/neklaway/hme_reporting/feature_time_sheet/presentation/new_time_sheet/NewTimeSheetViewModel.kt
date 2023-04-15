@@ -456,38 +456,42 @@ class NewTimeSheetViewModel @Inject constructor(
     }
 
     fun breakDurationChanged(breakDuration: String) {
-        viewModelScope.launch {
             breakDuration.toFloatWithString().let { resourceWithString ->
                 when (resourceWithString) {
                     is ResourceWithString.Error -> {
-                        _userMessage.emit(resourceWithString.message ?: "Error in Break Time")
+                        viewModelScope.launch {
+                            _userMessage.emit(resourceWithString.message ?: "Error in Break Time")
+                        }
                         _state.update { it.copy(breakDuration = resourceWithString.string ?: "") }
                     }
                     is ResourceWithString.Loading -> Unit
                     is ResourceWithString.Success -> {
-                        setSavedBreakDurationUseCase(resourceWithString.data)
                         _state.update { it.copy(breakDuration = resourceWithString.string ?: "") }
+                        viewModelScope.launch {
+                            setSavedBreakDurationUseCase(resourceWithString.data)
+                        }
                     }
                 }
             }
-        }
     }
 
     fun travelDistanceChanged(travelDistance: String) {
-        viewModelScope.launch {
             travelDistance.toIntWithString().let { resourceWithString ->
                 when (resourceWithString) {
                     is ResourceWithString.Error -> {
-                        _userMessage.emit(resourceWithString.message ?: "Error")
+                        viewModelScope.launch {
+                            _userMessage.emit(resourceWithString.message ?: "Error")
+                        }
                     }
                     is ResourceWithString.Loading -> Unit
                     is ResourceWithString.Success -> {
-                        setTravelDistanceUseCase(resourceWithString.data)
+                        viewModelScope.launch {
+                            setTravelDistanceUseCase(resourceWithString.data)
+                        }
                     }
                 }
                 _state.update { it.copy(traveledDistance = resourceWithString.string ?: "") }
             }
-        }
     }
 
     fun travelDayChanged(travelDaySelected: Boolean) {

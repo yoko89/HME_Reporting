@@ -171,27 +171,30 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun breakDurationChanged(breakDuration: String) {
-        viewModelScope.launch {
             breakDuration.toFloatWithString().let { resourceString ->
                 when (resourceString) {
                     is ResourceWithString.Error -> {
-                        _userMessage.emit(resourceString.message ?: "error")
+                        viewModelScope.launch {
+                            _userMessage.emit(resourceString.message ?: "error")
+                        }
                     }
                     is ResourceWithString.Loading -> Unit
                     is ResourceWithString.Success -> {
-                        setBreakDurationUseCase(resourceString.data!!).collect { resource ->
-                            when (resource) {
-                                is Resource.Error -> _userMessage.emit(
-                                    resource.message ?: "error"
-                                )
-                                else -> Unit
+                        viewModelScope.launch {
+                            setBreakDurationUseCase(resourceString.data!!).collect { resource ->
+                                when (resource) {
+                                    is Resource.Error -> _userMessage.emit(
+                                        resource.message ?: "error"
+                                    )
+
+                                    else -> Unit
+                                }
                             }
                         }
                     }
                 }
                 _state.update { it.copy(breakDuration = resourceString.string ?: "") }
             }
-        }
     }
 
     fun signatureBtnClicked() {
@@ -235,60 +238,61 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun setFullDayAllowance(allowance: String) {
-        viewModelScope.launch {
             allowance.toIntWithString().let { resourceWithString ->
                 when (resourceWithString) {
                     is ResourceWithString.Error -> {
-                        _userMessage.emit(resourceWithString.message ?: "Error")
-
+                        viewModelScope.launch {
+                            _userMessage.emit(resourceWithString.message ?: "Error")
+                        }
                     }
                     is ResourceWithString.Loading -> Unit
                     is ResourceWithString.Success -> {
-                        setFullDayAllowanceUseCase(resourceWithString.data!!)
+                        viewModelScope.launch {
+                            setFullDayAllowanceUseCase(resourceWithString.data!!)
+                        }
                     }
                 }
                 _state.update { it.copy(fullDayAllowance = resourceWithString.string ?: "") }
 
             }
-        }
     }
 
     fun set8HAllowance(allowance: String) {
-        viewModelScope.launch {
             allowance.toIntWithString().let { resourceWithString ->
                 when (resourceWithString) {
                     is ResourceWithString.Error -> {
-                        _userMessage.emit(resourceWithString.message ?: "Error")
-
+                        viewModelScope.launch {
+                            _userMessage.emit(resourceWithString.message ?: "Error")
+                        }
                     }
                     is ResourceWithString.Loading -> Unit
                     is ResourceWithString.Success -> {
-                        set8HAllowanceUseCase(resourceWithString.data!!)
+                            viewModelScope.launch {
+                                set8HAllowanceUseCase(resourceWithString.data!!)
+                            }
                     }
                 }
                 _state.update { it.copy(_8HAllowance = resourceWithString.string ?: "") }
-
-            }
         }
     }
 
     fun setSavingDeductible(deductible: String) {
-        viewModelScope.launch {
             deductible.toIntWithString().let { resourceWithString ->
                 when (resourceWithString) {
                     is ResourceWithString.Error -> {
-                        _userMessage.emit(resourceWithString.message ?: "Error")
-
+                        viewModelScope.launch {
+                            _userMessage.emit(resourceWithString.message ?: "Error")
+                        }
                     }
                     is ResourceWithString.Loading -> Unit
                     is ResourceWithString.Success -> {
-                        setSavingDeductibleUseCase(resourceWithString.data!!)
+                        viewModelScope.launch {
+                            setSavingDeductibleUseCase(resourceWithString.data!!)
+                        }
                     }
                 }
                 _state.update { it.copy(savingDeductible = resourceWithString.string ?: "") }
 
             }
         }
-    }
-
 }

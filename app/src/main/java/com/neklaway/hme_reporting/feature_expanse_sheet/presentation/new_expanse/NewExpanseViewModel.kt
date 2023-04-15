@@ -262,38 +262,40 @@ class NewExpanseViewModel @Inject constructor(
     }
 
     fun amountChanged(amount: String) {
-        viewModelScope.launch {
             amount.toFloatWithString().let { resourceWithString ->
                 when (resourceWithString) {
                     is ResourceWithString.Error -> {
-                        _event.emit(
-                            NewExpanseEvents.UserMessage(
-                                resourceWithString.message ?: "Error in Amount"
+                        viewModelScope.launch {
+                            _event.emit(
+                                NewExpanseEvents.UserMessage(
+                                    resourceWithString.message ?: "Error in Amount"
+                                )
                             )
-                        )
+                        }
                         _state.update { it.copy(amount = resourceWithString.string ?: "") }
                     }
 
                     is ResourceWithString.Loading -> Unit
                     is ResourceWithString.Success -> {
                         _state.update { it.copy(amount = resourceWithString.string ?: "") }
+                        viewModelScope.launch {
                         calculateAmountInAED()
+                        }
                     }
                 }
             }
-        }
     }
 
     fun amountAEDChanged(amount: String) {
-        viewModelScope.launch {
             amount.toFloatWithString().let { resourceWithString ->
                 when (resourceWithString) {
                     is ResourceWithString.Error -> {
-                        _event.emit(
+                        viewModelScope.launch {
+                            _event.emit(
                             NewExpanseEvents.UserMessage(
                                 resourceWithString.message ?: "Error in Amount"
                             )
-                        )
+                        )}
                         _state.update { it.copy(amountAED = resourceWithString.string ?: "") }
                     }
 
@@ -301,7 +303,6 @@ class NewExpanseViewModel @Inject constructor(
                     is ResourceWithString.Success -> {
                         _state.update { it.copy(amountAED = resourceWithString.string ?: "") }
                     }
-                }
             }
         }
     }

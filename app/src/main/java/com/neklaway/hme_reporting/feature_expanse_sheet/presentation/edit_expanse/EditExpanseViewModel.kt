@@ -238,44 +238,44 @@ class EditExpanseViewModel @Inject constructor(
     }
 
     fun amountChanged(amount: String) {
-        viewModelScope.launch {
             amount.toFloatWithString().let { resourceWithString ->
                 when (resourceWithString) {
                     is ResourceWithString.Error -> {
+                        viewModelScope.launch {
+
                         _event.emit(
                             EditExpanseEvents.UserMessage(
                                 resourceWithString.message ?: "Error in Amount"
                             )
-                        )
+                        )}
                         _state.update { it.copy(amount = resourceWithString.string ?: "") }
                     }
                     is ResourceWithString.Loading -> Unit
                     is ResourceWithString.Success -> {
                         _state.update { it.copy(amount = resourceWithString.string ?: "") }
-                        calculateAmountInAED()
+                        viewModelScope.launch {
+                            calculateAmountInAED()}
                     }
                 }
-            }
         }
     }
 
     fun amountAEDChanged(amount: String) {
-        viewModelScope.launch {
             amount.toFloatWithString().let { resourceWithString ->
                 when (resourceWithString) {
                     is ResourceWithString.Error -> {
-                        _event.emit(
+                        viewModelScope.launch {
+                            _event.emit(
                             EditExpanseEvents.UserMessage(
                                 resourceWithString.message ?: "Error in Amount"
                             )
-                        )
+                        )}
                         _state.update { it.copy(amountAED = resourceWithString.string ?: "") }
                     }
                     is ResourceWithString.Loading -> Unit
                     is ResourceWithString.Success -> {
                         _state.update { it.copy(amountAED = resourceWithString.string ?: "") }
                     }
-                }
             }
         }
     }
