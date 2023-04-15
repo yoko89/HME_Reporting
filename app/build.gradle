@@ -36,14 +36,7 @@ android {
         }
     }
 
-    kotlin {
-        jvmToolchain {
-            languageVersion.set(JavaLanguageVersion.of("17"))
-        }
-    }
     kotlinOptions {
-        jvmTarget = '17'
-
         freeCompilerArgs += [
                 '-opt-in=androidx.compose.material3.ExperimentalMaterial3Api'
         ]
