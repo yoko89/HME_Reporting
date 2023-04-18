@@ -10,17 +10,23 @@ import com.neklaway.hme_reporting.feature_settings.domain.use_cases.backup.Start
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.backup.StartRestore
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.break_time.GetBreakDurationUseCase
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.break_time.SetBreakDurationUseCase
+import com.neklaway.hme_reporting.feature_settings.domain.use_cases.dark_theme.GetDarkThemeUseCase
+import com.neklaway.hme_reporting.feature_settings.domain.use_cases.dark_theme.SetDarkThemeUseCase
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.is_auto_clear.GetIsAutoClearUseCase
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.is_auto_clear.SetIsAutoClearUseCase
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.is_ibau.GetIsIbauUseCase
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.is_ibau.SetIsIbauUseCase
+import com.neklaway.hme_reporting.feature_settings.domain.use_cases.theme.GetThemeUseCase
+import com.neklaway.hme_reporting.feature_settings.domain.use_cases.theme.SetThemeUseCase
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.user_name.GetUserNameUseCase
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.user_name.SetUserNameUseCase
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.visa_reminder.GetVisaReminderUseCase
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.visa_reminder.SetVisaReminderUseCase
 import com.neklaway.hme_reporting.feature_signature.domain.use_cases.bitmap_use_case.LoadBitmapUseCase
+import com.neklaway.hme_reporting.utils.DarkTheme
 import com.neklaway.hme_reporting.utils.Resource
 import com.neklaway.hme_reporting.utils.ResourceWithString
+import com.neklaway.hme_reporting.utils.Theme
 import com.neklaway.hme_reporting.utils.toFloatWithString
 import com.neklaway.hme_reporting.utils.toIntWithString
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -51,6 +57,10 @@ class SettingsViewModel @Inject constructor(
     private val set8HAllowanceUseCase: Set8HAllowanceUseCase,
     private val setSavingDeductibleUseCase: SetSavingDeductibleUseCase,
     private val getSavingDeductibleUseCase: GetSavingDeductibleUseCase,
+    private val setThemeUseCase: SetThemeUseCase,
+    private val getThemeUseCase: GetThemeUseCase,
+    private val setDarkThemeUseCase: SetDarkThemeUseCase,
+    private val getDarkThemeUseCase: GetDarkThemeUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SettingsState())
@@ -69,6 +79,8 @@ class SettingsViewModel @Inject constructor(
         getFullDayAllowance()
         get8HDayAllowance()
         getSavingDeductible()
+        getTheme()
+        getDarkTheme()
     }
 
 
@@ -76,6 +88,18 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             val userName = getUserNameUseCase.invoke()
             _state.update { it.copy(userName = userName) }
+        }
+    }
+    private fun getDarkTheme() {
+        viewModelScope.launch {
+            val theme = getDarkThemeUseCase.invoke().first()
+            _state.update { it.copy(darkTheme = theme) }
+        }
+    }
+    private fun getTheme() {
+        viewModelScope.launch {
+            val theme = getThemeUseCase.invoke().first()
+            _state.update { it.copy(theme = theme) }
         }
     }
 
@@ -133,6 +157,18 @@ class SettingsViewModel @Inject constructor(
         _state.update { it.copy(userName = userName) }
         viewModelScope.launch {
             setUserNameUseCase.invoke(userName)
+        }
+    }
+    fun setTheme(theme: Theme) {
+        _state.update { it.copy(theme = theme) }
+        viewModelScope.launch {
+            setThemeUseCase.invoke(theme)
+        }
+    }
+    fun setDarkTheme(theme: DarkTheme) {
+        _state.update { it.copy(darkTheme = theme) }
+        viewModelScope.launch {
+            setDarkThemeUseCase.invoke(theme)
         }
     }
 

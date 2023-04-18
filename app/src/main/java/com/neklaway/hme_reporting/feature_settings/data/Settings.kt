@@ -3,6 +3,8 @@ package com.neklaway.hme_reporting.feature_settings.data
 import android.content.Context
 import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
+import com.neklaway.hme_reporting.utils.DarkTheme
+import com.neklaway.hme_reporting.utils.Theme
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -23,6 +25,8 @@ class Settings @Inject constructor(@ApplicationContext context: Context) {
         private val short_day_allowance = intPreferencesKey("short_day_allowance")
         private val full_day_allowance = intPreferencesKey("full_day_allowance")
         private val saving_deductible = intPreferencesKey("saving_deductible")
+        private val theme = stringPreferencesKey("theme")
+        private val dark_theme = stringPreferencesKey("dark_themetheme")
     }
 
     suspend fun setIbauUser(isIbauUser: Boolean) {
@@ -63,6 +67,25 @@ class Settings @Inject constructor(@ApplicationContext context: Context) {
 
     val getUserName: Flow<String> = settingsDataStore.data.map { settings ->
         settings[user_name] ?: ""
+    }
+
+    suspend fun setTheme(theme: Theme) {
+        settingsDataStore.edit { settings ->
+            settings[Settings.theme] = theme.name
+        }
+    }
+
+    val getTheme: Flow<Theme> = settingsDataStore.data.map { settings ->
+        Theme.valueOf(settings[theme]?:Theme.Auto.name)
+    }
+    suspend fun setDarkTheme(theme: DarkTheme) {
+        settingsDataStore.edit { settings ->
+            settings[Settings.dark_theme] = theme.name
+        }
+    }
+
+    val getDarkTheme: Flow<DarkTheme> = settingsDataStore.data.map { settings ->
+        DarkTheme.valueOf(settings[dark_theme]?:DarkTheme.Auto.name)
     }
 
     suspend fun setVisaReminder(reminder: Int) {

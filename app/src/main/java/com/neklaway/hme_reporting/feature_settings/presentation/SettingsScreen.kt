@@ -25,10 +25,13 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.work.*
+import com.neklaway.hme_reporting.common.presentation.common.component.DropDown
 import com.neklaway.hme_reporting.common.presentation.common.component.Selector
 import com.neklaway.hme_reporting.feature_signature.presentation.signature.SignatureScreen
 import com.neklaway.hme_reporting.utils.Constants
+import com.neklaway.hme_reporting.utils.DarkTheme
 import com.neklaway.hme_reporting.utils.NotificationPermissionRequest
+import com.neklaway.hme_reporting.utils.Theme
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -181,6 +184,26 @@ fun SettingsScreen(
                         .fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
+                )
+            }
+            item {
+                Divider(modifier = Modifier.padding(vertical = 5.dp))
+
+                DropDown(
+                    dropDownList = Theme.values().toList(),
+                    selectedValue = state.theme.name,
+                    label = "Theme Color",
+                    dropDownContentDescription = "theme color selection",
+                    onSelect = viewModel::setTheme
+                )
+            }
+            item {
+                DropDown(
+                    dropDownList = DarkTheme.values().toList(),
+                    selectedValue = state.darkTheme.name,
+                    label = "Dark Theme",
+                    dropDownContentDescription = "dark theme color selection",
+                    onSelect = viewModel::setDarkTheme
                 )
             }
 

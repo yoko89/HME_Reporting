@@ -1,6 +1,8 @@
 package com.neklaway.hme_reporting.feature_settings.presentation
 
 import androidx.compose.ui.graphics.ImageBitmap
+import com.neklaway.hme_reporting.utils.DarkTheme
+import com.neklaway.hme_reporting.utils.Theme
 
 data class SettingsState(
     val isIbauUser: Boolean = false,
@@ -14,5 +16,7 @@ data class SettingsState(
     val fullDayAllowance :String ="",
     val _8HAllowance: String = "",
     val savingDeductible:String = "",
+    val theme: Theme = Theme.Auto,
+    val darkTheme: DarkTheme = DarkTheme.Auto,
 ) {
 }

@@ -3,6 +3,8 @@ package com.neklaway.hme_reporting.feature_settings.data.repository_impl
 import android.util.Log
 import com.neklaway.hme_reporting.feature_settings.data.Settings
 import com.neklaway.hme_reporting.feature_settings.domain.repository.SettingsRepository
+import com.neklaway.hme_reporting.utils.DarkTheme
+import com.neklaway.hme_reporting.utils.Theme
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
@@ -75,5 +77,21 @@ class SettingsRepositoryImpl @Inject constructor(
 
     override fun getSavingDeductible(): Flow<Int> {
         return settings.getSavingDeductible
+    }
+
+    override suspend fun setTheme(theme: Theme) {
+        settings.setTheme(theme)
+    }
+
+    override fun getTheme(): Flow<Theme> {
+        return settings.getTheme
+    }
+
+    override suspend fun setDarkTheme(theme: DarkTheme) {
+        settings.setDarkTheme(theme)
+    }
+
+    override fun getDarkTheme(): Flow<DarkTheme> {
+        return settings.getDarkTheme
     }
 }

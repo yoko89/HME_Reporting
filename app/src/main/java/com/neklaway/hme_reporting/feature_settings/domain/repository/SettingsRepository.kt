@@ -1,5 +1,7 @@
 package com.neklaway.hme_reporting.feature_settings.domain.repository
 
+import com.neklaway.hme_reporting.utils.DarkTheme
+import com.neklaway.hme_reporting.utils.Theme
 import kotlinx.coroutines.flow.Flow
 
 interface SettingsRepository {
@@ -19,6 +21,12 @@ interface SettingsRepository {
     suspend fun setUserName(userName: String)
 
     fun getUserName(): Flow<String>
+    suspend fun setTheme(theme: Theme)
+
+    fun getTheme(): Flow<Theme>
+    suspend fun setDarkTheme(theme: DarkTheme)
+
+    fun getDarkTheme(): Flow<DarkTheme>
 
     suspend fun setVisaReminder(reminder: Int)
 

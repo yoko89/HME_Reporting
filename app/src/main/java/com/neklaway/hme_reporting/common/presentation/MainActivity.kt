@@ -1,11 +1,27 @@
 package com.neklaway.hme_reporting.common.presentation
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.NavigationDrawerItemDefaults
+import androidx.compose.material3.Text
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -14,6 +30,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -25,11 +42,14 @@ import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.main.Expans
 import com.neklaway.hme_reporting.feature_settings.presentation.SettingsScreen
 import com.neklaway.hme_reporting.feature_time_sheet.presentation.main.TimeSheetMainScreen
 import com.neklaway.hme_reporting.feature_visa.presentation.VisaScreen
+import com.neklaway.hme_reporting.utils.DarkTheme
 import com.neklaway.hmereporting.BuildConfig
 import com.neklaway.hmereporting.R
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
+private const val TAG = "MainActivity"
 
 @AndroidEntryPoint
 class MainActivity @Inject constructor(
@@ -40,9 +60,14 @@ class MainActivity @Inject constructor(
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-
         setContent {
-            HMEReportingTheme{
+            val viewModel: MainActivityViewModel = hiltViewModel()
+            Log.d(TAG, "onCreate: ${viewModel.darkThemeState} ${viewModel.themeState}")
+            val themeState = viewModel.themeState.collectAsState()
+            val darkThemeState = viewModel.darkThemeState.collectAsState()
+
+
+            HMEReportingTheme(darkThemeState.value, themeState.value) {
                 val navController = rememberNavController()
                 val drawerState = rememberDrawerState(DrawerValue.Closed)
                 val scope = rememberCoroutineScope()
@@ -112,7 +137,7 @@ class MainActivity @Inject constructor(
                         }
                     },
                     content = {
-                        Navigation(navController = navController){
+                        Navigation(navController = navController) {
                             scope.launch {
                                 drawerState.open()
                             }
