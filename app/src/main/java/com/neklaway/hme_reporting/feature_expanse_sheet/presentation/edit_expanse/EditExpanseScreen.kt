@@ -35,6 +35,7 @@ import androidx.navigation.NavController
 import com.neklaway.hme_reporting.common.presentation.Screen
 import com.neklaway.hme_reporting.common.presentation.common.component.CustomDatePicker
 import com.neklaway.hme_reporting.common.presentation.common.component.DropDown
+import com.neklaway.hme_reporting.utils.BitmapOrientationCorrector
 import com.neklaway.hme_reporting.utils.toDate
 import java.util.*
 
@@ -227,9 +228,12 @@ fun EditExpanseScreen(
                 if (imageFile.exists()) {
                     val path = imageFile.absolutePath
                     val image = BitmapFactory.decodeFile(path)
+                    val bitmapOrientationCorrector = BitmapOrientationCorrector()
+                    val imageCorrected = bitmapOrientationCorrector(path, image)
+
                     Box {
                         Image(
-                            bitmap = image.asImageBitmap(),
+                            bitmap = imageCorrected.asImageBitmap(),
                             contentDescription = null,
                             modifier = Modifier.padding(5.dp),
                             contentScale = ContentScale.Fit

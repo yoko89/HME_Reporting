@@ -34,6 +34,7 @@ import com.neklaway.hme_reporting.feature_time_sheet.presentation.time_sheet.com
 import com.neklaway.hme_reporting.feature_time_sheet.presentation.time_sheet.component.TimeSheetItemCard
 import com.neklaway.hme_reporting.utils.NotificationPermissionRequest
 import java.io.File
+import java.io.FilenameFilter
 
 private const val TAG = "TimeSheetScreen"
 
@@ -147,12 +148,12 @@ fun TimeSheetScreen(
             SnackbarHost(hostState = snackbarHostState)
         }
 
-    ) {
+    ) { padding ->
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues = it)
+                .padding(paddingValues = padding)
                 .padding(8.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top,
@@ -247,15 +248,11 @@ fun TimeSheetScreen(
 
         AnimatedVisibility(visible = state.showFileList) {
             val pdfDirectory = File(context.filesDir.path + "/" + state.selectedHMECode?.code)
-            val listOfFiles = pdfDirectory.listFiles()?.toList() ?: emptyList()
+            val listOfFiles = pdfDirectory.listFiles()?.filter { it.isFile }?.toList() ?: emptyList()
 
-            ListDialog<File>(list = listOfFiles,
-                modifier = Modifier.fillMaxHeight(0.8f),
-                onClick = { file ->
-                    viewModel.fileSelected(file)
-                }, onCancel = {
-                    viewModel.fileSelectionCanceled()
-                })
+            ListDialog(list = listOfFiles,
+                onClick = viewModel::fileSelected,
+                onCancel = viewModel::fileSelectionCanceled)
         }
 
         if (requestPermission) {

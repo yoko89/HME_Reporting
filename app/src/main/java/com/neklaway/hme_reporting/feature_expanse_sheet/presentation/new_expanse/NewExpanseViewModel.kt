@@ -18,6 +18,7 @@ import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.ti
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.CurrencyExchange
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.use_cases.currency_exchange_use_cases.GetAllCurrencyExchangeFlowUseCase
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.use_cases.expanse_use_cases.InsertExpanseUseCase
+import com.neklaway.hme_reporting.utils.Constants
 import com.neklaway.hme_reporting.utils.Resource
 import com.neklaway.hme_reporting.utils.ResourceWithString
 import com.neklaway.hme_reporting.utils.toFloatWithString
@@ -378,7 +379,7 @@ class NewExpanseViewModel @Inject constructor(
 
     fun takePicture(context: Context) {
         val selectedHme = state.value.selectedHMECode ?: return
-        val directory = File(context.filesDir.path + "/" + selectedHme.code)
+        val directory = File(context.filesDir.path + "/" + selectedHme.code,Constants.EXPANSE_INVOICES_FOLDER)
         if (!directory.exists()) {
             directory.mkdirs()
         }

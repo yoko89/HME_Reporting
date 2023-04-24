@@ -9,6 +9,7 @@ import androidx.core.net.toUri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.neklaway.hme_reporting.common.domain.use_cases.hme_code_use_cases.GetHMECodeByIdUseCase
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.CurrencyExchange
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.Expanse
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.use_cases.currency_exchange_use_cases.GetAllCurrencyExchangeFlowUseCase
@@ -16,6 +17,7 @@ import com.neklaway.hme_reporting.feature_expanse_sheet.domain.use_cases.currenc
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.use_cases.expanse_use_cases.DeleteExpanseUseCase
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.use_cases.expanse_use_cases.GetExpanseByIdUseCase
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.use_cases.expanse_use_cases.UpdateExpanseUseCase
+import com.neklaway.hme_reporting.utils.Constants
 import com.neklaway.hme_reporting.utils.Resource
 import com.neklaway.hme_reporting.utils.ResourceWithString
 import com.neklaway.hme_reporting.utils.toFloatWithString
@@ -36,6 +38,7 @@ class EditExpanseViewModel @Inject constructor(
     private val deleteExpanseUseCase: DeleteExpanseUseCase,
     private val getCurrencyExchangeByIdUseCase: GetCurrencyExchangeByIdUseCase,
     private val getAllCurrencyExchangeFlowUseCase: GetAllCurrencyExchangeFlowUseCase,
+    private val getHMECodeByIdUseCase: GetHMECodeByIdUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -314,26 +317,37 @@ class EditExpanseViewModel @Inject constructor(
                 _event.emit(EditExpanseEvents.UserMessage("Can't retrieve Expanse"))
                 return@launch
             }
-            val selectedHme = returnedExpanse.HMEId
-            val directory = File(context.filesDir.path + "/" + selectedHme)
-            if (!directory.exists()) {
-                directory.mkdirs()
+            val selectedHmeId = returnedExpanse.HMEId
+            getHMECodeByIdUseCase(selectedHmeId).collect{hmeCodeResource ->
+                when (hmeCodeResource){
+                    is Resource.Error -> {
+                        _event.emit(EditExpanseEvents.UserMessage("Can't Retrieve HME Code"))
+                    }
+                    is Resource.Loading -> Unit
+                    is Resource.Success -> {
+                        val directory = File(context.filesDir.path + "/" + hmeCodeResource.data?.code,Constants.EXPANSE_INVOICES_FOLDER)
+                        if (!directory.exists()) {
+                            directory.mkdirs()
+                        }
+                        var file = File(
+                            directory,
+                            hmeCodeResource.data?.code.toString() + Calendar.getInstance().timeInMillis + ".jpg"
+                        )
+                        while (file.exists()) {
+                            file = File(
+                                directory,
+                                hmeCodeResource.data?.code.toString() + Calendar.getInstance().timeInMillis + ".jpg"
+                            )
+                        }
+                        mutableUriList.add(Uri.fromFile(file))
+                        val uri =
+                            FileProvider.getUriForFile(context, "com.neklaway.hme_reporting.provider", file)
+                        Uri.fromFile(file)
+                        _event.emit(EditExpanseEvents.TakePicture(uri))
+                    }
+                }
+
             }
-            var file = File(
-                directory,
-                selectedHme.toString() + Calendar.getInstance().timeInMillis + ".jpg"
-            )
-            while (file.exists()) {
-                file = File(
-                    directory,
-                    selectedHme.toString() + Calendar.getInstance().timeInMillis + ".jpg"
-                )
-            }
-            mutableUriList.add(Uri.fromFile(file))
-            val uri =
-                FileProvider.getUriForFile(context, "com.neklaway.hme_reporting.provider", file)
-            Uri.fromFile(file)
-            _event.emit(EditExpanseEvents.TakePicture(uri))
         }
     }
 

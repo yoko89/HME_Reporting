@@ -125,12 +125,12 @@ fun ExpanseSheetScreen(
         SnackbarHost(hostState = snackbarHostState)
     }
 
-    ) {
+    ) { padding ->
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues = it)
+                .padding(paddingValues = padding)
                 .padding(8.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top,
@@ -257,16 +257,10 @@ fun ExpanseSheetScreen(
         AnimatedVisibility(visible = state.showFileList) {
             val expansePdfDirectory =
                 File(context.filesDir.path + "/" + state.selectedHMECode?.code + "/" + EXPANSE_FOLDER)
-            val listOfFiles = expansePdfDirectory.listFiles()?.toList() ?: emptyList()
+            val listOfFiles = expansePdfDirectory.listFiles()?.filter { it.isFile }?.toList() ?: emptyList()
 
-            ListDialog<File>(list = listOfFiles,
-                modifier = Modifier.fillMaxHeight(0.8f),
-                onClick = { file ->
-                    viewModel.fileSelected(file)
-                },
-                onCancel = {
-                    viewModel.fileSelectionCanceled()
-                })
+//
+            ListDialog(list = listOfFiles, onClick = viewModel::fileSelected, onCancel = viewModel::fileSelectionCanceled)
         }
 
         if (requestPermission) {

@@ -2,7 +2,13 @@ package com.neklaway.hme_reporting.feature_expanse_sheet.data.worker
 
 import android.app.Notification
 import android.content.Context
-import android.graphics.*
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.RectF
+import android.graphics.Typeface
 import android.graphics.pdf.PdfDocument
 import android.util.Log
 import androidx.core.app.NotificationCompat
@@ -26,7 +32,13 @@ import com.neklaway.hme_reporting.feature_settings.domain.use_cases.allowance.Ge
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.allowance.GetSavingDeductibleUseCase
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.user_name.GetUserNameUseCase
 import com.neklaway.hme_reporting.feature_signature.domain.use_cases.bitmap_use_case.LoadBitmapUseCase
-import com.neklaway.hme_reporting.utils.*
+import com.neklaway.hme_reporting.utils.BitmapOrientationCorrector
+import com.neklaway.hme_reporting.utils.CalculateAllowance
+import com.neklaway.hme_reporting.utils.Constants
+import com.neklaway.hme_reporting.utils.Constants.EXPANSE_FOLDER
+import com.neklaway.hme_reporting.utils.Resource
+import com.neklaway.hme_reporting.utils.toStdDate
+import com.neklaway.hme_reporting.utils.toTime24
 import com.neklaway.hmereporting.R
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -38,7 +50,8 @@ import kotlinx.serialization.json.Json
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
-import java.util.*
+import java.util.Calendar
+import java.util.Locale
 
 private const val TAG = "ExpansePDFCreatorWorker"
 //Times new roman font
@@ -414,6 +427,7 @@ class ExpanseSheetPDFCreatorWorker @AssistedInject constructor(
                                 paintThickLineTableBorder
                             )
                         }
+
                         else -> {
                             canvas[currentPageCount].drawLine(
                                 X_TABLE_LEFT + i * DETAILS_COLUMN_SHIFT,
@@ -463,7 +477,7 @@ class ExpanseSheetPDFCreatorWorker @AssistedInject constructor(
 
         // Save PDF
 
-        val directory = File(applicationContext.filesDir.path + "/" + hmeCode.code)
+        val directory = File(applicationContext.filesDir.path + "/" + hmeCode.code, EXPANSE_FOLDER)
         if (!directory.exists()) {
             directory.mkdirs()
         }
@@ -475,7 +489,7 @@ class ExpanseSheetPDFCreatorWorker @AssistedInject constructor(
                         FileOutputStream(
                             File(
                                 directory,
-                                hmeCode.code + "_expanse.pdf"
+                                hmeCode.code + ".pdf"
                             )
                         )
                     )
@@ -485,7 +499,7 @@ class ExpanseSheetPDFCreatorWorker @AssistedInject constructor(
                         FileOutputStream(
                             File(
                                 directory,
-                                hmeCode.code + "_" + fileNumber + "_expanse.pdf"
+                                hmeCode.code + "_" + fileNumber + ".pdf"
                             )
                         )
                     )
@@ -1370,6 +1384,7 @@ class ExpanseSheetPDFCreatorWorker @AssistedInject constructor(
                                 paintThickLineTableBorder
                             )
                         }
+
                         3 -> Unit
                         else -> {
                             canvas[currentPageCount].drawLine(
@@ -1447,14 +1462,16 @@ class ExpanseSheetPDFCreatorWorker @AssistedInject constructor(
 
                 val path = imageFile.absolutePath
                 val image = BitmapFactory.decodeFile(path)
+                val bitmapOrientationCorrector = BitmapOrientationCorrector()
+                val imageCorrected = bitmapOrientationCorrector(path, image)
                 val widthRatio =
-                    if (image.width > IMAGE_MAX_WIDTH) {
-                        IMAGE_MAX_WIDTH / image.width
+                    if (imageCorrected.width > IMAGE_MAX_WIDTH) {
+                        IMAGE_MAX_WIDTH / imageCorrected.width
                     } else 1f
                 Log.d(TAG, "createExpanseTable: width ratio $widthRatio")
                 val heightRatio =
-                    if (image.height > IMAGE_MAX_HEIGHT) {
-                        IMAGE_MAX_HEIGHT / image.height
+                    if (imageCorrected.height > IMAGE_MAX_HEIGHT) {
+                        IMAGE_MAX_HEIGHT / imageCorrected.height
                     } else 1f
                 Log.d(TAG, "createExpanseTable: height ratio $heightRatio")
 
@@ -1468,7 +1485,7 @@ class ExpanseSheetPDFCreatorWorker @AssistedInject constructor(
                     HME_CODE_X,
                     HME_CODE_Y,
                     paintHeaderData
-                    )
+                )
 
                 //Description
                 canvas[currentPageCount].drawText(
@@ -1476,7 +1493,7 @@ class ExpanseSheetPDFCreatorWorker @AssistedInject constructor(
                     INVOICE_DESCRIPTION_X,
                     INVOICE_DESCRIPTION_Y,
                     paintHeaderData
-                    )
+                )
 
                 val currency = getCurrencyExchangeByIdUseCase(currentItem.currencyID)
                 //Amount and currency
@@ -1485,8 +1502,8 @@ class ExpanseSheetPDFCreatorWorker @AssistedInject constructor(
                     INVOICE_AMOUNT_AND_CURRENCY_X,
                     INVOICE_AMOUNT_AND_CURRENCY_Y,
                     paintHeaderData
-                    )
-                if (personal && currency.data?.currencyName !="AED"){
+                )
+                if (personal && currency.data?.currencyName != "AED") {
                     //Amount in AED
                     canvas[currentPageCount].drawText(
                         currentItem.amountAED.toString() + "AED",
@@ -1497,13 +1514,13 @@ class ExpanseSheetPDFCreatorWorker @AssistedInject constructor(
                 }
 
                 canvas[currentPageCount].drawBitmap(
-                    image,
+                    imageCorrected,
                     null,
                     RectF(
                         INVOICE_IMAGE_LEFT_POSITION,
                         INVOICE_IMAGE_TOP_POSITION,
-                        INVOICE_IMAGE_LEFT_POSITION + (ratio * image.width),
-                        INVOICE_IMAGE_TOP_POSITION + (ratio * image.height)
+                        INVOICE_IMAGE_LEFT_POSITION + (ratio * imageCorrected.width),
+                        INVOICE_IMAGE_TOP_POSITION + (ratio * imageCorrected.height)
                     ),
                     null
                 )

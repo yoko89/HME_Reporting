@@ -32,6 +32,7 @@ import androidx.core.net.toFile
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.neklaway.hme_reporting.common.presentation.common.component.CustomDatePicker
 import com.neklaway.hme_reporting.common.presentation.common.component.DropDown
+import com.neklaway.hme_reporting.utils.BitmapOrientationCorrector
 import com.neklaway.hme_reporting.utils.toDate
 import java.util.*
 
@@ -59,6 +60,7 @@ fun NewExpanseScreen(
                 is NewExpanseEvents.TakePicture -> {
                     imageCapture.launch(event.uri)
                 }
+
                 is NewExpanseEvents.UserMessage -> snackbarHostState.showSnackbar(event.message)
             }
         }
@@ -90,7 +92,7 @@ fun NewExpanseScreen(
 
     Scaffold(
         floatingActionButton = {
-            Row() {
+            Row {
                 val context = LocalContext.current
                 FloatingActionButton(onClick = { viewModel.takePicture(context) }) {
                     Icon(
@@ -220,9 +222,12 @@ fun NewExpanseScreen(
                 if (imageFile.exists()) {
                     val path = imageFile.absolutePath
                     val image = BitmapFactory.decodeFile(path)
+                    val bitmapOrientationCorrector = BitmapOrientationCorrector()
+                    val imageCorrected = bitmapOrientationCorrector(path, image)
+
                     Box {
                         Image(
-                            bitmap = image.asImageBitmap(),
+                            bitmap = imageCorrected.asImageBitmap(),
                             contentDescription = null,
                             modifier = Modifier.padding(5.dp),
                             contentScale = ContentScale.Fit
