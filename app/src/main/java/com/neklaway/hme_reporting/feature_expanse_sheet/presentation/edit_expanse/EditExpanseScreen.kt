@@ -18,8 +18,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.DocumentScanner
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -117,7 +117,7 @@ fun EditExpanseScreen(
                 val context = LocalContext.current
                 FloatingActionButton(onClick = { viewModel.takePicture(context) }) {
                     Icon(
-                        imageVector = Icons.Default.DocumentScanner,
+                        imageVector = Icons.Default.PhotoCamera,
                         contentDescription = "Add Invoice Image"
                     )
                 }

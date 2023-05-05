@@ -60,7 +60,6 @@ class NewExpanseViewModel @Inject constructor(
 
     private val mutableUriList = state.value.invoicesUris.toMutableList()
 
-
     init {
         getCustomers()
         getCurrencyList()
@@ -224,6 +223,7 @@ class NewExpanseViewModel @Inject constructor(
     }
 
     private fun clearState() {
+        mutableUriList.clear()
         _state.update {
             it.copy(
                 date = null,
@@ -263,47 +263,48 @@ class NewExpanseViewModel @Inject constructor(
     }
 
     fun amountChanged(amount: String) {
-            amount.toFloatWithString().let { resourceWithString ->
-                when (resourceWithString) {
-                    is ResourceWithString.Error -> {
-                        viewModelScope.launch {
-                            _event.emit(
-                                NewExpanseEvents.UserMessage(
-                                    resourceWithString.message ?: "Error in Amount"
-                                )
-                            )
-                        }
-                        _state.update { it.copy(amount = resourceWithString.string ?: "") }
-                    }
-
-                    is ResourceWithString.Loading -> Unit
-                    is ResourceWithString.Success -> {
-                        _state.update { it.copy(amount = resourceWithString.string ?: "") }
-                        viewModelScope.launch {
-                        calculateAmountInAED()
-                        }
-                    }
-                }
-            }
-    }
-
-    fun amountAEDChanged(amount: String) {
-            amount.toFloatWithString().let { resourceWithString ->
-                when (resourceWithString) {
-                    is ResourceWithString.Error -> {
-                        viewModelScope.launch {
-                            _event.emit(
+        amount.toFloatWithString().let { resourceWithString ->
+            when (resourceWithString) {
+                is ResourceWithString.Error -> {
+                    viewModelScope.launch {
+                        _event.emit(
                             NewExpanseEvents.UserMessage(
                                 resourceWithString.message ?: "Error in Amount"
                             )
-                        )}
-                        _state.update { it.copy(amountAED = resourceWithString.string ?: "") }
+                        )
                     }
+                    _state.update { it.copy(amount = resourceWithString.string ?: "") }
+                }
 
-                    is ResourceWithString.Loading -> Unit
-                    is ResourceWithString.Success -> {
-                        _state.update { it.copy(amountAED = resourceWithString.string ?: "") }
+                is ResourceWithString.Loading -> Unit
+                is ResourceWithString.Success -> {
+                    _state.update { it.copy(amount = resourceWithString.string ?: "") }
+                    viewModelScope.launch {
+                        calculateAmountInAED()
                     }
+                }
+            }
+        }
+    }
+
+    fun amountAEDChanged(amount: String) {
+        amount.toFloatWithString().let { resourceWithString ->
+            when (resourceWithString) {
+                is ResourceWithString.Error -> {
+                    viewModelScope.launch {
+                        _event.emit(
+                            NewExpanseEvents.UserMessage(
+                                resourceWithString.message ?: "Error in Amount"
+                            )
+                        )
+                    }
+                    _state.update { it.copy(amountAED = resourceWithString.string ?: "") }
+                }
+
+                is ResourceWithString.Loading -> Unit
+                is ResourceWithString.Success -> {
+                    _state.update { it.copy(amountAED = resourceWithString.string ?: "") }
+                }
             }
         }
     }
@@ -379,7 +380,8 @@ class NewExpanseViewModel @Inject constructor(
 
     fun takePicture(context: Context) {
         val selectedHme = state.value.selectedHMECode ?: return
-        val directory = File(context.filesDir.path + "/" + selectedHme.code,Constants.EXPANSE_INVOICES_FOLDER)
+        val directory =
+            File(context.filesDir.path + "/" + selectedHme.code, Constants.EXPANSE_INVOICES_FOLDER)
         if (!directory.exists()) {
             directory.mkdirs()
         }
@@ -407,5 +409,4 @@ class NewExpanseViewModel @Inject constructor(
         _state.update { it.copy(invoicesUris = list) }
 
     }
-
 }

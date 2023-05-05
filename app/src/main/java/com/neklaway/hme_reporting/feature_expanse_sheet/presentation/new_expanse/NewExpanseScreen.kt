@@ -18,7 +18,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.DocumentScanner
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -96,7 +96,7 @@ fun NewExpanseScreen(
                 val context = LocalContext.current
                 FloatingActionButton(onClick = { viewModel.takePicture(context) }) {
                     Icon(
-                        imageVector = Icons.Default.DocumentScanner,
+                        imageVector = Icons.Default.PhotoCamera,
                         contentDescription = "Add Invoice Image"
                     )
                 }
@@ -229,8 +229,9 @@ fun NewExpanseScreen(
                         Image(
                             bitmap = imageCorrected.asImageBitmap(),
                             contentDescription = null,
-                            modifier = Modifier.padding(5.dp),
-                            contentScale = ContentScale.Fit
+                            modifier = Modifier
+                                .padding(5.dp),
+                            contentScale = ContentScale.Fit,
                         )
                         IconButton(
                             onClick = {
