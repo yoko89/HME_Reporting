@@ -4,6 +4,7 @@ package com.neklaway.hme_reporting.feature_expanse_sheet.presentation.edit_expan
 
 import android.graphics.BitmapFactory
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInHorizontally
@@ -19,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -45,6 +47,7 @@ fun EditExpanseScreen(
     navController: NavController,
     viewModel: EditExpanseViewModel = hiltViewModel(),
 ) {
+    val context = LocalContext.current
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -56,6 +59,12 @@ fun EditExpanseScreen(
         contract = ActivityResultContracts.TakePicture(),
         onResult = viewModel::photoTaken
     )
+    val imageSelection = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri ->
+            viewModel.photoPicked(context, uri)
+        }
+    )
 
     LaunchedEffect(key1 = event) {
         event.collect { event ->
@@ -64,10 +73,17 @@ fun EditExpanseScreen(
                     Screen.ExpanseSheet.route,
                     false
                 )
+
                 is EditExpanseEvents.UserMessage -> snackbarHostState.showSnackbar(event.message)
                 is EditExpanseEvents.TakePicture -> {
                     imageCapture.launch(event.uri)
                 }
+
+                EditExpanseEvents.PickPicture -> imageSelection.launch(
+                    PickVisualMediaRequest(
+                        ActivityResultContracts.PickVisualMedia.ImageOnly
+                    )
+                )
             }
         }
     }
@@ -114,7 +130,6 @@ fun EditExpanseScreen(
                 }
                 Spacer(modifier = Modifier.width(5.dp))
 
-                val context = LocalContext.current
                 FloatingActionButton(onClick = { viewModel.takePicture(context) }) {
                     Icon(
                         imageVector = Icons.Default.PhotoCamera,
@@ -122,6 +137,14 @@ fun EditExpanseScreen(
                     )
                 }
 
+                Spacer(modifier = Modifier.width(5.dp))
+
+                FloatingActionButton(onClick = { viewModel.pickPicture() }) {
+                    Icon(
+                        imageVector = Icons.Default.Image,
+                        contentDescription = "Add Invoice Image from gallery"
+                    )
+                }
                 Spacer(modifier = Modifier.width(5.dp))
 
                 FloatingActionButton(onClick = { viewModel.updateExpanse() }) {

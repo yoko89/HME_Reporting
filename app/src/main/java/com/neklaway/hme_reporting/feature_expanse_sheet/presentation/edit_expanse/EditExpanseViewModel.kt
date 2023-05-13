@@ -3,7 +3,6 @@ package com.neklaway.hme_reporting.feature_expanse_sheet.presentation.edit_expan
 import android.content.Context
 import android.net.Uri
 import android.util.Log
-import androidx.core.content.FileProvider
 import androidx.core.net.toFile
 import androidx.core.net.toUri
 import androidx.lifecycle.SavedStateHandle
@@ -17,16 +16,21 @@ import com.neklaway.hme_reporting.feature_expanse_sheet.domain.use_cases.currenc
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.use_cases.expanse_use_cases.DeleteExpanseUseCase
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.use_cases.expanse_use_cases.GetExpanseByIdUseCase
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.use_cases.expanse_use_cases.UpdateExpanseUseCase
-import com.neklaway.hme_reporting.utils.Constants
 import com.neklaway.hme_reporting.utils.Resource
 import com.neklaway.hme_reporting.utils.ResourceWithString
+import com.neklaway.hme_reporting.utils.copyFiles
+import com.neklaway.hme_reporting.utils.createUriForInvoice
 import com.neklaway.hme_reporting.utils.toFloatWithString
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.io.File
-import java.util.*
+import java.util.Calendar
+import java.util.TimeZone
 import javax.inject.Inject
 
 private const val TAG = "EditExpanseViewModel"
@@ -52,7 +56,7 @@ class EditExpanseViewModel @Inject constructor(
     private val _event = MutableSharedFlow<EditExpanseEvents>()
     val event: SharedFlow<EditExpanseEvents> = _event
 
-    private val mutableUriList = state.value.invoicesUris.toMutableList()
+    private val mutableUriList: MutableList<Uri> = mutableListOf()
 
     private val expanseId: Long
     private lateinit var returnedExpanse: Expanse
@@ -76,6 +80,7 @@ class EditExpanseViewModel @Inject constructor(
                         )
                         _state.update { it.copy(loading = false) }
                     }
+
                     is Resource.Loading -> _state.update { it.copy(loading = true) }
                     is Resource.Success -> {
                         Log.d(TAG, "Expanse loaded: Success")
@@ -92,12 +97,14 @@ class EditExpanseViewModel @Inject constructor(
                                 amount = expanse.amount.toString(),
                                 amountAED = expanse.amountAED.toString(),
                                 invoicesUris = expanse.invoicesUri.map { uriString ->
-                                    uriString.toUri() },
+                                    uriString.toUri()
+                                },
                                 selectedCurrency = currency,
                                 expanseId = expanseId,
                                 loading = false
                             )
                         }
+                        mutableUriList.addAll(state.value.invoicesUris)
                         returnedExpanse = expanse
                     }
                 }
@@ -123,7 +130,7 @@ class EditExpanseViewModel @Inject constructor(
                 amount = state.value.amount.toFloat(),
                 currencyID = state.value.selectedCurrency?.id,
                 amountAED = state.value.amountAED.toFloat(),
-                invoiceUris = state.value.invoicesUris.map { it.toString()},
+                invoiceUris = state.value.invoicesUris.map { it.toString() },
                 id = state.value.expanseId,
             ).collect { result ->
                 when (result) {
@@ -135,6 +142,7 @@ class EditExpanseViewModel @Inject constructor(
                         )
                         _state.update { it.copy(loading = false) }
                     }
+
                     is Resource.Loading -> _state.update { it.copy(loading = true) }
                     is Resource.Success -> {
                         _state.update { it.copy(loading = false) }
@@ -189,6 +197,7 @@ class EditExpanseViewModel @Inject constructor(
                         )
                         _state.update { it.copy(loading = false) }
                     }
+
                     is Resource.Loading -> _state.update { it.copy(loading = true) }
                     is Resource.Success -> {
                         _event.emit(EditExpanseEvents.UserMessage("Expanse Deleted"))
@@ -217,6 +226,7 @@ class EditExpanseViewModel @Inject constructor(
                     _event.emit(EditExpanseEvents.UserMessage(resource.message ?: "Error"))
                     ""
                 }
+
                 is ResourceWithString.Loading -> ""
                 is ResourceWithString.Success -> {
                     resource.data?.let { amount ->
@@ -241,44 +251,49 @@ class EditExpanseViewModel @Inject constructor(
     }
 
     fun amountChanged(amount: String) {
-            amount.toFloatWithString().let { resourceWithString ->
-                when (resourceWithString) {
-                    is ResourceWithString.Error -> {
-                        viewModelScope.launch {
+        amount.toFloatWithString().let { resourceWithString ->
+            when (resourceWithString) {
+                is ResourceWithString.Error -> {
+                    viewModelScope.launch {
 
                         _event.emit(
                             EditExpanseEvents.UserMessage(
                                 resourceWithString.message ?: "Error in Amount"
                             )
-                        )}
-                        _state.update { it.copy(amount = resourceWithString.string ?: "") }
+                        )
                     }
-                    is ResourceWithString.Loading -> Unit
-                    is ResourceWithString.Success -> {
-                        _state.update { it.copy(amount = resourceWithString.string ?: "") }
-                        viewModelScope.launch {
-                            calculateAmountInAED()}
+                    _state.update { it.copy(amount = resourceWithString.string ?: "") }
+                }
+
+                is ResourceWithString.Loading -> Unit
+                is ResourceWithString.Success -> {
+                    _state.update { it.copy(amount = resourceWithString.string ?: "") }
+                    viewModelScope.launch {
+                        calculateAmountInAED()
                     }
                 }
+            }
         }
     }
 
     fun amountAEDChanged(amount: String) {
-            amount.toFloatWithString().let { resourceWithString ->
-                when (resourceWithString) {
-                    is ResourceWithString.Error -> {
-                        viewModelScope.launch {
-                            _event.emit(
+        amount.toFloatWithString().let { resourceWithString ->
+            when (resourceWithString) {
+                is ResourceWithString.Error -> {
+                    viewModelScope.launch {
+                        _event.emit(
                             EditExpanseEvents.UserMessage(
                                 resourceWithString.message ?: "Error in Amount"
                             )
-                        )}
-                        _state.update { it.copy(amountAED = resourceWithString.string ?: "") }
+                        )
                     }
-                    is ResourceWithString.Loading -> Unit
-                    is ResourceWithString.Success -> {
-                        _state.update { it.copy(amountAED = resourceWithString.string ?: "") }
-                    }
+                    _state.update { it.copy(amountAED = resourceWithString.string ?: "") }
+                }
+
+                is ResourceWithString.Loading -> Unit
+                is ResourceWithString.Success -> {
+                    _state.update { it.copy(amountAED = resourceWithString.string ?: "") }
+                }
             }
         }
     }
@@ -295,9 +310,11 @@ class EditExpanseViewModel @Inject constructor(
                         )
                         _state.update { it.copy(loading = false) }
                     }
+
                     is Resource.Loading -> {
                         _state.update { it.copy(loading = true) }
                     }
+
                     is Resource.Success -> {
                         _state.update {
                             it.copy(
@@ -318,40 +335,27 @@ class EditExpanseViewModel @Inject constructor(
                 return@launch
             }
             val selectedHmeId = returnedExpanse.HMEId
-            getHMECodeByIdUseCase(selectedHmeId).collect{hmeCodeResource ->
-                when (hmeCodeResource){
+            getHMECodeByIdUseCase(selectedHmeId).collect { hmeCodeResource ->
+                when (hmeCodeResource) {
                     is Resource.Error -> {
                         _event.emit(EditExpanseEvents.UserMessage("Can't Retrieve HME Code"))
                     }
+
                     is Resource.Loading -> Unit
                     is Resource.Success -> {
-                        val directory = File(context.filesDir.path + "/" + hmeCodeResource.data?.code,Constants.EXPANSE_INVOICES_FOLDER)
-                        if (!directory.exists()) {
-                            directory.mkdirs()
-                        }
-                        var file = File(
-                            directory,
-                            hmeCodeResource.data?.code.toString() + Calendar.getInstance().timeInMillis + ".jpg"
+                        val (providerUri, uri) = createUriForInvoice(
+                            context,
+                            hmeCodeResource.data!!.code
                         )
-                        while (file.exists()) {
-                            file = File(
-                                directory,
-                                hmeCodeResource.data?.code.toString() + Calendar.getInstance().timeInMillis + ".jpg"
-                            )
-                        }
-                        mutableUriList.add(Uri.fromFile(file))
-                        val uri =
-                            FileProvider.getUriForFile(context, "com.neklaway.hme_reporting.provider", file)
-                        Uri.fromFile(file)
-                        _event.emit(EditExpanseEvents.TakePicture(uri))
+                        mutableUriList.add(uri)
+                        _event.emit(EditExpanseEvents.TakePicture(providerUri))
                     }
                 }
-
             }
         }
     }
 
-    fun photoTaken(successful:Boolean) {
+    fun photoTaken(successful: Boolean) {
         val list = mutableUriList.toList()
         _state.update { it.copy(invoicesUris = list) }
     }
@@ -362,5 +366,39 @@ class EditExpanseViewModel @Inject constructor(
         val list = mutableUriList.toList()
         _state.update { it.copy(invoicesUris = list) }
 
+    }
+
+    fun photoPicked(context: Context, externalUri: Uri?) {
+        if (externalUri == null) {
+            viewModelScope.launch { _event.emit(EditExpanseEvents.UserMessage("Can't get photo")) }
+            return
+        }
+        viewModelScope.launch {
+            val selectedHmeId = returnedExpanse.HMEId
+            getHMECodeByIdUseCase(selectedHmeId).collect { hmeCodeResource ->
+                when (hmeCodeResource) {
+                    is Resource.Error -> {
+                        _event.emit(EditExpanseEvents.UserMessage("Can't Retrieve HME Code"))
+                    }
+
+                    is Resource.Loading -> Unit
+                    is Resource.Success -> {
+                        val hmeCode = hmeCodeResource.data ?: return@collect
+                        val internalUri = createUriForInvoice(context, hmeCode.code).second
+                        copyFiles(context, externalUri, internalUri)
+                        mutableUriList.add(internalUri)
+                        _state.update { it.copy(invoicesUris = mutableUriList.toList()) }
+
+                        Log.d(TAG, "photoPicked: ${externalUri.encodedPath}")
+                    }
+                }
+            }
+        }
+    }
+
+    fun pickPicture() {
+        viewModelScope.launch {
+            _event.emit(EditExpanseEvents.PickPicture)
+        }
     }
 }

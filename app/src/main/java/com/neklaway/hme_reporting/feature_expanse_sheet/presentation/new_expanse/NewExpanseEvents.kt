@@ -5,4 +5,5 @@ import android.net.Uri
 sealed class NewExpanseEvents {
     class UserMessage(val message: String) : NewExpanseEvents()
     class TakePicture(val uri: Uri) : NewExpanseEvents()
+    object PickPicture:NewExpanseEvents()
 }

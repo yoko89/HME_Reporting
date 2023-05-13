@@ -4,6 +4,7 @@ package com.neklaway.hme_reporting.feature_expanse_sheet.presentation.new_expans
 
 import android.graphics.BitmapFactory
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInHorizontally
@@ -18,6 +19,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -42,6 +44,8 @@ private const val TAG = "NewExpanseScreen"
 fun NewExpanseScreen(
     viewModel: NewExpanseViewModel = hiltViewModel(),
 ) {
+    val context = LocalContext.current
+
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -54,6 +58,13 @@ fun NewExpanseScreen(
         onResult = viewModel::photoTaken
     )
 
+    val imageSelection = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = {uri->
+            viewModel.photoPicked(context,uri)
+        }
+    )
+
     LaunchedEffect(key1 = event) {
         event.collect { event ->
             when (event) {
@@ -62,6 +73,12 @@ fun NewExpanseScreen(
                 }
 
                 is NewExpanseEvents.UserMessage -> snackbarHostState.showSnackbar(event.message)
+
+                NewExpanseEvents.PickPicture -> imageSelection.launch(
+                    PickVisualMediaRequest(
+                        ActivityResultContracts.PickVisualMedia.ImageOnly
+                    )
+                )
             }
         }
     }
@@ -93,14 +110,22 @@ fun NewExpanseScreen(
     Scaffold(
         floatingActionButton = {
             Row {
-                val context = LocalContext.current
                 FloatingActionButton(onClick = { viewModel.takePicture(context) }) {
                     Icon(
                         imageVector = Icons.Default.PhotoCamera,
-                        contentDescription = "Add Invoice Image"
+                        contentDescription = "Add Invoice Image from camera"
                     )
                 }
                 Spacer(modifier = Modifier.width(5.dp))
+
+                FloatingActionButton(onClick = { viewModel.pickPicture() }) {
+                    Icon(
+                        imageVector = Icons.Default.Image,
+                        contentDescription = "Add Invoice Image from gallery"
+                    )
+                }
+                Spacer(modifier = Modifier.width(5.dp))
+
                 FloatingActionButton(onClick = { viewModel.insertExpanse() }) {
                     Icon(
                         imageVector = Icons.Default.Add,

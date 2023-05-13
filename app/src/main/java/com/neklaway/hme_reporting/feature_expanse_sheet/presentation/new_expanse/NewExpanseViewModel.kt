@@ -3,7 +3,6 @@ package com.neklaway.hme_reporting.feature_expanse_sheet.presentation.new_expans
 import android.content.Context
 import android.net.Uri
 import android.util.Log
-import androidx.core.content.FileProvider
 import androidx.core.net.toFile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -18,9 +17,10 @@ import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.ti
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.CurrencyExchange
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.use_cases.currency_exchange_use_cases.GetAllCurrencyExchangeFlowUseCase
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.use_cases.expanse_use_cases.InsertExpanseUseCase
-import com.neklaway.hme_reporting.utils.Constants
 import com.neklaway.hme_reporting.utils.Resource
 import com.neklaway.hme_reporting.utils.ResourceWithString
+import com.neklaway.hme_reporting.utils.copyFiles
+import com.neklaway.hme_reporting.utils.createUriForInvoice
 import com.neklaway.hme_reporting.utils.toFloatWithString
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -32,7 +32,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.io.File
 import java.util.Calendar
 import java.util.TimeZone
 import javax.inject.Inject
@@ -48,7 +47,7 @@ class NewExpanseViewModel @Inject constructor(
     private val getHmeIdUseCase: GetHMEIdUseCase,
     private val setHMEIdUseCase: SetHMEIdUseCase,
     private val getAllCurrencyExchangeFlowUseCase: GetAllCurrencyExchangeFlowUseCase,
-    private val insertExpanseUseCase: InsertExpanseUseCase
+    private val insertExpanseUseCase: InsertExpanseUseCase,
 ) : ViewModel() {
 
 
@@ -380,20 +379,11 @@ class NewExpanseViewModel @Inject constructor(
 
     fun takePicture(context: Context) {
         val selectedHme = state.value.selectedHMECode ?: return
-        val directory =
-            File(context.filesDir.path + "/" + selectedHme.code, Constants.EXPANSE_INVOICES_FOLDER)
-        if (!directory.exists()) {
-            directory.mkdirs()
-        }
-        var file = File(directory, selectedHme.code + Calendar.getInstance().timeInMillis + ".jpg")
-        while (file.exists()) {
-            file = File(directory, selectedHme.code + Calendar.getInstance().timeInMillis + ".jpg")
-        }
-        mutableUriList.add(Uri.fromFile(file))
-        val uri = FileProvider.getUriForFile(context, "com.neklaway.hme_reporting.provider", file)
-        Uri.fromFile(file)
+        val (providerUri, uri) = createUriForInvoice(context, selectedHme.code)
+        mutableUriList.add(uri)
+
         viewModelScope.launch {
-            _event.emit(NewExpanseEvents.TakePicture(uri))
+            _event.emit(NewExpanseEvents.TakePicture(providerUri))
         }
     }
 
@@ -408,5 +398,26 @@ class NewExpanseViewModel @Inject constructor(
         val list = mutableUriList.toList()
         _state.update { it.copy(invoicesUris = list) }
 
+    }
+
+    fun photoPicked(context: Context, externalUri: Uri?) {
+        val selectedHme = state.value.selectedHMECode ?: return
+        if (externalUri == null) {
+            viewModelScope.launch { _event.emit(NewExpanseEvents.UserMessage("Can't get photo")) }
+            return
+        }
+
+        val internalUri = createUriForInvoice(context, selectedHme.code).second
+        copyFiles(context,externalUri, internalUri)
+        mutableUriList.add(internalUri)
+        _state.update { it.copy(invoicesUris = mutableUriList) }
+
+        Log.d(TAG, "photoPicked: ${externalUri.encodedPath}")
+    }
+
+    fun pickPicture() {
+        viewModelScope.launch {
+            _event.emit(NewExpanseEvents.PickPicture)
+        }
     }
 }
