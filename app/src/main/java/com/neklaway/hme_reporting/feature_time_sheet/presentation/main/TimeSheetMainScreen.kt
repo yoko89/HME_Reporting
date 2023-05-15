@@ -29,6 +29,7 @@ import com.neklaway.hme_reporting.feature_time_sheet.presentation.hme_code.HMECo
 import com.neklaway.hme_reporting.feature_time_sheet.presentation.ibau_code.IBAUCodeScreen
 import com.neklaway.hme_reporting.feature_time_sheet.presentation.new_time_sheet.NewTimeSheetScreen
 import com.neklaway.hme_reporting.feature_time_sheet.presentation.time_sheet.TimeSheetScreen
+import com.neklaway.hme_reporting.feature_time_sheet.presentation.time_sheet.TimeSheetViewModel
 
 private const val TAG = "TimeSheetMainScreen"
 
@@ -112,8 +113,14 @@ private fun Navigation(
     ) {
 
         composable(route = Screen.TimeSheet.route) {
+            val viewModel:TimeSheetViewModel = hiltViewModel()
             ComposableScreenAnimation {
-                TimeSheetScreen(navController = navController)
+                TimeSheetScreen(
+                    navController = navController,
+                    state = viewModel.state.collectAsState().value,
+                    uiEvents = viewModel.uiEvent,
+                    userEvents = viewModel::userEvents
+                )
             }
         }
 

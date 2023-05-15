@@ -26,6 +26,7 @@ import com.neklaway.hme_reporting.utils.Constants
 import com.neklaway.hme_reporting.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -57,8 +58,8 @@ class TimeSheetViewModel @Inject constructor(
     private val _state = MutableStateFlow(TimeSheetState())
     val state = _state.asStateFlow()
 
-    private val _event = MutableSharedFlow<TimeSheetEvents>()
-    val event: SharedFlow<TimeSheetEvents> = _event
+    private val _uiEvent = Channel<TimeSheetUiEvents>()
+    val uiEvent = _uiEvent.receiveAsFlow()
 
     var isIbau: Boolean = false
 
@@ -75,7 +76,7 @@ class TimeSheetViewModel @Inject constructor(
             when (result) {
                 is Resource.Error -> {
                     sendEvent(
-                        TimeSheetEvents.UserMessage(
+                        TimeSheetUiEvents.UserMessage(
                             result.message ?: "Can't get customers"
                         )
                     )
@@ -116,7 +117,7 @@ class TimeSheetViewModel @Inject constructor(
                 when (result) {
                     is Resource.Error -> {
                         sendEvent(
-                            TimeSheetEvents.UserMessage(
+                            TimeSheetUiEvents.UserMessage(
                                 result.message ?: "Can't get HME codes"
                             )
                         )
@@ -173,7 +174,7 @@ class TimeSheetViewModel @Inject constructor(
                     when (result) {
                         is Resource.Error -> {
                             sendEvent(
-                                TimeSheetEvents.UserMessage(
+                                TimeSheetUiEvents.UserMessage(
                                     result.message ?: "Can't get IBAU codes"
                                 )
                             )
@@ -208,7 +209,7 @@ class TimeSheetViewModel @Inject constructor(
                     when (result) {
                         is Resource.Error -> {
                             sendEvent(
-                                TimeSheetEvents.UserMessage(
+                                TimeSheetUiEvents.UserMessage(
                                     result.message ?: "Can't get Time Sheets"
                                 )
                             )
@@ -241,7 +242,7 @@ class TimeSheetViewModel @Inject constructor(
         }
     }
 
-    fun ibauSelected(ibauCode: IBAUCode) {
+    private fun ibauSelected(ibauCode: IBAUCode) {
         _state.update {
             it.copy(
                 selectedIBAUCode = ibauCode
@@ -254,7 +255,7 @@ class TimeSheetViewModel @Inject constructor(
                 when (result) {
                     is Resource.Error -> {
                         sendEvent(
-                            TimeSheetEvents.UserMessage(
+                            TimeSheetUiEvents.UserMessage(
                                 result.message ?: "Can't get time sheet"
                             )
                         )
@@ -287,7 +288,7 @@ class TimeSheetViewModel @Inject constructor(
         }
     }
 
-    fun sheetSelectedChanged(timeSheet: TimeSheet, selected: Boolean) {
+    private fun sheetSelectedChanged(timeSheet: TimeSheet, selected: Boolean) {
         val index = _state.value.timeSheets.indexOf(timeSheet)
         if (index != -1) {
             val newTimeSheets = state.value.timeSheets.toMutableList()
@@ -298,41 +299,41 @@ class TimeSheetViewModel @Inject constructor(
 
     }
 
-    fun timesheetClicked(timeSheet: TimeSheet) {
+    private fun timesheetClicked(timeSheet: TimeSheet) {
         timeSheet.id?.let {
             viewModelScope.launch {
-                sendEvent(TimeSheetEvents.NavigateToTimeSheet(it))
+                sendEvent(TimeSheetUiEvents.NavigateToTimeSheetUi(it))
             }
         }
     }
 
-    fun selectAll(selected: Boolean) {
+    private fun selectAll(selected: Boolean) {
         val timeSheets = state.value.timeSheets.map {
             it.copy(selected = selected)
         }
         _state.update { it.copy(timeSheets = timeSheets, selectAll = selected) }
     }
 
-    fun showMoreFABClicked() {
+    private fun showMoreFABClicked() {
         _state.update { it.copy(fabVisible = !it.fabVisible) }
     }
 
-    fun openTimeSheets() {
+    private fun openTimeSheets() {
         _state.update { it.copy(showFileList = true) }
     }
 
-    fun createTimeSheet() {
+    private fun createTimeSheet() {
         viewModelScope.launch {
             pdfWorkerUseCase(state.value.timeSheets.filter { it.selected }).collect { resource ->
                 when (resource) {
                     is Resource.Error -> {
                         _state.update { it.copy(loading = false) }
                         delay(1000)
-                        sendEvent(TimeSheetEvents.UserMessage("PDF Creation Error"))
+                        sendEvent(TimeSheetUiEvents.UserMessage("PDF Creation Error"))
                     }
                     is Resource.Loading -> _state.update { it.copy(loading = true) }
                     is Resource.Success -> {
-                        sendEvent(TimeSheetEvents.UserMessage("PDF Created"))
+                        sendEvent(TimeSheetUiEvents.UserMessage("PDF Created"))
                         _state.update { it.copy(loading = false) }
                     }
                 }
@@ -341,15 +342,15 @@ class TimeSheetViewModel @Inject constructor(
         }
     }
 
-    fun sign() {
+    private fun sign() {
         _state.update { it.copy(showSignaturePad = true, fabVisible = false) }
     }
 
-    private suspend fun sendEvent(event: TimeSheetEvents) {
-        _event.emit(event)
+    private suspend fun sendEvent(event: TimeSheetUiEvents) {
+        _uiEvent.send(event)
     }
 
-    fun signatureDone(signerName: String?) {
+    private fun signatureDone(signerName: String?) {
         _state.update { it.copy(showSignaturePad = false) }
 
         Log.d(TAG, "signatureDone: ")
@@ -371,7 +372,7 @@ class TimeSheetViewModel @Inject constructor(
                 ).collect { resource ->
                     when (resource) {
                         is Resource.Error -> {
-                            sendEvent(TimeSheetEvents.UserMessage("can't save Signer Name"))
+                            sendEvent(TimeSheetUiEvents.UserMessage("can't save Signer Name"))
                             _state.update { it.copy(loading = false, signatureAvailable = false) }
                         }
                         is Resource.Loading -> _state.update { it.copy(loading = true) }
@@ -387,18 +388,18 @@ class TimeSheetViewModel @Inject constructor(
 
     }
 
-    fun signatureCanceled() {
+    private fun signatureCanceled() {
         _state.update { it.copy(showSignaturePad = false) }
     }
 
-    fun fileSelected(file: File) {
+    private fun fileSelected(file: File) {
         _state.update { it.copy(showFileList = false) }
         viewModelScope.launch {
-            sendEvent(TimeSheetEvents.ShowFile(file))
+            sendEvent(TimeSheetUiEvents.ShowFile(file))
         }
     }
 
-    fun fileSelectionCanceled() {
+    private fun fileSelectionCanceled() {
         _state.update { it.copy(showFileList = false) }
     }
 
@@ -417,6 +418,25 @@ class TimeSheetViewModel @Inject constructor(
     private fun allCheckBoxSelected(timeSheetList: List<TimeSheet>) {
         val checkBoxAllSelected = timeSheetList.all { it.selected }
         _state.update { it.copy(selectAll = checkBoxAllSelected) }
+    }
+
+    fun userEvents(event:TimeSheetUserEvents){
+        when(event){
+            TimeSheetUserEvents.Sign -> sign()
+            TimeSheetUserEvents.CreateTimeSheet -> createTimeSheet()
+            is TimeSheetUserEvents.CustomerSelected -> customerSelected(event.customer)
+            is TimeSheetUserEvents.HmeSelected -> hmeSelected(event.hmeCode)
+            is TimeSheetUserEvents.IbauSelected -> ibauSelected(event.ibauCode)
+            TimeSheetUserEvents.OpenTimeSheets -> openTimeSheets()
+            is TimeSheetUserEvents.SelectAll -> selectAll(event.checked)
+            is TimeSheetUserEvents.SheetSelectedChanged -> sheetSelectedChanged(event.timeSheet,event.checked)
+            TimeSheetUserEvents.ShowMoreFABClicked -> showMoreFABClicked()
+            TimeSheetUserEvents.SignatureCanceled -> signatureCanceled()
+            is TimeSheetUserEvents.SignatureDone -> signatureDone(event.signerName)
+            is TimeSheetUserEvents.FileSelected -> fileSelected(event.file)
+            TimeSheetUserEvents.FileSelectionCanceled -> fileSelectionCanceled()
+            is TimeSheetUserEvents.TimesheetClicked -> timesheetClicked(event.timeSheet)
+        }
     }
 
 

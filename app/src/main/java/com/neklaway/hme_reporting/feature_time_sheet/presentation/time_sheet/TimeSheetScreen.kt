@@ -23,7 +23,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.neklaway.hme_reporting.common.presentation.Screen
 import com.neklaway.hme_reporting.common.presentation.common.component.DropDown
@@ -33,8 +32,8 @@ import com.neklaway.hme_reporting.feature_time_sheet.presentation.edit_time_shee
 import com.neklaway.hme_reporting.feature_time_sheet.presentation.time_sheet.component.TimeSheetHeader
 import com.neklaway.hme_reporting.feature_time_sheet.presentation.time_sheet.component.TimeSheetItemCard
 import com.neklaway.hme_reporting.utils.NotificationPermissionRequest
+import kotlinx.coroutines.flow.Flow
 import java.io.File
-import java.io.FilenameFilter
 
 private const val TAG = "TimeSheetScreen"
 
@@ -42,32 +41,33 @@ private const val TAG = "TimeSheetScreen"
 @Composable
 fun TimeSheetScreen(
     navController: NavController,
-    viewModel: TimeSheetViewModel = hiltViewModel(),
+    state: TimeSheetState,
+    uiEvents: Flow<TimeSheetUiEvents>,
+    userEvents: (TimeSheetUserEvents) -> Unit,
 ) {
-    val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     var requestPermission by remember {
         mutableStateOf(false)
     }
-    val events = viewModel.event
 
     val context = LocalContext.current
 
     LaunchedEffect(
-        key1 = events, key2 = state
+        key1 = uiEvents, key2 = state
     ) {
 
-        events.collect { event ->
+        uiEvents.collect { event ->
             when (event) {
-                is TimeSheetEvents.UserMessage -> snackbarHostState.showSnackbar(event.message)
+                is TimeSheetUiEvents.UserMessage -> snackbarHostState.showSnackbar(event.message)
 
-                is TimeSheetEvents.NavigateToTimeSheet ->
+                is TimeSheetUiEvents.NavigateToTimeSheetUi ->
                     navController.navigate(
                         Screen.EditTimeSheet.route
                                 + "?" + EditTimeSheetViewModel.TIME_SHEET_ID
                                 + "=" + event.id
                     )
-                is TimeSheetEvents.ShowFile -> {
+
+                is TimeSheetUiEvents.ShowFile -> {
                     val intent = Intent(Intent.ACTION_VIEW)
                     val fileUri = FileProvider.getUriForFile(
                         context,
@@ -101,7 +101,7 @@ fun TimeSheetScreen(
                 ) {
                     Row {
                         FloatingActionButton(
-                            onClick = { viewModel.sign() },
+                            onClick = { userEvents(TimeSheetUserEvents.Sign) },
                             contentColor = if (state.signatureAvailable) Color.Green else MaterialTheme.colorScheme.tertiary
                         ) {
                             Icon(
@@ -116,7 +116,7 @@ fun TimeSheetScreen(
                             FloatingActionButton(onClick = {
 
                                 requestPermission = true
-                                viewModel.createTimeSheet()
+                                userEvents(TimeSheetUserEvents.CreateTimeSheet)
                             }) {
                                 Icon(
                                     imageVector = Icons.Default.PictureAsPdf,
@@ -125,7 +125,7 @@ fun TimeSheetScreen(
                             }
                         }
                         Spacer(modifier = Modifier.width(5.dp))
-                        FloatingActionButton(onClick = { viewModel.openTimeSheets() }) {
+                        FloatingActionButton(onClick = { userEvents(TimeSheetUserEvents.OpenTimeSheets) }) {
                             Icon(
                                 imageVector = Icons.Default.FolderOpen,
                                 contentDescription = "Open TimeSheet",
@@ -135,7 +135,7 @@ fun TimeSheetScreen(
                     }
                 }
 
-                FloatingActionButton(onClick = { viewModel.showMoreFABClicked() }) {
+                FloatingActionButton(onClick = { userEvents(TimeSheetUserEvents.ShowMoreFABClicked) }) {
                     Icon(
                         imageVector = Icons.Default.MoreHoriz,
                         contentDescription = "Show More Floating action buttons",
@@ -165,7 +165,7 @@ fun TimeSheetScreen(
                 dropDownContentDescription = "Select Customer",
                 modifier = Modifier.padding(vertical = 5.dp)
             ) { customer ->
-                viewModel.customerSelected(customer)
+                userEvents(TimeSheetUserEvents.CustomerSelected(customer))
             }
 
             DropDown(
@@ -175,7 +175,7 @@ fun TimeSheetScreen(
                 dropDownContentDescription = "Select HME Code",
                 modifier = Modifier.padding(bottom = 5.dp)
             ) { hmeCode ->
-                viewModel.hmeSelected(hmeCode)
+                userEvents(TimeSheetUserEvents.HmeSelected(hmeCode))
             }
 
 
@@ -191,7 +191,7 @@ fun TimeSheetScreen(
                     dropDownContentDescription = "Select IBAU Code",
                     modifier = Modifier.padding(bottom = 5.dp)
                 ) { ibauCode ->
-                    viewModel.ibauSelected(ibauCode)
+                    userEvents(TimeSheetUserEvents.IbauSelected(ibauCode))
                 }
             }
 
@@ -214,15 +214,20 @@ fun TimeSheetScreen(
                     TimeSheetHeader(
                         selectAll = state.selectAll,
                         onSelectAllChecked = { checked ->
-                            viewModel.selectAll(checked)
+                            userEvents(TimeSheetUserEvents.SelectAll(checked))
                         })
                 }
 
                 items(items = state.timeSheets) { timeSheet ->
                     TimeSheetItemCard(timeSheet = timeSheet,
-                        cardClicked = { viewModel.timesheetClicked(timeSheet) },
+                        cardClicked = { userEvents(TimeSheetUserEvents.TimesheetClicked(timeSheet)) },
                         onCheckedChanged = { checked ->
-                            viewModel.sheetSelectedChanged(timeSheet, checked)
+                            userEvents(
+                                TimeSheetUserEvents.SheetSelectedChanged(
+                                    timeSheet,
+                                    checked
+                                )
+                            )
                         })
                 }
             }
@@ -234,9 +239,9 @@ fun TimeSheetScreen(
                         signatureFileName = it.toString(),
                         signatureUpdatedAtExit = { signedSuccessfully, signerName ->
                             if (signedSuccessfully) {
-                                viewModel.signatureDone(signerName)
+                                userEvents(TimeSheetUserEvents.SignatureDone(signerName))
                             } else {
-                                viewModel.signatureCanceled()
+                                userEvents(TimeSheetUserEvents.SignatureCanceled)
                             }
 
                         },
@@ -248,11 +253,18 @@ fun TimeSheetScreen(
 
         AnimatedVisibility(visible = state.showFileList) {
             val pdfDirectory = File(context.filesDir.path + "/" + state.selectedHMECode?.code)
-            val listOfFiles = pdfDirectory.listFiles()?.filter { it.isFile }?.toList() ?: emptyList()
+            val listOfFiles =
+                pdfDirectory.listFiles()?.filter { it.isFile }?.toList() ?: emptyList()
 
-            ListDialog(list = listOfFiles,
-                onClick = viewModel::fileSelected,
-                onCancel = viewModel::fileSelectionCanceled)
+            ListDialog(
+                list = listOfFiles,
+                onClick = {
+                    userEvents(TimeSheetUserEvents.FileSelected(it))
+                },
+                onCancel = {
+                    userEvents(TimeSheetUserEvents.FileSelectionCanceled)
+                }
+            )
         }
 
         if (requestPermission) {
@@ -261,6 +273,3 @@ fun TimeSheetScreen(
         }
     }
 }
-
-
-
