@@ -1,36 +1,57 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package com.neklaway.hme_reporting.feature_time_sheet.presentation.customer
 
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedIconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import kotlinx.coroutines.flow.Flow
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomerScreen(
-    viewModel: CustomerViewModel = hiltViewModel(),
+    state: CustomerState,
+    userMessage: Flow<String>,
+    userEvent: (CustomerUserEvents) -> Unit,
 ) {
-    val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
-
-    val userMessage = viewModel.userMessage
 
     LaunchedEffect(key1 = userMessage) {
         userMessage.collect {
@@ -48,7 +69,7 @@ fun CustomerScreen(
                 ) {
                     Row {
                         FloatingActionButton(onClick = {
-                            viewModel.updateCustomer()
+                            userEvent(CustomerUserEvents.UpdateCustomer)
                         }) {
                             Icon(
                                 imageVector = Icons.Default.Edit,
@@ -60,7 +81,7 @@ fun CustomerScreen(
                 }
 
                 FloatingActionButton(onClick = {
-                    viewModel.saveCustomer()
+                    userEvent(CustomerUserEvents.SaveCustomer)
                 }) {
 
                     Icon(imageVector = Icons.Default.Add, contentDescription = "Add Customer")
@@ -80,7 +101,7 @@ fun CustomerScreen(
             OutlinedTextField(
                 value = state.customerName,
                 onValueChange = { name ->
-                    viewModel.customerNameChange(name)
+                    userEvent(CustomerUserEvents.CustomerNameChange(name))
                 },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(text = "Customer Name") },
@@ -92,7 +113,7 @@ fun CustomerScreen(
 
             OutlinedTextField(
                 value = state.customerCity, onValueChange = { city ->
-                    viewModel.customerCityChange(city)
+                    userEvent(CustomerUserEvents.CustomerCityChange(city))
                 },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(text = "Customer City") },
@@ -102,7 +123,7 @@ fun CustomerScreen(
 
             OutlinedTextField(
                 value = state.customerCountry, onValueChange = { country ->
-                    viewModel.customerCountryChange(country)
+                    userEvent(CustomerUserEvents.CustomerCountryChange(country))
                 },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(text = "Customer Country") },
@@ -168,7 +189,7 @@ fun CustomerScreen(
                         Card(
                             modifier = Modifier
                                 .padding(vertical = 2.dp)
-                                .clickable { viewModel.customerSelected(customer) }
+                                .clickable { userEvent(CustomerUserEvents.CustomerSelected(customer)) }
                         ) {
 
                             Row(
@@ -198,7 +219,7 @@ fun CustomerScreen(
 
                                 OutlinedIconButton(
                                     onClick = {
-                                        viewModel.deleteCustomer(customer)
+                                        userEvent(CustomerUserEvents.DeleteCustomer(customer))
                                     },
                                     modifier = Modifier.weight(0.5f)
                                 ) {

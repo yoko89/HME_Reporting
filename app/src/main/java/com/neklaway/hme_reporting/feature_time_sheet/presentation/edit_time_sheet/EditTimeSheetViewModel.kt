@@ -22,9 +22,14 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.*
+import java.util.Calendar
+import java.util.TimeZone
 import javax.inject.Inject
 
 private const val TAG = "EditTimeSheetViewModel"
@@ -51,8 +56,8 @@ class EditTimeSheetViewModel @Inject constructor(
     private val _state = MutableStateFlow(EditTimeSheetState())
     val state = _state.asStateFlow()
 
-    private val _event = MutableSharedFlow<EditTimeSheetEvents>()
-    val event: SharedFlow<EditTimeSheetEvents> = _event
+    private val _uiEvent = Channel<EditTimeSheetUiEvents>()
+    val uiEvent = _uiEvent.receiveAsFlow()
 
     private var timeSheetId: Long = -1
     private lateinit var timeSheet: Deferred<TimeSheet?>
@@ -78,13 +83,14 @@ class EditTimeSheetViewModel @Inject constructor(
                 Log.d(TAG, "TimeSheet: $result")
                 when (result) {
                     is Resource.Error -> {
-                        _event.emit(
-                            EditTimeSheetEvents.UserMessage(
+                        _uiEvent.send(
+                            EditTimeSheetUiEvents.UserMessage(
                                 result.message ?: "Error can't retrieve Data "
                             )
                         )
                         _state.update { it.copy(loading = false) }
                     }
+
                     is Resource.Loading -> _state.update { it.copy(loading = true) }
                     is Resource.Success -> {
                         _state.update {
@@ -117,13 +123,14 @@ class EditTimeSheetViewModel @Inject constructor(
             getHMECodeByIdUseCase(timeSheet.HMEId).collect { result ->
                 when (result) {
                     is Resource.Error -> {
-                        _event.emit(
-                            EditTimeSheetEvents.UserMessage(
+                        _uiEvent.send(
+                            EditTimeSheetUiEvents.UserMessage(
                                 result.message ?: "Error can't retrieve Data "
                             )
                         )
                         _state.update { it.copy(loading = false) }
                     }
+
                     is Resource.Loading -> _state.update { it.copy(loading = true) }
                     is Resource.Success -> {
                         val currentHmeCode = result.data
@@ -132,13 +139,14 @@ class EditTimeSheetViewModel @Inject constructor(
                             getHMECodeByCustomerIdUseCase(customerId).collect { result ->
                                 when (result) {
                                     is Resource.Error -> {
-                                        _event.emit(
-                                            EditTimeSheetEvents.UserMessage(
+                                        _uiEvent.send(
+                                            EditTimeSheetUiEvents.UserMessage(
                                                 result.message ?: "Error can't retrieve Data "
                                             )
                                         )
                                         _state.update { it.copy(loading = false) }
                                     }
+
                                     is Resource.Loading -> _state.update { it.copy(loading = true) }
                                     is Resource.Success -> {
                                         _state.update {
@@ -161,11 +169,11 @@ class EditTimeSheetViewModel @Inject constructor(
 
     }
 
-    fun updateTimeSheet() {
+    private fun updateTimeSheet() {
         viewModelScope.launch {
             val timeSheet = timeSheet.await()
             if (timeSheet == null) {
-                _event.emit(EditTimeSheetEvents.UserMessage("Can't retrieve TimeSheet"))
+                _uiEvent.send(EditTimeSheetUiEvents.UserMessage("Can't retrieve TimeSheet"))
                 return@launch
             }
             updateTimeSheetUseCase.invoke(
@@ -189,17 +197,18 @@ class EditTimeSheetViewModel @Inject constructor(
             ).collect { result ->
                 when (result) {
                     is Resource.Error -> {
-                        _event.emit(
-                            EditTimeSheetEvents.UserMessage(
+                        _uiEvent.send(
+                            EditTimeSheetUiEvents.UserMessage(
                                 result.message ?: "Error can't update"
                             )
                         )
                         _state.update { it.copy(loading = false) }
                     }
+
                     is Resource.Loading -> _state.update { it.copy(loading = true) }
                     is Resource.Success -> {
                         _state.update { it.copy(loading = false) }
-                        _event.emit(EditTimeSheetEvents.PopBackStack)
+                        _uiEvent.send(EditTimeSheetUiEvents.PopBackStack)
                     }
                 }
 
@@ -207,12 +216,12 @@ class EditTimeSheetViewModel @Inject constructor(
         }
     }
 
-    fun dateClicked() {
+    private fun dateClicked() {
         _state.update { it.copy(showDatePicker = true) }
         Log.d(TAG, "dateClicked: ")
     }
 
-    fun datePicked(year: Int, month: Int, day: Int) {
+    private fun datePicked(year: Int, month: Int, day: Int) {
         val date = Calendar.getInstance()
         date.timeZone = TimeZone.getTimeZone("Asia/Dubai")
         date.set(
@@ -227,13 +236,13 @@ class EditTimeSheetViewModel @Inject constructor(
         _state.update { it.copy(date = date, showDatePicker = false) }
     }
 
-    fun travelStartClicked() {
+    private fun travelStartClicked() {
         Log.d(TAG, "NewTimeSheetScreen: Work start clicked")
 
         _state.update { it.copy(showTimePickerTravelStart = true) }
     }
 
-    fun travelStartPicked(hour: Int, minute: Int) {
+    private fun travelStartPicked(hour: Int, minute: Int) {
         val date = state.value.date!!.clone() as Calendar
         date.set(Calendar.HOUR_OF_DAY, hour)
         date.set(Calendar.MINUTE, minute)
@@ -241,11 +250,11 @@ class EditTimeSheetViewModel @Inject constructor(
         timePickerShown()
     }
 
-    fun workStartClicked() {
+    private fun workStartClicked() {
         _state.update { it.copy(showTimePickerWorkStart = true) }
     }
 
-    fun workStartPicked(hour: Int, minute: Int) {
+    private fun workStartPicked(hour: Int, minute: Int) {
         val date = state.value.date!!.clone() as Calendar
         date.set(Calendar.HOUR_OF_DAY, hour)
         date.set(Calendar.MINUTE, minute)
@@ -253,11 +262,11 @@ class EditTimeSheetViewModel @Inject constructor(
         timePickerShown()
     }
 
-    fun workEndClicked() {
+    private fun workEndClicked() {
         _state.update { it.copy(showTimePickerWorkEnd = true) }
     }
 
-    fun workEndPicked(hour: Int, minute: Int) {
+    private fun workEndPicked(hour: Int, minute: Int) {
         val date = state.value.date!!.clone() as Calendar
         date.set(Calendar.HOUR_OF_DAY, hour)
         date.set(Calendar.MINUTE, minute)
@@ -265,11 +274,11 @@ class EditTimeSheetViewModel @Inject constructor(
         timePickerShown()
     }
 
-    fun travelEndClicked() {
+    private fun travelEndClicked() {
         _state.update { it.copy(showTimePickerTravelEnd = true) }
     }
 
-    fun travelEndPicked(hour: Int, minute: Int) {
+    private fun travelEndPicked(hour: Int, minute: Int) {
         val date = state.value.date!!.clone() as Calendar
         date.set(Calendar.HOUR_OF_DAY, hour)
         date.set(Calendar.MINUTE, minute)
@@ -277,7 +286,7 @@ class EditTimeSheetViewModel @Inject constructor(
         timePickerShown()
     }
 
-    fun timePickerShown() {
+    private fun timePickerShown() {
         _state.update {
             it.copy(
                 showTimePickerTravelEnd = false,
@@ -288,7 +297,7 @@ class EditTimeSheetViewModel @Inject constructor(
         }
     }
 
-    fun breakDurationChanged(breakDuration: String) {
+    private fun breakDurationChanged(breakDuration: String) {
         var breakFloat: Float?
 
         try {
@@ -298,7 +307,7 @@ class EditTimeSheetViewModel @Inject constructor(
             breakFloat = null
             if (breakDuration.isNotBlank()) {
                 viewModelScope.launch {
-                    _event.emit(EditTimeSheetEvents.UserMessage("Error in Break Time " + e.message))
+                    _uiEvent.send(EditTimeSheetUiEvents.UserMessage("Error in Break Time " + e.message))
                 }
                 _state.update { it.copy(loading = false) }
             }
@@ -306,7 +315,7 @@ class EditTimeSheetViewModel @Inject constructor(
         _state.update { it.copy(breakDuration = if (breakFloat == null) "" else breakDuration) }
     }
 
-    fun travelDistanceChanged(travelDistance: String) {
+    private fun travelDistanceChanged(travelDistance: String) {
         var travelInt: Int?
         try {
             travelInt = travelDistance.toInt()
@@ -315,7 +324,7 @@ class EditTimeSheetViewModel @Inject constructor(
             travelInt = null
             if (travelDistance.isNotBlank()) {
                 viewModelScope.launch {
-                    _event.emit(EditTimeSheetEvents.UserMessage("Error in Travel Distance " + e.message))
+                    _uiEvent.send(EditTimeSheetUiEvents.UserMessage("Error in Travel Distance " + e.message))
                 }
                 _state.update { it.copy(loading = false) }
             }
@@ -325,41 +334,42 @@ class EditTimeSheetViewModel @Inject constructor(
         _state.update { it.copy(traveledDistance = travelString) }
     }
 
-    fun travelDayChanged(travelDaySelected: Boolean) {
+    private fun travelDayChanged(travelDaySelected: Boolean) {
         _state.update { it.copy(travelDay = travelDaySelected, noWorkday = false) }
     }
 
-    fun noWorkDayChanged(noWorkDaySelected: Boolean) {
+    private fun noWorkDayChanged(noWorkDaySelected: Boolean) {
         _state.update { it.copy(noWorkday = noWorkDaySelected, travelDay = false) }
     }
 
-    fun dateShown() {
+    private fun dateShown() {
         _state.update { it.copy(showDatePicker = false) }
     }
 
-    fun deleteTimeSheet() {
+    private fun deleteTimeSheet() {
         viewModelScope.launch {
             val timeSheet = timeSheet.await()
 
             if (timeSheet == null) {
-                _event.emit(EditTimeSheetEvents.UserMessage("Can't retrieve TimeSheet"))
+                _uiEvent.send(EditTimeSheetUiEvents.UserMessage("Can't retrieve TimeSheet"))
                 return@launch
             }
 
             deleteTimeSheetUseCase(timeSheet).collect { result ->
                 when (result) {
                     is Resource.Error -> {
-                        _event.emit(
-                            EditTimeSheetEvents.UserMessage(
+                        _uiEvent.send(
+                            EditTimeSheetUiEvents.UserMessage(
                                 result.message ?: "Error can't delete TimeSheet"
                             )
                         )
                         _state.update { it.copy(loading = false) }
                     }
+
                     is Resource.Loading -> _state.update { it.copy(loading = true) }
                     is Resource.Success -> {
-                        _event.emit(EditTimeSheetEvents.UserMessage("TimeSheet Deleted"))
-                        _event.emit(EditTimeSheetEvents.PopBackStack)
+                        _uiEvent.send(EditTimeSheetUiEvents.UserMessage("TimeSheet Deleted"))
+                        _uiEvent.send(EditTimeSheetUiEvents.PopBackStack)
                         _state.update { it.copy(loading = false) }
 
                     }
@@ -368,7 +378,7 @@ class EditTimeSheetViewModel @Inject constructor(
         }
     }
 
-    fun hmeSelected(hmeCode: HMECode) {
+    private fun hmeSelected(hmeCode: HMECode) {
         viewModelScope.launch {
             _state.update {
                 it.copy(
@@ -384,13 +394,14 @@ class EditTimeSheetViewModel @Inject constructor(
                 getIBAUCodeByHMECodeIdUseCase(hmeCode.id).collect { result ->
                     when (result) {
                         is Resource.Error -> {
-                            _event.emit(
-                                EditTimeSheetEvents.UserMessage(
+                            _uiEvent.send(
+                                EditTimeSheetUiEvents.UserMessage(
                                     result.message ?: "Can't get IBAU codes"
                                 )
                             )
                             _state.update { it.copy(loading = false) }
                         }
+
                         is Resource.Loading -> _state.update { it.copy(loading = true) }
                         is Resource.Success -> {
                             val savedSelectedIbauId = getIBAUIdUseCase()
@@ -411,7 +422,7 @@ class EditTimeSheetViewModel @Inject constructor(
 
     }
 
-    fun ibauSelected(ibauCode: IBAUCode) {
+    private fun ibauSelected(ibauCode: IBAUCode) {
         _state.update {
             it.copy(
                 selectedIBAUCode = ibauCode
@@ -419,6 +430,47 @@ class EditTimeSheetViewModel @Inject constructor(
         }
         viewModelScope.launch(Dispatchers.IO) {
             setIBAUIdUseCase(ibauCode.id!!)
+        }
+    }
+
+    fun userEvents(events: EditTimeSheetUserEvents) {
+        when (events) {
+            is EditTimeSheetUserEvents.BreakDurationChanged -> breakDurationChanged(events.duration)
+            EditTimeSheetUserEvents.DateClicked -> dateClicked()
+            is EditTimeSheetUserEvents.DatePicked -> datePicked(
+                events.year,
+                events.month,
+                events.day
+            )
+
+            EditTimeSheetUserEvents.DateShown -> dateShown()
+            EditTimeSheetUserEvents.DeleteTimeSheet -> deleteTimeSheet()
+            is EditTimeSheetUserEvents.HmeSelected -> hmeSelected(events.hmeCode)
+            is EditTimeSheetUserEvents.IbauSelected -> ibauSelected(events.ibauCode)
+            is EditTimeSheetUserEvents.NoWorkDayChanged -> noWorkDayChanged(events.changed)
+            EditTimeSheetUserEvents.TimePickerShown -> timePickerShown()
+            is EditTimeSheetUserEvents.TravelDayChanged -> travelDayChanged(events.changed)
+            is EditTimeSheetUserEvents.TravelDistanceChanged -> travelDistanceChanged(events.distance)
+            EditTimeSheetUserEvents.TravelEndClicked -> travelEndClicked()
+            is EditTimeSheetUserEvents.TravelEndPicked -> travelEndPicked(
+                events.hour,
+                events.minute
+            )
+
+            EditTimeSheetUserEvents.TravelStartClicked -> travelStartClicked()
+            is EditTimeSheetUserEvents.TravelStartPicked -> travelStartPicked(
+                events.hour,
+                events.minute
+            )
+
+            EditTimeSheetUserEvents.UpdateTimeSheet -> updateTimeSheet()
+            EditTimeSheetUserEvents.WorkEndClicked -> workEndClicked()
+            is EditTimeSheetUserEvents.WorkEndPicked -> workEndPicked(events.hour, events.minute)
+            EditTimeSheetUserEvents.WorkStartClicked -> workStartClicked()
+            is EditTimeSheetUserEvents.WorkStartPicked -> workStartPicked(
+                events.hour,
+                events.minute
+            )
         }
     }
 }

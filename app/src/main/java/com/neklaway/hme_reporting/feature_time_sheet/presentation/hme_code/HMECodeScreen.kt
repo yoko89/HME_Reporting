@@ -1,37 +1,58 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package com.neklaway.hme_reporting.feature_time_sheet.presentation.hme_code
 
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedIconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.neklaway.hme_reporting.common.presentation.common.component.DropDown
+import kotlinx.coroutines.flow.Flow
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HMECodeScreen(
-    viewModel: HMECodeViewModel = hiltViewModel(),
+    state: HMECodeState,
+    userMessage: Flow<String>,
+    userEvent: (HMECodeUserEvents) -> Unit,
 ) {
-    val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
-
-    val userMessage = viewModel.userMessage
 
 
     LaunchedEffect(key1 = userMessage) {
@@ -50,7 +71,7 @@ fun HMECodeScreen(
                 ) {
                     Row {
                         FloatingActionButton(onClick = {
-                            viewModel.updateHMECode()
+                            userEvent(HMECodeUserEvents.UpdateHMECode)
                         }) {
                             Icon(
                                 imageVector = Icons.Default.Edit,
@@ -61,7 +82,7 @@ fun HMECodeScreen(
                     }
                 }
                 FloatingActionButton(onClick = {
-                    viewModel.saveHMECode()
+                    userEvent(HMECodeUserEvents.SaveHMECode)
                 }) {
 
                     Icon(imageVector = Icons.Default.Add, contentDescription = "Add HME Code")
@@ -85,13 +106,13 @@ fun HMECodeScreen(
                 dropDownContentDescription = "Select Customer",
                 modifier = Modifier.padding(bottom = 5.dp)
             ) { customer ->
-                viewModel.customerSelected(customer)
+                userEvent(HMECodeUserEvents.CustomerSelected(customer))
             }
 
             OutlinedTextField(
                 value = state.hmeCode,
                 onValueChange = { hmeCode ->
-                    viewModel.hmeCodeChanged(hmeCode)
+                    userEvent(HMECodeUserEvents.HmeCodeChanged(hmeCode))
                 },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(text = "HME Code") },
@@ -104,7 +125,7 @@ fun HMECodeScreen(
 
                 OutlinedTextField(
                     value = state.machineType, onValueChange = { machineType ->
-                        viewModel.machineTypeChanged(machineType)
+                        userEvent(HMECodeUserEvents.MachineTypeChanged(machineType))
                     },
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text(text = "Machine Type") },
@@ -117,7 +138,7 @@ fun HMECodeScreen(
 
                 OutlinedTextField(
                     value = state.machineNumber, onValueChange = { machineNumber ->
-                        viewModel.machineNumberChanged(machineNumber)
+                        userEvent(HMECodeUserEvents.MachineNumberChanged(machineNumber))
                     },
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text(text = "Machine Number") },
@@ -130,7 +151,7 @@ fun HMECodeScreen(
 
                 OutlinedTextField(
                     value = state.workDescription, onValueChange = { workDescription ->
-                        viewModel.workDescriptionChanged(workDescription)
+                        userEvent(HMECodeUserEvents.WorkDescriptionChanged(workDescription))
                     },
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text(text = "Work Description") },
@@ -209,7 +230,7 @@ fun HMECodeScreen(
                         Card(
                             modifier = Modifier
                                 .padding(all = 2.dp)
-                                .clickable { viewModel.hmeCodeSelected(hmeCode) }
+                                .clickable { userEvent(HMECodeUserEvents.HmeCodeSelected(hmeCode)) }
                         ) {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -267,7 +288,7 @@ fun HMECodeScreen(
 
                                 OutlinedIconButton(
                                     onClick = {
-                                        viewModel.deleteHMECode(hmeCode)
+                                        userEvent(HMECodeUserEvents.DeleteHMECode(hmeCode))
                                     },
                                     modifier = Modifier
                                         .weight(0.15f)

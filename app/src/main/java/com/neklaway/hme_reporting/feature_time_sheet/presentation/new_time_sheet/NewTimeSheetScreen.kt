@@ -19,23 +19,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.neklaway.hme_reporting.common.presentation.common.component.CustomDatePicker
 import com.neklaway.hme_reporting.common.presentation.common.component.CustomTimePicker
 import com.neklaway.hme_reporting.common.presentation.common.component.DropDown
 import com.neklaway.hme_reporting.common.presentation.common.component.Selector
 import com.neklaway.hme_reporting.utils.toDate
 import com.neklaway.hme_reporting.utils.toTime
+import kotlinx.coroutines.flow.Flow
 import java.util.*
 
 @Composable
 fun NewTimeSheetScreen(
-    viewModel: NewTimeSheetViewModel = hiltViewModel(),
+    state: NewTimeSheetState,
+    userMessage: Flow<String>,
+    userEvents: (NewTimeSheetUserEvents) -> Unit,
 ) {
-    val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
-
-    val userMessage = viewModel.userMessage
 
     val dateInteractionSource = remember { MutableInteractionSource() }
     val travelStartInteractionSource = remember { MutableInteractionSource() }
@@ -55,7 +54,7 @@ fun NewTimeSheetScreen(
     LaunchedEffect(key1 = dateInteractionSource) {
         dateInteractionSource.interactions.collect {
             when (it) {
-                is PressInteraction.Release -> viewModel.dateClicked()
+                is PressInteraction.Release -> userEvents(NewTimeSheetUserEvents.DateClicked)
             }
         }
     }
@@ -63,7 +62,7 @@ fun NewTimeSheetScreen(
     LaunchedEffect(key1 = travelStartInteractionSource) {
         travelStartInteractionSource.interactions.collect {
             when (it) {
-                is PressInteraction.Release -> state.date?.let { viewModel.travelStartClicked() }
+                is PressInteraction.Release -> state.date?.let { userEvents(NewTimeSheetUserEvents.TravelStartClicked) }
             }
         }
     }
@@ -71,21 +70,21 @@ fun NewTimeSheetScreen(
     LaunchedEffect(key1 = workStartInteractionSource) {
         workStartInteractionSource.interactions.collect {
             when (it) {
-                is PressInteraction.Release -> state.date?.let { viewModel.workStartClicked() }
+                is PressInteraction.Release -> state.date?.let { userEvents(NewTimeSheetUserEvents.WorkStartClicked) }
             }
         }
     }
     LaunchedEffect(key1 = workEndInteractionSource) {
         workEndInteractionSource.interactions.collect {
             when (it) {
-                is PressInteraction.Release -> state.date?.let { viewModel.workEndClicked() }
+                is PressInteraction.Release -> state.date?.let { userEvents(NewTimeSheetUserEvents.WorkEndClicked) }
             }
         }
     }
     LaunchedEffect(key1 = travelEndInteractionSource) {
         travelEndInteractionSource.interactions.collect {
             when (it) {
-                is PressInteraction.Release -> state.date?.let { viewModel.travelEndClicked() }
+                is PressInteraction.Release -> state.date?.let { userEvents(NewTimeSheetUserEvents.TravelEndClicked) }
             }
         }
     }
@@ -98,10 +97,10 @@ fun NewTimeSheetScreen(
             day = state.date?.get(Calendar.DAY_OF_MONTH),
             dateSet =
             { year, month, day ->
-                viewModel.datePicked(year, month, day)
+                userEvents(NewTimeSheetUserEvents.DatePicked(year, month, day))
             },
             canceled = {
-                viewModel.datePickedCanceled()
+                userEvents(NewTimeSheetUserEvents.DatePickedCanceled)
             }
         )
     }
@@ -112,10 +111,10 @@ fun NewTimeSheetScreen(
             hour = state.travelStart?.get(Calendar.HOUR_OF_DAY),
             minute = state.travelStart?.get(Calendar.MINUTE),
             timeSet = { hour, minute ->
-                viewModel.travelStartPicked(hour, minute)
+                userEvents(NewTimeSheetUserEvents.TravelStartPicked(hour, minute))
             },
             canceled = {
-                viewModel.timePickerShown()
+                userEvents(NewTimeSheetUserEvents.TimePickerShown)
             }
         )
     }
@@ -126,10 +125,10 @@ fun NewTimeSheetScreen(
             hour = state.travelEnd?.get(Calendar.HOUR_OF_DAY),
             minute = state.travelEnd?.get(Calendar.MINUTE),
             timeSet = { hour, minute ->
-                viewModel.travelEndPicked(hour, minute)
+                userEvents(NewTimeSheetUserEvents.TravelEndPicked(hour, minute))
             },
             canceled = {
-                viewModel.timePickerShown()
+                userEvents(NewTimeSheetUserEvents.TimePickerShown)
             }
         )
     }
@@ -140,10 +139,10 @@ fun NewTimeSheetScreen(
             hour = state.workStart?.get(Calendar.HOUR_OF_DAY),
             minute = state.workStart?.get(Calendar.MINUTE),
             timeSet = { hour, minute ->
-                viewModel.workStartPicked(hour, minute)
+                userEvents(NewTimeSheetUserEvents.WorkStartPicked(hour, minute))
             },
             canceled = {
-                viewModel.timePickerShown()
+                userEvents(NewTimeSheetUserEvents.TimePickerShown)
             }
         )
     }
@@ -154,17 +153,17 @@ fun NewTimeSheetScreen(
             hour = state.workEnd?.get(Calendar.HOUR_OF_DAY),
             minute = state.workEnd?.get(Calendar.MINUTE),
             timeSet = { hour, minute ->
-                viewModel.workEndPicked(hour, minute)
+                userEvents(NewTimeSheetUserEvents.WorkEndPicked(hour, minute))
             },
             canceled = {
-                viewModel.timePickerShown()
+                userEvents(NewTimeSheetUserEvents.TimePickerShown)
             }
         )
     }
 
     Scaffold(
         floatingActionButton = {
-            FloatingActionButton(onClick = { viewModel.insertTimeSheet() }) {
+            FloatingActionButton(onClick = { userEvents(NewTimeSheetUserEvents.InsertTimeSheet) }) {
                 Icon(
                     imageVector = Icons.Default.Add,
                     contentDescription = "Add Time Sheet"
@@ -192,7 +191,7 @@ fun NewTimeSheetScreen(
                 dropDownContentDescription = "Select Customer",
                 modifier = Modifier.padding(vertical = 5.dp)
             ) { customer ->
-                viewModel.customerSelected(customer)
+                userEvents(NewTimeSheetUserEvents.CustomerSelected(customer))
             }
 
             DropDown(
@@ -202,7 +201,7 @@ fun NewTimeSheetScreen(
                 dropDownContentDescription = "Select HME Code",
                 modifier = Modifier.padding(bottom = 5.dp)
             ) { hmeCode ->
-                viewModel.hmeSelected(hmeCode)
+                userEvents(NewTimeSheetUserEvents.HmeSelected(hmeCode))
             }
 
             AnimatedVisibility(
@@ -222,7 +221,7 @@ fun NewTimeSheetScreen(
                     dropDownContentDescription = "Select IBAU Code",
                     modifier = Modifier.padding(bottom = 5.dp)
                 ) { ibauCode ->
-                    viewModel.ibauSelected(ibauCode)
+                    userEvents(NewTimeSheetUserEvents.IbauSelected(ibauCode))
                 }
             }
 
@@ -247,7 +246,7 @@ fun NewTimeSheetScreen(
                 Selector(
                     text = "Travel Day",
                     checked = state.travelDay,
-                    onCheckedChange = { viewModel.travelDayChanged(it) })
+                    onCheckedChange = { userEvents(NewTimeSheetUserEvents.TravelDayChanged(it)) })
             }
 
 
@@ -262,7 +261,7 @@ fun NewTimeSheetScreen(
                 Selector(
                     text = "Weekend/Day off ",
                     checked = state.noWorkday,
-                    onCheckedChange = { viewModel.noWorkDayChanged(it) })
+                    onCheckedChange = { userEvents(NewTimeSheetUserEvents.NoWorkDayChanged(it)) })
             }
 
             AnimatedVisibility(
@@ -275,7 +274,7 @@ fun NewTimeSheetScreen(
                 Selector(
                     text = "OverTime",
                     checked = state.overTimeDay,
-                    onCheckedChange = { viewModel.overTimeChanged(it) })
+                    onCheckedChange = { userEvents(NewTimeSheetUserEvents.OverTimeChanged(it)) })
             }
 
             OutlinedTextField(
@@ -377,7 +376,7 @@ fun NewTimeSheetScreen(
                 OutlinedTextField(
                     value = state.breakDuration,
                     onValueChange = {
-                        viewModel.breakDurationChanged(it)
+                        userEvents(NewTimeSheetUserEvents.BreakDurationChanged(it))
                     },
                     label = { Text(text = "Break Duration") },
                     modifier = Modifier
@@ -397,7 +396,7 @@ fun NewTimeSheetScreen(
                 OutlinedTextField(
                     value = state.traveledDistance,
                     onValueChange = {
-                        viewModel.travelDistanceChanged(it)
+                        userEvents(NewTimeSheetUserEvents.TravelDistanceChanged(it))
                     },
                     label = { Text(text = "Travel Distance") },
                     modifier = Modifier

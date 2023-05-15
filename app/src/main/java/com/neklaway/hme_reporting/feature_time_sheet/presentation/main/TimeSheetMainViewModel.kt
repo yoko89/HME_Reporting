@@ -28,9 +28,15 @@ class TimeSheetMainViewModel @Inject constructor(
         }
     }
 
-    fun screenSelected(route:String){
+    private fun screenSelected(route:String){
         viewModelScope.launch {
             setTimeSheetRouteUseCase(route)
+        }
+    }
+
+    fun userEvent(event:TimeSheetMainUserEvent){
+        when(event){
+            is TimeSheetMainUserEvent.ScreenSelected -> screenSelected(event.route)
         }
     }
 }

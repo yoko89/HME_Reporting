@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package com.neklaway.hme_reporting.feature_time_sheet.presentation.edit_time_sheet
 
 import androidx.compose.animation.AnimatedVisibility
@@ -7,20 +5,35 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.neklaway.hme_reporting.common.presentation.Screen
 import com.neklaway.hme_reporting.common.presentation.common.component.CustomDatePicker
@@ -29,18 +42,18 @@ import com.neklaway.hme_reporting.common.presentation.common.component.DropDown
 import com.neklaway.hme_reporting.common.presentation.common.component.Selector
 import com.neklaway.hme_reporting.utils.toDate
 import com.neklaway.hme_reporting.utils.toTime
-import java.util.*
+import kotlinx.coroutines.flow.Flow
+import java.util.Calendar
 
 
 @Composable
 fun EditTimeSheetScreen(
     navController: NavController,
-    viewModel: EditTimeSheetViewModel = hiltViewModel(),
+    state: EditTimeSheetState,
+    uiEvent: Flow<EditTimeSheetUiEvents>,
+    userEvents: (EditTimeSheetUserEvents) -> Unit,
 ) {
-    val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
-
-    val event = viewModel.event
 
     val dateInteractionSource = remember { MutableInteractionSource() }
     val travelStartInteractionSource = remember { MutableInteractionSource() }
@@ -50,14 +63,15 @@ fun EditTimeSheetScreen(
 
 
 
-    LaunchedEffect(key1 = event) {
-        event.collect { event ->
+    LaunchedEffect(key1 = uiEvent) {
+        uiEvent.collect { event ->
             when (event) {
-                EditTimeSheetEvents.PopBackStack -> navController.popBackStack(
+                EditTimeSheetUiEvents.PopBackStack -> navController.popBackStack(
                     Screen.TimeSheet.route,
                     false
                 )
-                is EditTimeSheetEvents.UserMessage -> snackbarHostState.showSnackbar(event.message)
+
+                is EditTimeSheetUiEvents.UserMessage -> snackbarHostState.showSnackbar(event.message)
             }
         }
     }
@@ -65,7 +79,7 @@ fun EditTimeSheetScreen(
     LaunchedEffect(key1 = dateInteractionSource) {
         dateInteractionSource.interactions.collect {
             when (it) {
-                is PressInteraction.Release -> viewModel.dateClicked()
+                is PressInteraction.Release -> userEvents(EditTimeSheetUserEvents.DateClicked)
             }
         }
     }
@@ -73,7 +87,7 @@ fun EditTimeSheetScreen(
     LaunchedEffect(key1 = travelStartInteractionSource) {
         travelStartInteractionSource.interactions.collect {
             when (it) {
-                is PressInteraction.Release -> state.date?.let { viewModel.travelStartClicked() }
+                is PressInteraction.Release -> state.date?.let { userEvents(EditTimeSheetUserEvents.TravelStartClicked) }
             }
         }
     }
@@ -81,21 +95,21 @@ fun EditTimeSheetScreen(
     LaunchedEffect(key1 = workStartInteractionSource) {
         workStartInteractionSource.interactions.collect {
             when (it) {
-                is PressInteraction.Release -> state.date?.let { viewModel.workStartClicked() }
+                is PressInteraction.Release -> state.date?.let { userEvents(EditTimeSheetUserEvents.WorkStartClicked) }
             }
         }
     }
     LaunchedEffect(key1 = workEndInteractionSource) {
         workEndInteractionSource.interactions.collect {
             when (it) {
-                is PressInteraction.Release -> state.date?.let { viewModel.workEndClicked() }
+                is PressInteraction.Release -> state.date?.let { userEvents(EditTimeSheetUserEvents.WorkEndClicked) }
             }
         }
     }
     LaunchedEffect(key1 = travelEndInteractionSource) {
         travelEndInteractionSource.interactions.collect {
             when (it) {
-                is PressInteraction.Release -> state.date?.let { viewModel.travelEndClicked() }
+                is PressInteraction.Release -> state.date?.let { userEvents(EditTimeSheetUserEvents.TravelEndClicked) }
             }
         }
     }
@@ -104,7 +118,7 @@ fun EditTimeSheetScreen(
     LaunchedEffect(key1 = true) {
         dateInteractionSource.interactions.collect {
             when (it) {
-                is PressInteraction.Release -> viewModel.dateClicked()
+                is PressInteraction.Release -> userEvents(EditTimeSheetUserEvents.DateClicked)
             }
         }
     }
@@ -116,10 +130,10 @@ fun EditTimeSheetScreen(
             day = state.date?.get(Calendar.DAY_OF_MONTH),
             dateSet =
             { year, month, day ->
-                viewModel.datePicked(year, month, day)
+                userEvents(EditTimeSheetUserEvents.DatePicked(year, month, day))
             },
             canceled = {
-                viewModel.dateShown()
+                userEvents(EditTimeSheetUserEvents.DateShown)
             }
         )
     }
@@ -130,10 +144,10 @@ fun EditTimeSheetScreen(
             hour = state.travelStart?.get(Calendar.HOUR_OF_DAY),
             minute = state.travelStart?.get(Calendar.MINUTE),
             timeSet = { hour, minute ->
-                viewModel.travelStartPicked(hour, minute)
+                userEvents(EditTimeSheetUserEvents.TravelStartPicked(hour, minute))
             },
             canceled = {
-                viewModel.timePickerShown()
+                userEvents(EditTimeSheetUserEvents.TimePickerShown)
             }
         )
     }
@@ -144,10 +158,10 @@ fun EditTimeSheetScreen(
             hour = state.travelEnd?.get(Calendar.HOUR_OF_DAY),
             minute = state.travelEnd?.get(Calendar.MINUTE),
             timeSet = { hour, minute ->
-                viewModel.travelEndPicked(hour, minute)
+                userEvents(EditTimeSheetUserEvents.TravelEndPicked(hour, minute))
             },
             canceled = {
-                viewModel.timePickerShown()
+                userEvents(EditTimeSheetUserEvents.TimePickerShown)
             }
         )
     }
@@ -158,10 +172,10 @@ fun EditTimeSheetScreen(
             hour = state.workStart?.get(Calendar.HOUR_OF_DAY),
             minute = state.workStart?.get(Calendar.MINUTE),
             timeSet = { hour, minute ->
-                viewModel.workStartPicked(hour, minute)
+                userEvents(EditTimeSheetUserEvents.WorkStartPicked(hour, minute))
             },
             canceled = {
-                viewModel.timePickerShown()
+                userEvents(EditTimeSheetUserEvents.TimePickerShown)
             }
         )
     }
@@ -172,10 +186,10 @@ fun EditTimeSheetScreen(
             hour = state.workEnd?.get(Calendar.HOUR_OF_DAY),
             minute = state.workEnd?.get(Calendar.MINUTE),
             timeSet = { hour, minute ->
-                viewModel.workEndPicked(hour, minute)
+                userEvents(EditTimeSheetUserEvents.WorkEndPicked(hour, minute))
             },
             canceled = {
-                viewModel.timePickerShown()
+                userEvents(EditTimeSheetUserEvents.TimePickerShown)
             }
         )
     }
@@ -183,7 +197,7 @@ fun EditTimeSheetScreen(
     Scaffold(
         floatingActionButton = {
             Row {
-                FloatingActionButton(onClick = { viewModel.deleteTimeSheet() }) {
+                FloatingActionButton(onClick = { userEvents(EditTimeSheetUserEvents.DeleteTimeSheet) }) {
                     Icon(
                         imageVector = Icons.Default.Delete,
                         contentDescription = "Delete Time Sheet"
@@ -192,7 +206,7 @@ fun EditTimeSheetScreen(
 
                 Spacer(modifier = Modifier.width(5.dp))
 
-                FloatingActionButton(onClick = { viewModel.updateTimeSheet() }) {
+                FloatingActionButton(onClick = { userEvents(EditTimeSheetUserEvents.UpdateTimeSheet) }) {
                     Icon(
                         imageVector = Icons.Default.Edit,
                         contentDescription = "Update Time Sheet"
@@ -222,7 +236,7 @@ fun EditTimeSheetScreen(
                 dropDownContentDescription = "Select HME Code",
                 modifier = Modifier.padding(bottom = 5.dp)
             ) { hmeCode ->
-                viewModel.hmeSelected(hmeCode)
+                userEvents(EditTimeSheetUserEvents.HmeSelected(hmeCode))
             }
 
 
@@ -243,7 +257,7 @@ fun EditTimeSheetScreen(
                     dropDownContentDescription = "Select IBAU Code",
                     modifier = Modifier.padding(bottom = 5.dp)
                 ) { ibauCode ->
-                    viewModel.ibauSelected(ibauCode)
+                    userEvents(EditTimeSheetUserEvents.IbauSelected(ibauCode))
                 }
             }
 
@@ -269,7 +283,7 @@ fun EditTimeSheetScreen(
                 Selector(
                     text = "Travel Day",
                     checked = state.travelDay,
-                    onCheckedChange = { viewModel.travelDayChanged(it) })
+                    onCheckedChange = { userEvents(EditTimeSheetUserEvents.TravelDayChanged(it)) })
             }
 
             AnimatedVisibility(
@@ -282,7 +296,7 @@ fun EditTimeSheetScreen(
                 Selector(
                     text = "Weekend/Day off ",
                     checked = state.noWorkday,
-                    onCheckedChange = { viewModel.noWorkDayChanged(it) })
+                    onCheckedChange = { userEvents(EditTimeSheetUserEvents.NoWorkDayChanged(it)) })
             }
             OutlinedTextField(
                 value = state.date.toDate(),
@@ -380,7 +394,7 @@ fun EditTimeSheetScreen(
                 OutlinedTextField(
                     value = state.breakDuration,
                     onValueChange = {
-                        viewModel.breakDurationChanged(it)
+                        userEvents(EditTimeSheetUserEvents.BreakDurationChanged(it))
                     },
                     label = { Text(text = "Break Duration") },
                     modifier = Modifier
@@ -399,7 +413,7 @@ fun EditTimeSheetScreen(
                 OutlinedTextField(
                     value = state.traveledDistance,
                     onValueChange = {
-                        viewModel.travelDistanceChanged(it)
+                        userEvents(EditTimeSheetUserEvents.TravelDistanceChanged(it))
                     },
                     label = { Text(text = "Travel Distance") },
                     modifier = Modifier

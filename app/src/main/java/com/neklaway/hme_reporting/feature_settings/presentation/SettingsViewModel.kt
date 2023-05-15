@@ -30,6 +30,7 @@ import com.neklaway.hme_reporting.utils.Theme
 import com.neklaway.hme_reporting.utils.toFloatWithString
 import com.neklaway.hme_reporting.utils.toIntWithString
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -66,8 +67,8 @@ class SettingsViewModel @Inject constructor(
     private val _state = MutableStateFlow(SettingsState())
     val state = _state.asStateFlow()
 
-    private val _userMessage = MutableSharedFlow<String>()
-    val userMessage: SharedFlow<String> = _userMessage
+    private val _userMessage = Channel<String>()
+    val userMessage= _userMessage.receiveAsFlow()
 
     init {
         getUserName()
@@ -153,31 +154,31 @@ class SettingsViewModel @Inject constructor(
     }
 
 
-    fun setUserName(userName: String) {
+    private fun setUserName(userName: String) {
         _state.update { it.copy(userName = userName) }
         viewModelScope.launch {
             setUserNameUseCase.invoke(userName)
         }
     }
-    fun setTheme(theme: Theme) {
+    private fun setTheme(theme: Theme) {
         _state.update { it.copy(theme = theme) }
         viewModelScope.launch {
             setThemeUseCase.invoke(theme)
         }
     }
-    fun setDarkTheme(theme: DarkTheme) {
+    private fun setDarkTheme(theme: DarkTheme) {
         _state.update { it.copy(darkTheme = theme) }
         viewModelScope.launch {
             setDarkThemeUseCase.invoke(theme)
         }
     }
 
-    fun setVisaReminder(reminder: String) {
+    private fun setVisaReminder(reminder: String) {
         viewModelScope.launch {
             reminder.toIntWithString().let { resourceWithString ->
                 when (resourceWithString) {
                     is ResourceWithString.Error -> {
-                        _userMessage.emit(resourceWithString.message ?: "Error")
+                        _userMessage.send(resourceWithString.message ?: "Error")
 
                     }
                     is ResourceWithString.Loading -> Unit
@@ -192,26 +193,26 @@ class SettingsViewModel @Inject constructor(
 
     }
 
-    fun setIsIbau(isIbau: Boolean) {
+    private fun setIsIbau(isIbau: Boolean) {
         _state.update { it.copy(isIbauUser = isIbau) }
         viewModelScope.launch {
             setIsIbauUseCase.invoke(isIbau)
         }
     }
 
-    fun setAutoClear(autoClear: Boolean) {
+    private fun setAutoClear(autoClear: Boolean) {
         _state.update { it.copy(isAutoClear = autoClear) }
         viewModelScope.launch {
             setIsAutoClearUseCase.invoke(autoClear)
         }
     }
 
-    fun breakDurationChanged(breakDuration: String) {
+    private fun breakDurationChanged(breakDuration: String) {
             breakDuration.toFloatWithString().let { resourceString ->
                 when (resourceString) {
                     is ResourceWithString.Error -> {
                         viewModelScope.launch {
-                            _userMessage.emit(resourceString.message ?: "error")
+                            _userMessage.send(resourceString.message ?: "error")
                         }
                     }
                     is ResourceWithString.Loading -> Unit
@@ -219,7 +220,7 @@ class SettingsViewModel @Inject constructor(
                         viewModelScope.launch {
                             setBreakDurationUseCase(resourceString.data!!).collect { resource ->
                                 when (resource) {
-                                    is Resource.Error -> _userMessage.emit(
+                                    is Resource.Error -> _userMessage.send(
                                         resource.message ?: "error"
                                     )
 
@@ -233,17 +234,17 @@ class SettingsViewModel @Inject constructor(
             }
     }
 
-    fun signatureBtnClicked() {
+    private fun signatureBtnClicked() {
         _state.update { it.copy(showSignaturePad = true) }
         Log.d(TAG, "signatureBtnClicked:  show pad = ${_state.value.showSignaturePad}")
     }
 
-    fun backupButtonClicked() {
+    private fun backupButtonClicked() {
         startBackup()
     }
 
 
-    fun restoreFolderSelected(uri: Uri) {
+    private fun restoreFolderSelected(uri: Uri) {
         startRestore(uri)
     }
 
@@ -254,7 +255,7 @@ class SettingsViewModel @Inject constructor(
                 loadBitmapUseCase.invoke("signatures", "user_signature")) {
                 is Resource.Success -> _state.update { it.copy(signature = signatureResource.data?.asImageBitmap()) }
                 is Resource.Error -> {
-                    _userMessage.emit("${signatureResource.message}")
+                    _userMessage.send("${signatureResource.message}")
                     _state.update { it.copy(isLoading = false) }
                 }
                 is Resource.Loading -> {}
@@ -264,21 +265,21 @@ class SettingsViewModel @Inject constructor(
 
     }
 
-    fun signatureScreenClosed() {
+    private fun signatureScreenClosed() {
         _state.update { it.copy(showSignaturePad = false) }
         Log.d(TAG, "signatureScreenClosed: show pad = ${_state.value.showSignaturePad}")
     }
 
-    fun updateSignature() {
+    private fun updateSignature() {
         getSignature()
     }
 
-    fun setFullDayAllowance(allowance: String) {
+    private fun setFullDayAllowance(allowance: String) {
             allowance.toIntWithString().let { resourceWithString ->
                 when (resourceWithString) {
                     is ResourceWithString.Error -> {
                         viewModelScope.launch {
-                            _userMessage.emit(resourceWithString.message ?: "Error")
+                            _userMessage.send(resourceWithString.message ?: "Error")
                         }
                     }
                     is ResourceWithString.Loading -> Unit
@@ -293,12 +294,12 @@ class SettingsViewModel @Inject constructor(
             }
     }
 
-    fun set8HAllowance(allowance: String) {
+    private fun set8HAllowance(allowance: String) {
             allowance.toIntWithString().let { resourceWithString ->
                 when (resourceWithString) {
                     is ResourceWithString.Error -> {
                         viewModelScope.launch {
-                            _userMessage.emit(resourceWithString.message ?: "Error")
+                            _userMessage.send(resourceWithString.message ?: "Error")
                         }
                     }
                     is ResourceWithString.Loading -> Unit
@@ -312,12 +313,12 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun setSavingDeductible(deductible: String) {
+    private fun setSavingDeductible(deductible: String) {
             deductible.toIntWithString().let { resourceWithString ->
                 when (resourceWithString) {
                     is ResourceWithString.Error -> {
                         viewModelScope.launch {
-                            _userMessage.emit(resourceWithString.message ?: "Error")
+                            _userMessage.send(resourceWithString.message ?: "Error")
                         }
                     }
                     is ResourceWithString.Loading -> Unit
@@ -331,4 +332,24 @@ class SettingsViewModel @Inject constructor(
 
             }
         }
+
+    fun userEvent(event:SettingsUserEvents){
+        when(event){
+            SettingsUserEvents.BackupButtonClicked -> backupButtonClicked()
+            is SettingsUserEvents.BreakDurationChanged -> breakDurationChanged(event.duration)
+            is SettingsUserEvents.RestoreFolderSelected -> restoreFolderSelected(event.uri)
+            is SettingsUserEvents.Set8HAllowance -> set8HAllowance(event.allowance)
+            is SettingsUserEvents.SetAutoClear -> setAutoClear(event.autoClear)
+            is SettingsUserEvents.SetDarkTheme -> setDarkTheme(event.darkTheme)
+            is SettingsUserEvents.SetFullDayAllowance -> setFullDayAllowance(event.allowance)
+            is SettingsUserEvents.SetIsIbau -> setIsIbau(event.ibau)
+            is SettingsUserEvents.SetSavingDeductible -> setSavingDeductible(event.deductible)
+            is SettingsUserEvents.SetTheme -> setTheme(event.theme)
+            is SettingsUserEvents.SetUserName -> setUserName(event.userName)
+            is SettingsUserEvents.SetVisaReminder -> setVisaReminder(event.reminder)
+            SettingsUserEvents.SignatureBtnClicked -> signatureBtnClicked()
+            SettingsUserEvents.SignatureScreenClosed -> signatureScreenClosed()
+            SettingsUserEvents.UpdateSignature -> updateSignature()
+        }
+    }
 }

@@ -45,6 +45,7 @@ import com.neklaway.hme_reporting.utils.toFloatWithString
 import com.neklaway.hme_reporting.utils.toIntWithString
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.*
@@ -93,8 +94,8 @@ class NewTimeSheetViewModel @Inject constructor(
     private val _state = MutableStateFlow(NewTimeSheetState())
     val state = _state.asStateFlow()
 
-    private val _userMessage = MutableSharedFlow<String>()
-    val userMessage: SharedFlow<String> = _userMessage
+    private val _userMessage = Channel<String>()
+    val userMessage = _userMessage.receiveAsFlow()
 
     private var isIbau: Boolean = false
 
@@ -140,7 +141,7 @@ class NewTimeSheetViewModel @Inject constructor(
         getAllCustomersFlowUseCase().onEach { result ->
             when (result) {
                 is Resource.Error -> {
-                    _userMessage.emit(result.message ?: "Can't get customers")
+                    _userMessage.send(result.message ?: "Can't get customers")
                     _state.update { it.copy(loading = false) }
                 }
                 is Resource.Loading -> _state.update { it.copy(loading = true) }
@@ -178,7 +179,7 @@ class NewTimeSheetViewModel @Inject constructor(
                 getHMECodeByCustomerIdUseCase(customer.id).collect { result ->
                     when (result) {
                         is Resource.Error -> {
-                            _userMessage.emit(result.message ?: "Can't get HME codes")
+                            _userMessage.send(result.message ?: "Can't get HME codes")
                             _state.update { it.copy(loading = false) }
                         }
                         is Resource.Loading -> _state.update { it.copy(loading = true) }
@@ -220,7 +221,7 @@ class NewTimeSheetViewModel @Inject constructor(
                 getIBAUCodeByHMECodeIdUseCase(hmeCode.id).collect { result ->
                     when (result) {
                         is Resource.Error -> {
-                            _userMessage.emit(result.message ?: "Can't get IBAU codes")
+                            _userMessage.send(result.message ?: "Can't get IBAU codes")
                             _state.update { it.copy(loading = false) }
                         }
                         is Resource.Loading -> _state.update { it.copy(loading = true) }
@@ -243,7 +244,7 @@ class NewTimeSheetViewModel @Inject constructor(
     }
 
 
-    fun ibauSelected(ibauCode: IBAUCode) {
+    private fun ibauSelected(ibauCode: IBAUCode) {
         _state.update {
             it.copy(
                 selectedIBAUCode = ibauCode
@@ -254,7 +255,7 @@ class NewTimeSheetViewModel @Inject constructor(
         }
     }
 
-    fun insertTimeSheet() {
+    private fun insertTimeSheet() {
         viewModelScope.launch(Dispatchers.IO) {
 
             insertTimeSheetUseCase.invoke(
@@ -275,11 +276,11 @@ class NewTimeSheetViewModel @Inject constructor(
                 when (result) {
                     is Resource.Loading -> _state.update { it.copy(loading = true) }
                     is Resource.Error -> {
-                        _userMessage.emit(result.message ?: "Can't get IBAU codes")
+                        _userMessage.send(result.message ?: "Can't get IBAU codes")
                         _state.update { it.copy(loading = false) }
                     }
                     is Resource.Success -> {
-                        _userMessage.emit("TimeSheet Saved")
+                        _userMessage.send("TimeSheet Saved")
                         _state.update { it.copy(loading = false) }
                         if (!getIsAutoClearUseCase.invoke()) {
                             _state.update {
@@ -331,12 +332,12 @@ class NewTimeSheetViewModel @Inject constructor(
         }
     }
 
-    fun dateClicked() {
+    private fun dateClicked() {
         _state.update { it.copy(showDatePicker = true) }
         Log.d(TAG, "dateClicked: ")
     }
 
-    fun datePicked(year: Int, month: Int, day: Int) {
+    private fun datePicked(year: Int, month: Int, day: Int) {
         val date = Calendar.getInstance()
         date.timeZone = TimeZone.getTimeZone("Asia/Dubai")
         date.set(
@@ -378,17 +379,17 @@ class NewTimeSheetViewModel @Inject constructor(
         }
     }
 
-    fun datePickedCanceled() {
+    private fun datePickedCanceled() {
         _state.update { it.copy(showDatePicker = false) }
     }
 
-    fun travelStartClicked() {
+    private fun travelStartClicked() {
         Log.d(TAG, "NewTimeSheetScreen: Work start clicked")
 
         _state.update { it.copy(showTimePickerTravelStart = true) }
     }
 
-    fun travelStartPicked(hour: Int, minute: Int) {
+    private fun travelStartPicked(hour: Int, minute: Int) {
         val date = state.value.date!!.clone() as Calendar
         date.set(Calendar.HOUR_OF_DAY, hour)
         date.set(Calendar.MINUTE, minute)
@@ -399,11 +400,11 @@ class NewTimeSheetViewModel @Inject constructor(
         }
     }
 
-    fun workStartClicked() {
+    private fun workStartClicked() {
         _state.update { it.copy(showTimePickerWorkStart = true) }
     }
 
-    fun workStartPicked(hour: Int, minute: Int) {
+    private fun workStartPicked(hour: Int, minute: Int) {
         val date = state.value.date!!.clone() as Calendar
         date.set(Calendar.HOUR_OF_DAY, hour)
         date.set(Calendar.MINUTE, minute)
@@ -414,11 +415,11 @@ class NewTimeSheetViewModel @Inject constructor(
         }
     }
 
-    fun workEndClicked() {
+    private fun workEndClicked() {
         _state.update { it.copy(showTimePickerWorkEnd = true) }
     }
 
-    fun workEndPicked(hour: Int, minute: Int) {
+    private fun workEndPicked(hour: Int, minute: Int) {
         val date = state.value.date!!.clone() as Calendar
         date.set(Calendar.HOUR_OF_DAY, hour)
         date.set(Calendar.MINUTE, minute)
@@ -429,11 +430,11 @@ class NewTimeSheetViewModel @Inject constructor(
         }
     }
 
-    fun travelEndClicked() {
+    private fun travelEndClicked() {
         _state.update { it.copy(showTimePickerTravelEnd = true) }
     }
 
-    fun travelEndPicked(hour: Int, minute: Int) {
+    private fun travelEndPicked(hour: Int, minute: Int) {
         val date = state.value.date!!.clone() as Calendar
         date.set(Calendar.HOUR_OF_DAY, hour)
         date.set(Calendar.MINUTE, minute)
@@ -444,7 +445,7 @@ class NewTimeSheetViewModel @Inject constructor(
         }
     }
 
-    fun timePickerShown() {
+    private fun timePickerShown() {
         _state.update {
             it.copy(
                 showTimePickerTravelEnd = false,
@@ -455,12 +456,12 @@ class NewTimeSheetViewModel @Inject constructor(
         }
     }
 
-    fun breakDurationChanged(breakDuration: String) {
+    private fun breakDurationChanged(breakDuration: String) {
             breakDuration.toFloatWithString().let { resourceWithString ->
                 when (resourceWithString) {
                     is ResourceWithString.Error -> {
                         viewModelScope.launch {
-                            _userMessage.emit(resourceWithString.message ?: "Error in Break Time")
+                            _userMessage.send(resourceWithString.message ?: "Error in Break Time")
                         }
                         _state.update { it.copy(breakDuration = resourceWithString.string ?: "") }
                     }
@@ -475,12 +476,12 @@ class NewTimeSheetViewModel @Inject constructor(
             }
     }
 
-    fun travelDistanceChanged(travelDistance: String) {
+    private fun travelDistanceChanged(travelDistance: String) {
             travelDistance.toIntWithString().let { resourceWithString ->
                 when (resourceWithString) {
                     is ResourceWithString.Error -> {
                         viewModelScope.launch {
-                            _userMessage.emit(resourceWithString.message ?: "Error")
+                            _userMessage.send(resourceWithString.message ?: "Error")
                         }
                     }
                     is ResourceWithString.Loading -> Unit
@@ -494,24 +495,50 @@ class NewTimeSheetViewModel @Inject constructor(
             }
     }
 
-    fun travelDayChanged(travelDaySelected: Boolean) {
+    private fun travelDayChanged(travelDaySelected: Boolean) {
         _state.update { it.copy(travelDay = travelDaySelected, noWorkday = false) }
         viewModelScope.launch {
             setIsSavedTravelDayUseCase(travelDaySelected)
         }
     }
 
-    fun noWorkDayChanged(noWorkDaySelected: Boolean) {
+    private fun noWorkDayChanged(noWorkDaySelected: Boolean) {
         _state.update { it.copy(noWorkday = noWorkDaySelected, travelDay = false) }
         viewModelScope.launch {
             setIsWeekendUseCase(noWorkDaySelected)
         }
     }
 
-    fun overTimeChanged(overTimeSelected: Boolean) {
+    private fun overTimeChanged(overTimeSelected: Boolean) {
         _state.update { it.copy(overTimeDay = overTimeSelected) }
         viewModelScope.launch {
             setIsOverTimeUseCase(overTimeSelected)
+        }
+    }
+    
+    fun userEvents(event:NewTimeSheetUserEvents){
+        when(event){
+            is NewTimeSheetUserEvents.BreakDurationChanged -> breakDurationChanged(event.duration)
+            is NewTimeSheetUserEvents.CustomerSelected -> customerSelected(event.customer)
+            NewTimeSheetUserEvents.DateClicked -> dateClicked()
+            is NewTimeSheetUserEvents.DatePicked -> datePicked(event.year,event.month,event.day)
+            NewTimeSheetUserEvents.DatePickedCanceled -> datePickedCanceled()
+            is NewTimeSheetUserEvents.HmeSelected -> hmeSelected(event.hmeCode)
+            is NewTimeSheetUserEvents.IbauSelected -> ibauSelected(event.ibauCode)
+            NewTimeSheetUserEvents.InsertTimeSheet -> insertTimeSheet()
+            is NewTimeSheetUserEvents.NoWorkDayChanged -> noWorkDayChanged(event.changed)
+            is NewTimeSheetUserEvents.OverTimeChanged -> overTimeChanged(event.changed)
+            NewTimeSheetUserEvents.TimePickerShown -> timePickerShown()
+            is NewTimeSheetUserEvents.TravelDayChanged -> travelDayChanged(event.changed)
+            is NewTimeSheetUserEvents.TravelDistanceChanged -> travelDistanceChanged(event.distance)
+            NewTimeSheetUserEvents.TravelEndClicked -> travelEndClicked()
+            is NewTimeSheetUserEvents.TravelEndPicked -> travelEndPicked(event.hour,event.minute)
+            NewTimeSheetUserEvents.TravelStartClicked -> travelStartClicked()
+            is NewTimeSheetUserEvents.TravelStartPicked -> travelStartPicked(event.hour,event.minute)
+            NewTimeSheetUserEvents.WorkEndClicked -> workEndClicked()
+            is NewTimeSheetUserEvents.WorkEndPicked -> workEndPicked(event.hour,event.minute)
+            NewTimeSheetUserEvents.WorkStartClicked -> workStartClicked()
+            is NewTimeSheetUserEvents.WorkStartPicked -> workStartPicked(event.hour,event.minute)
         }
     }
 

@@ -8,6 +8,7 @@ import com.neklaway.hme_reporting.feature_visa.domain.model.Visa
 import com.neklaway.hme_reporting.feature_visa.domain.use_cases.*
 import com.neklaway.hme_reporting.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.*
@@ -28,8 +29,8 @@ class VisaViewModel @Inject constructor(
     private val _state = MutableStateFlow(VisaState())
     val state = _state.asStateFlow()
 
-    private val _userMessage = MutableSharedFlow<String>()
-    val userMessage: SharedFlow<String> = _userMessage
+    private val _userMessage = Channel<String>()
+    val userMessage= _userMessage.receiveAsFlow()
 
 
     init {
@@ -45,13 +46,13 @@ class VisaViewModel @Inject constructor(
         getAllVisasFlowUseCase().onEach { result ->
             when (result) {
                 is Resource.Error -> {
-                    _userMessage.emit(result.message ?: "Can't get visas")
+                    _userMessage.send(result.message ?: "Can't get visas")
                     _state.update { it.copy(loading = false) }
                 }
                 is Resource.Loading -> _state.update { it.copy(loading = true) }
                 is Resource.Success -> {
-                    _state.update {
-                        it.copy(
+                    _state.update { state ->
+                        state.copy(
                             visas = result.data.orEmpty()
                                 .sortedWith(compareBy({ it.date }, { it.country })), loading = false
                         )
@@ -70,7 +71,7 @@ class VisaViewModel @Inject constructor(
     }
 
 
-    fun saveVisa() {
+    private fun saveVisa() {
         val country = state.value.country
         val date = state.value.date
 
@@ -79,7 +80,7 @@ class VisaViewModel @Inject constructor(
         ).onEach { result ->
             when (result) {
                 is Resource.Error -> {
-                    _userMessage.emit(result.message ?: "Can't save Visa")
+                    _userMessage.send(result.message ?: "Can't save Visa")
                     _state.update { it.copy(loading = false) }
                 }
                 is Resource.Loading -> _state.update { it.copy(loading = true) }
@@ -100,7 +101,7 @@ class VisaViewModel @Inject constructor(
     }
 
 
-    fun updateVisa() {
+    private fun updateVisa() {
         val country = state.value.country
         val date = state.value.date
 
@@ -115,7 +116,7 @@ class VisaViewModel @Inject constructor(
             ).onEach { result ->
                 when (result) {
                     is Resource.Error -> {
-                        _userMessage.emit(result.message ?: "Can't update Visa")
+                        _userMessage.send(result.message ?: "Can't update Visa")
                         _state.update { it.copy(loading = false) }
                     }
                     is Resource.Loading -> _state.update { it.copy(loading = true) }
@@ -126,12 +127,12 @@ class VisaViewModel @Inject constructor(
     }
 
 
-    fun deleteVisa(visa: Visa) {
+    private fun deleteVisa(visa: Visa) {
 
         deleteVisaUseCase(visa).onEach { result ->
             when (result) {
                 is Resource.Error -> {
-                    _userMessage.emit(result.message ?: "Can't delete Visa")
+                    _userMessage.send(result.message ?: "Can't delete Visa")
                     _state.update { it.copy(loading = false) }
                 }
                 is Resource.Loading -> _state.update { it.copy(loading = true) }
@@ -141,7 +142,7 @@ class VisaViewModel @Inject constructor(
     }
 
 
-    fun visaClicked(visa: Visa) {
+    private fun visaClicked(visa: Visa) {
         _state.update {
             it.copy(
                 country = visa.country, date = visa.date
@@ -150,19 +151,19 @@ class VisaViewModel @Inject constructor(
         _state.update { it.copy(selectedVisa = visa) }
     }
 
-    fun countryChanged(country: String) {
+    private fun countryChanged(country: String) {
         _state.update {
             it.copy(country = country)
         }
     }
 
 
-    fun dateClicked() {
+    private fun dateClicked() {
         _state.update { it.copy(showDatePicker = true) }
         Log.d(TAG, "dateClicked: ")
     }
 
-    fun datePicked(year: Int, month: Int, day: Int) {
+    private fun datePicked(year: Int, month: Int, day: Int) {
         val date = Calendar.getInstance()
         date.timeZone = TimeZone.getTimeZone("Asia/Dubai")
         date.set(
@@ -172,17 +173,17 @@ class VisaViewModel @Inject constructor(
         _state.update { it.copy(date = date, showDatePicker = false) }
     }
 
-    fun datePickedCanceled() {
+    private fun datePickedCanceled() {
         _state.update { it.copy(showDatePicker = false) }
     }
 
-    fun visaSelected(visa: Visa, checked: Boolean) {
+    private fun visaSelected(visa: Visa, checked: Boolean) {
         updateVisaUseCase(
             country = visa.country, date = visa.date, checked = checked, id = visa.id
         ).onEach { result ->
             when (result) {
                 is Resource.Error -> {
-                    _userMessage.emit(result.message ?: "Can't update Visa")
+                    _userMessage.send(result.message ?: "Can't update Visa")
                     _state.update { it.copy(loading = false) }
                 }
                 is Resource.Loading -> _state.update { it.copy(loading = true) }
@@ -195,6 +196,19 @@ class VisaViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
+    fun userEvent(event: VisaUserEvents){
+        when(event){
+            is VisaUserEvents.CountryChanged -> countryChanged(event.country)
+            VisaUserEvents.DateClicked -> dateClicked()
+            is VisaUserEvents.DatePicked -> datePicked(event.year,event.month,event.day)
+            VisaUserEvents.DatePickedCanceled -> datePickedCanceled()
+            is VisaUserEvents.DeleteVisa -> deleteVisa(event.visa)
+            VisaUserEvents.SaveVisa -> saveVisa()
+            VisaUserEvents.UpdateVisa -> updateVisa()
+            is VisaUserEvents.VisaClicked -> visaClicked(event.visa)
+            is VisaUserEvents.VisaSelected -> visaSelected(event.visa,event.checked)
+        }
+    }
 }
 
 

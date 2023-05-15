@@ -20,7 +20,13 @@ import com.neklaway.hme_reporting.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -41,8 +47,8 @@ class IBAUCodeViewModel @Inject constructor(
     private val _state = MutableStateFlow(IBAUCodeState())
     val state = _state.asStateFlow()
 
-    private val _userMessage = MutableSharedFlow<String>()
-    val userMessage: SharedFlow<String> = _userMessage
+    private val _userMessage = Channel<String>()
+    val userMessage = _userMessage.receiveAsFlow()
 
     private var getHMEJob: Job? = null
     private var getIBAUJob: Job? = null
@@ -57,15 +63,16 @@ class IBAUCodeViewModel @Inject constructor(
         getAllCustomersFlowUseCase().onEach { result ->
             when (result) {
                 is Resource.Error -> {
-                    _userMessage.emit(result.message ?: "Can't get customers")
+                    _userMessage.send(result.message ?: "Can't get customers")
                     _state.update { it.copy(loading = false) }
                 }
+
                 is Resource.Loading -> _state.update { it.copy(loading = true) }
                 is Resource.Success -> {
                     val savedCustomerId = getCustomerIdUseCase()
                     val savedSelectedCustomer = result.data?.find { it.id == savedCustomerId }
                     savedSelectedCustomer?.let {
-                    customerSelected(it)
+                        customerSelected(it)
                     }
                     _state.update {
                         it.copy(
@@ -82,7 +89,7 @@ class IBAUCodeViewModel @Inject constructor(
     }
 
 
-    fun saveIBAUCode() {
+    private fun saveIBAUCode() {
         val ibauCode: String = state.value.ibauCode
         val machineNumber: String = state.value.machineNumber
         val machineType: String = state.value.machineType
@@ -97,12 +104,14 @@ class IBAUCodeViewModel @Inject constructor(
         ).onEach { result ->
             when (result) {
                 is Resource.Error -> {
-                    _userMessage.emit(result.message ?: "Can't save IBAU Code")
+                    _userMessage.send(result.message ?: "Can't save IBAU Code")
                     _state.update { it.copy(loading = false) }
                 }
+
                 is Resource.Loading -> _state.update {
                     it.copy(loading = true)
                 }
+
                 is Resource.Success -> {
                     clearState()
                     state.value.selectedHMECode?.let {
@@ -127,7 +136,7 @@ class IBAUCodeViewModel @Inject constructor(
         }
     }
 
-    fun updateIBAUCode() {
+    private fun updateIBAUCode() {
         val ibauCode: String = state.value.ibauCode
         val machineNumber: String = state.value.machineNumber
         val machineType: String = state.value.machineType
@@ -145,9 +154,10 @@ class IBAUCodeViewModel @Inject constructor(
             ).onEach { result ->
                 when (result) {
                     is Resource.Error -> {
-                        _userMessage.emit(result.message ?: "Can't save IBAU Code")
+                        _userMessage.send(result.message ?: "Can't save IBAU Code")
                         _state.update { it.copy(loading = false) }
                     }
+
                     is Resource.Loading -> _state.update { it.copy(loading = true) }
                     is Resource.Success -> {
                         clearState()
@@ -169,12 +179,14 @@ class IBAUCodeViewModel @Inject constructor(
                 Log.d("TAG", "getHMEsByCustomerId: $result")
                 when (result) {
                     is Resource.Error -> {
-                        _userMessage.emit(result.message ?: "Can't get hme code")
+                        _userMessage.send(result.message ?: "Can't get hme code")
                         _state.update { it.copy(loading = false) }
                     }
+
                     is Resource.Loading -> _state.update {
                         it.copy(loading = true)
                     }
+
                     is Resource.Success -> {
                         val savedHmeId = getHmeIdUseCase()
                         val savedHmeCode = result.data?.find { it.id == savedHmeId }
@@ -204,12 +216,14 @@ class IBAUCodeViewModel @Inject constructor(
                 Log.d("TAG", "getIBAUsByCustomerId: $result")
                 when (result) {
                     is Resource.Error -> {
-                        _userMessage.emit(result.message ?: "Can't get IBAU code")
+                        _userMessage.send(result.message ?: "Can't get IBAU code")
                         _state.update { it.copy(loading = false) }
                     }
+
                     is Resource.Loading -> _state.update {
                         it.copy(loading = true)
                     }
+
                     is Resource.Success -> {
                         _state.update {
                             it.copy(
@@ -224,7 +238,7 @@ class IBAUCodeViewModel @Inject constructor(
 
     }
 
-    fun customerSelected(customer: Customer) {
+    private fun customerSelected(customer: Customer) {
         _state.update {
             it.copy(
                 selectedCustomer = customer
@@ -237,16 +251,18 @@ class IBAUCodeViewModel @Inject constructor(
     }
 
 
-    fun deleteIBAUCode(ibauCode: IBAUCode) {
+    private fun deleteIBAUCode(ibauCode: IBAUCode) {
         deleteIBAUCodeUseCase(ibauCode).onEach { result ->
             when (result) {
                 is Resource.Error -> {
-                    _userMessage.emit(result.message ?: "Can't delete IBAU Code")
+                    _userMessage.send(result.message ?: "Can't delete IBAU Code")
                     _state.update { it.copy(loading = false) }
                 }
+
                 is Resource.Loading -> _state.update {
                     it.copy(loading = true)
                 }
+
                 is Resource.Success -> {
                     _state.update {
                         it.copy(loading = false)
@@ -259,7 +275,7 @@ class IBAUCodeViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    fun hmeCodeSelected(hmeCode: HMECode) {
+    private fun hmeCodeSelected(hmeCode: HMECode) {
         _state.update {
             it.copy(
                 selectedHMECode = hmeCode,
@@ -271,7 +287,7 @@ class IBAUCodeViewModel @Inject constructor(
         getIBAUsByHMECodeId(hmeCode.id!!)
     }
 
-    fun ibauCodeSelected(ibauCode: IBAUCode) {
+    private fun ibauCodeSelected(ibauCode: IBAUCode) {
         _state.update {
             it.copy(
                 selectedIBAUCode = ibauCode,
@@ -283,25 +299,25 @@ class IBAUCodeViewModel @Inject constructor(
         }
     }
 
-    fun ibauCodeChanged(ibauCode: String) {
+    private fun ibauCodeChanged(ibauCode: String) {
         _state.update {
             it.copy(ibauCode = ibauCode)
         }
     }
 
-    fun machineTypeChanged(machineType: String) {
+    private fun machineTypeChanged(machineType: String) {
         _state.update {
             it.copy(machineType = machineType)
         }
     }
 
-    fun machineNumberChanged(machineNumber: String) {
+    private fun machineNumberChanged(machineNumber: String) {
         _state.update {
             it.copy(machineNumber = machineNumber)
         }
     }
 
-    fun workDescriptionChanged(
+    private fun workDescriptionChanged(
         workDescription: String
     ) {
         _state.update {
@@ -309,4 +325,18 @@ class IBAUCodeViewModel @Inject constructor(
         }
     }
 
+    fun userEvent(event: IbauCodeUserEvent) {
+        when (event) {
+            is IbauCodeUserEvent.CustomerSelected -> customerSelected(event.customer)
+            is IbauCodeUserEvent.DeleteIBAUCode -> deleteIBAUCode(event.ibauCode)
+            is IbauCodeUserEvent.HmeCodeSelected -> hmeCodeSelected(event.hmeCode)
+            is IbauCodeUserEvent.IbauCodeChanged -> ibauCodeChanged(event.ibauCode)
+            is IbauCodeUserEvent.IbauCodeSelected -> ibauCodeSelected(event.ibauCode)
+            is IbauCodeUserEvent.MachineNumberChanged -> machineNumberChanged(event.machineNumber)
+            is IbauCodeUserEvent.MachineTypeChanged -> machineTypeChanged(event.machineType)
+            IbauCodeUserEvent.SaveIBAUCode -> saveIBAUCode()
+            IbauCodeUserEvent.UpdateIBAUCode -> updateIBAUCode()
+            is IbauCodeUserEvent.WorkDescriptionChanged -> workDescriptionChanged(event.description)
+        }
+    }
 }

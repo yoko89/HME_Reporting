@@ -9,22 +9,39 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Divider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.work.*
 import com.neklaway.hme_reporting.common.presentation.common.component.DropDown
 import com.neklaway.hme_reporting.common.presentation.common.component.Selector
 import com.neklaway.hme_reporting.feature_signature.presentation.signature.SignatureScreen
@@ -32,19 +49,18 @@ import com.neklaway.hme_reporting.utils.Constants
 import com.neklaway.hme_reporting.utils.DarkTheme
 import com.neklaway.hme_reporting.utils.NotificationPermissionRequest
 import com.neklaway.hme_reporting.utils.Theme
+import kotlinx.coroutines.flow.Flow
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
+    state: SettingsState,
+    userMessage: Flow<String>,
+    userEvent: (SettingsUserEvents) -> Unit,
     showNavigationMenu: () -> Unit,
-    viewModel: SettingsViewModel = hiltViewModel()
 ) {
-    val state by viewModel.state.collectAsState()
-
     val snackbarHostState = remember { SnackbarHostState() }
 
-    val userMessage = viewModel.userMessage
 
     var requestPermission by remember {
         mutableStateOf(false)
@@ -63,7 +79,7 @@ fun SettingsScreen(
             onResult = { activityResult ->
                 if (activityResult.resultCode == RESULT_OK) {
                     activityResult.data?.data?.also { uri ->
-                        viewModel.restoreFolderSelected(uri)
+                        userEvent(SettingsUserEvents.RestoreFolderSelected(uri))
                     }
                 }
             })
@@ -92,7 +108,7 @@ fun SettingsScreen(
             item {
                 OutlinedTextField(
                     value = state.userName,
-                    onValueChange = { viewModel.setUserName(it) },
+                    onValueChange = { userEvent(SettingsUserEvents.SetUserName(it)) },
                     label = { Text(text = "User Name") },
                     modifier = Modifier
                         .fillMaxWidth(),
@@ -103,20 +119,20 @@ fun SettingsScreen(
                 Selector(
                     text = "IBAU User",
                     checked = state.isIbauUser,
-                    onCheckedChange = { viewModel.setIsIbau(it) })
+                    onCheckedChange = { userEvent(SettingsUserEvents.SetIsIbau(it)) })
             }
 
             item {
                 Selector(
                     text = "Auto Clear",
                     checked = state.isAutoClear,
-                    onCheckedChange = { viewModel.setAutoClear(it) })
+                    onCheckedChange = { userEvent(SettingsUserEvents.SetAutoClear(it)) })
             }
 
             item {
                 OutlinedTextField(
                     value = state.breakDuration,
-                    onValueChange = viewModel::breakDurationChanged,
+                    onValueChange = { userEvent(SettingsUserEvents.BreakDurationChanged(it)) },
                     label = { Text(text = "Break Duration") },
                     modifier = Modifier
                         .fillMaxWidth(),
@@ -131,7 +147,7 @@ fun SettingsScreen(
                 OutlinedTextField(
                     value = state.visaReminder,
                     onValueChange = {
-                        viewModel.setVisaReminder(it)
+                        userEvent(SettingsUserEvents.SetVisaReminder(it))
                     },
                     label = { Text(text = "Visa Reminder Days") },
                     modifier = Modifier
@@ -149,7 +165,7 @@ fun SettingsScreen(
                 OutlinedTextField(
                     value = state.fullDayAllowance,
                     onValueChange = {
-                        viewModel.setFullDayAllowance(it)
+                        userEvent(SettingsUserEvents.SetFullDayAllowance(it))
                     },
                     label = { Text(text = "Full Day Allowance") },
                     modifier = Modifier
@@ -163,7 +179,7 @@ fun SettingsScreen(
                 OutlinedTextField(
                     value = state._8HAllowance,
                     onValueChange = {
-                        viewModel.set8HAllowance(it)
+                        userEvent(SettingsUserEvents.Set8HAllowance(it))
                     },
                     label = { Text(text = "8H Allowance") },
                     modifier = Modifier
@@ -177,7 +193,7 @@ fun SettingsScreen(
                 OutlinedTextField(
                     value = state.savingDeductible,
                     onValueChange = {
-                        viewModel.setSavingDeductible(it)
+                        userEvent(SettingsUserEvents.SetSavingDeductible(it))
                     },
                     label = { Text(text = "Deductible to Saving") },
                     modifier = Modifier
@@ -194,7 +210,9 @@ fun SettingsScreen(
                     selectedValue = state.theme.name,
                     label = "Theme Color",
                     dropDownContentDescription = "theme color selection",
-                    onSelect = viewModel::setTheme
+                    onSelect = {
+                        userEvent(SettingsUserEvents.SetTheme(it))
+                    }
                 )
             }
             item {
@@ -203,7 +221,9 @@ fun SettingsScreen(
                     selectedValue = state.darkTheme.name,
                     label = "Dark Theme",
                     dropDownContentDescription = "dark theme color selection",
-                    onSelect = viewModel::setDarkTheme
+                    onSelect = {
+                        userEvent(SettingsUserEvents.SetDarkTheme(it))
+                    }
                 )
             }
 
@@ -227,7 +247,7 @@ fun SettingsScreen(
 
             item {
                 Button(
-                    onClick = { viewModel.signatureBtnClicked() }) {
+                    onClick = { userEvent(SettingsUserEvents.SignatureBtnClicked) }) {
                     Text(text = "Signature")
                 }
             }
@@ -239,7 +259,7 @@ fun SettingsScreen(
                 Button(
                     onClick = {
                         requestPermission = true
-                        viewModel.backupButtonClicked()
+                        userEvent(SettingsUserEvents.BackupButtonClicked)
                     }) {
                     Text(text = "Backup")
                 }
@@ -271,9 +291,9 @@ fun SettingsScreen(
         SignatureScreen(
             signatureFileName = Constants.USER_SIGNATURE,
             signatureUpdatedAtExit = { signedSuccessfully, _ ->
-                viewModel.signatureScreenClosed()
+                userEvent(SettingsUserEvents.SignatureScreenClosed)
                 if (signedSuccessfully)
-                    viewModel.updateSignature()
+                    userEvent(SettingsUserEvents.UpdateSignature)
             })
     }
 

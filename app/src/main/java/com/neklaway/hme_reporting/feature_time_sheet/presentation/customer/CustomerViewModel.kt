@@ -10,7 +10,14 @@ import com.neklaway.hme_reporting.common.domain.use_cases.customer_use_cases.Ins
 import com.neklaway.hme_reporting.common.domain.use_cases.customer_use_cases.UpdateCustomerUseCase
 import com.neklaway.hme_reporting.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 private const val TAG = "Customer ViewModel"
@@ -26,8 +33,8 @@ class CustomerViewModel @Inject constructor(
     private val _state = MutableStateFlow(CustomerState())
     val state: StateFlow<CustomerState> = _state.asStateFlow()
 
-    private val _userMessage = MutableSharedFlow<String>()
-    val userMessage: SharedFlow<String> = _userMessage
+    private val _userMessage = Channel<String>()
+    val userMessage = _userMessage.receiveAsFlow()
 
 
     init {
@@ -40,9 +47,10 @@ class CustomerViewModel @Inject constructor(
             Log.d(TAG, "getCustomers: Fetching Customers $result, Data = ${result.message}")
             when (result) {
                 is Resource.Error -> {
-                    _userMessage.emit(result.message ?: "Can't get customers")
+                    _userMessage.send(result.message ?: "Can't get customers")
                     _state.update { it.copy(loading = false) }
                 }
+
                 is Resource.Loading -> _state.update { it.copy(loading = true) }
                 is Resource.Success -> _state.update {
                     it.copy(
@@ -55,7 +63,7 @@ class CustomerViewModel @Inject constructor(
 
     }
 
-    fun saveCustomer() {
+    private fun saveCustomer() {
         val name: String = state.value.customerName
         val city: String = state.value.customerCity
         val country: String = state.value.customerCountry
@@ -63,9 +71,10 @@ class CustomerViewModel @Inject constructor(
         insertCustomerUseCase(name, city, country).onEach { result ->
             when (result) {
                 is Resource.Error -> {
-                    _userMessage.emit(result.message ?: "Can't save customers")
+                    _userMessage.send(result.message ?: "Can't save customers")
                     _state.update { it.copy(loading = false) }
                 }
+
                 is Resource.Loading -> _state.update { it.copy(loading = true) }
                 is Resource.Success -> clearState()
             }
@@ -73,7 +82,7 @@ class CustomerViewModel @Inject constructor(
     }
 
 
-    fun updateCustomer() {
+    private fun updateCustomer() {
         val name: String = state.value.customerName
         val city: String = state.value.customerCity
         val country: String = state.value.customerCountry
@@ -85,9 +94,10 @@ class CustomerViewModel @Inject constructor(
         updateCustomerUseCase(name, city, country, selectedCustomer.id).onEach { result ->
             when (result) {
                 is Resource.Error -> {
-                    _userMessage.emit(result.message ?: "Can't save customers")
+                    _userMessage.send(result.message ?: "Can't save customers")
                     _state.update { it.copy(loading = false) }
                 }
+
                 is Resource.Loading -> _state.update { it.copy(loading = true) }
                 is Resource.Success -> clearState()
             }
@@ -106,34 +116,35 @@ class CustomerViewModel @Inject constructor(
         }
     }
 
-    fun customerNameChange(name: String) {
+    private fun customerNameChange(name: String) {
         _state.update {
             it.copy(customerName = name)
         }
     }
 
-    fun customerCityChange(city: String) {
+    private fun customerCityChange(city: String) {
         _state.update { it.copy(customerCity = city) }
     }
 
-    fun customerCountryChange(country: String) {
+    private fun customerCountryChange(country: String) {
         _state.update { it.copy(customerCountry = country) }
     }
 
-    fun deleteCustomer(customer: Customer) {
+    private fun deleteCustomer(customer: Customer) {
         deleteCustomerUseCase(customer).onEach { result ->
             when (result) {
                 is Resource.Error -> {
-                    _userMessage.emit(result.message ?: "Can't delete customer")
+                    _userMessage.send(result.message ?: "Can't delete customer")
                     _state.update { it.copy(loading = false) }
                 }
+
                 is Resource.Loading -> _state.update { it.copy(loading = true) }
                 is Resource.Success -> _state.update { it.copy(loading = false) }
             }
         }.launchIn(viewModelScope)
     }
 
-    private fun clearState(){
+    private fun clearState() {
         _state.update {
             it.copy(
                 loading = false,
@@ -141,7 +152,19 @@ class CustomerViewModel @Inject constructor(
                 customerCity = "",
                 customerCountry = "",
                 selectedCustomer = null
-                )
+            )
+        }
+    }
+
+    fun userEvent(event:CustomerUserEvents){
+        when(event){
+            is CustomerUserEvents.CustomerCityChange -> customerCityChange(event.city)
+            is CustomerUserEvents.CustomerCountryChange -> customerCountryChange(event.country)
+            is CustomerUserEvents.CustomerNameChange -> customerNameChange(event.customerName)
+            is CustomerUserEvents.CustomerSelected -> customerSelected(event.customer)
+            is CustomerUserEvents.DeleteCustomer -> deleteCustomer(event.customer)
+            CustomerUserEvents.SaveCustomer -> saveCustomer()
+            CustomerUserEvents.UpdateCustomer -> updateCustomer()
         }
     }
 

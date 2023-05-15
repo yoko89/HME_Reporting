@@ -17,7 +17,13 @@ import com.neklaway.hme_reporting.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -38,8 +44,8 @@ class HMECodeViewModel @Inject constructor(
     private val _state = MutableStateFlow(HMECodeState())
     val state = _state.asStateFlow()
 
-    private val _userMessage = MutableSharedFlow<String>()
-    val userMessage: SharedFlow<String> = _userMessage
+    private val _userMessage = Channel<String>()
+    val userMessage = _userMessage.receiveAsFlow()
 
     private var getHMEJob: Job? = null
 
@@ -58,9 +64,10 @@ class HMECodeViewModel @Inject constructor(
         getAllCustomersFlowUseCase().onEach { result ->
             when (result) {
                 is Resource.Error -> {
-                    _userMessage.emit(result.message ?: "Can't get customers")
+                    _userMessage.send(result.message ?: "Can't get customers")
                     _state.update { it.copy(loading = false) }
                 }
+
                 is Resource.Loading -> _state.update { it.copy(loading = true) }
                 is Resource.Success -> {
                     val savedCustomerId = getCustomerIdUseCase()
@@ -85,7 +92,7 @@ class HMECodeViewModel @Inject constructor(
     }
 
 
-    fun saveHMECode() {
+    private fun saveHMECode() {
         val hmeCode: String = state.value.hmeCode
         val machineNumber: String = state.value.machineNumber
         val machineType: String = state.value.machineType
@@ -102,9 +109,10 @@ class HMECodeViewModel @Inject constructor(
             ).onEach { result ->
                 when (result) {
                     is Resource.Error -> {
-                        _userMessage.emit(result.message ?: "Can't save HME Code")
+                        _userMessage.send(result.message ?: "Can't save HME Code")
                         _state.update { it.copy(loading = false) }
                     }
+
                     is Resource.Loading -> _state.update { it.copy(loading = true) }
                     is Resource.Success -> {
                         clearState()
@@ -114,7 +122,7 @@ class HMECodeViewModel @Inject constructor(
             }.launchIn(viewModelScope)
         } ?: {
             viewModelScope.launch {
-                _userMessage.emit("Please Select Customer First")
+                _userMessage.send("Please Select Customer First")
             }
         }
     }
@@ -133,7 +141,7 @@ class HMECodeViewModel @Inject constructor(
     }
 
 
-    fun updateHMECode() {
+    private fun updateHMECode() {
         val hmeCode: String = state.value.hmeCode
         val machineNumber: String = state.value.machineNumber
         val machineType: String = state.value.machineType
@@ -155,9 +163,10 @@ class HMECodeViewModel @Inject constructor(
         ).onEach { result ->
             when (result) {
                 is Resource.Error -> {
-                    _userMessage.emit(result.message ?: "Can't save HME Code")
+                    _userMessage.send(result.message ?: "Can't save HME Code")
                     _state.update { it.copy(loading = false) }
                 }
+
                 is Resource.Loading -> _state.update { it.copy(loading = true) }
                 is Resource.Success -> {
                     clearState()
@@ -179,9 +188,10 @@ class HMECodeViewModel @Inject constructor(
                 Log.d("TAG", "getHMEsByCustomerId: $result")
                 when (result) {
                     is Resource.Error -> {
-                        _userMessage.emit(result.message ?: "Can't get hme code")
+                        _userMessage.send(result.message ?: "Can't get hme code")
                         _state.update { it.copy(loading = false) }
                     }
+
                     is Resource.Loading -> _state.update { it.copy(loading = true) }
                     is Resource.Success -> _state.update {
                         it.copy(
@@ -195,7 +205,7 @@ class HMECodeViewModel @Inject constructor(
         }
     }
 
-    fun customerSelected(customer: Customer) {
+    private fun customerSelected(customer: Customer) {
         _state.update { it.copy(selectedCustomer = customer) }
         getHMEsByCustomerId(customer.id!!)
         viewModelScope.launch {
@@ -204,14 +214,15 @@ class HMECodeViewModel @Inject constructor(
         }
     }
 
-    fun deleteHMECode(hmeCode: HMECode) {
+    private fun deleteHMECode(hmeCode: HMECode) {
 
         deleteHMECodeUseCase(hmeCode).onEach { result ->
             when (result) {
                 is Resource.Error -> {
-                    _userMessage.emit(result.message ?: "Can't delete HME Code")
+                    _userMessage.send(result.message ?: "Can't delete HME Code")
                     _state.update { it.copy(loading = false) }
                 }
+
                 is Resource.Loading -> _state.update { it.copy(loading = true) }
                 is Resource.Success -> {
                     _state.update {
@@ -226,7 +237,7 @@ class HMECodeViewModel @Inject constructor(
     }
 
 
-    fun hmeCodeSelected(hmeCode: HMECode) {
+    private fun hmeCodeSelected(hmeCode: HMECode) {
         _state.update {
             it.copy(
                 selectedHMECode = hmeCode,
@@ -238,27 +249,41 @@ class HMECodeViewModel @Inject constructor(
         }
     }
 
-    fun hmeCodeChanged(hmeCode: String) {
+    private fun hmeCodeChanged(hmeCode: String) {
         _state.update {
             it.copy(hmeCode = hmeCode)
         }
     }
 
-    fun machineTypeChanged(machineType: String) {
+    private fun machineTypeChanged(machineType: String) {
         _state.update {
             it.copy(machineType = machineType)
         }
     }
 
-    fun machineNumberChanged(machineNumber: String) {
+    private fun machineNumberChanged(machineNumber: String) {
         _state.update {
             it.copy(machineNumber = machineNumber)
         }
     }
 
-    fun workDescriptionChanged(workDescription: String) {
+    private fun workDescriptionChanged(workDescription: String) {
         _state.update {
             it.copy(workDescription = workDescription)
+        }
+    }
+
+    fun userEvent(event: HMECodeUserEvents) {
+        when (event) {
+            is HMECodeUserEvents.CustomerSelected -> customerSelected(event.customer)
+            is HMECodeUserEvents.DeleteHMECode -> deleteHMECode(event.hmeCode)
+            is HMECodeUserEvents.HmeCodeChanged -> hmeCodeChanged(event.hmeCode)
+            is HMECodeUserEvents.HmeCodeSelected -> hmeCodeSelected(event.hmeCode)
+            is HMECodeUserEvents.MachineNumberChanged -> machineNumberChanged(event.machineNumber)
+            is HMECodeUserEvents.MachineTypeChanged -> machineTypeChanged(event.machineType)
+            HMECodeUserEvents.SaveHMECode -> saveHMECode()
+            HMECodeUserEvents.UpdateHMECode -> updateHMECode()
+            is HMECodeUserEvents.WorkDescriptionChanged -> workDescriptionChanged(event.description)
         }
     }
 

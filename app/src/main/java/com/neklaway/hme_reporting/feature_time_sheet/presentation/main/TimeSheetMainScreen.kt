@@ -8,7 +8,6 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -23,22 +22,27 @@ import com.neklaway.hme_reporting.common.presentation.Screen
 import com.neklaway.hme_reporting.common.presentation.common.component.BottomNavigationBar
 import com.neklaway.hme_reporting.common.presentation.common.component.ComposableScreenAnimation
 import com.neklaway.hme_reporting.feature_time_sheet.presentation.customer.CustomerScreen
+import com.neklaway.hme_reporting.feature_time_sheet.presentation.customer.CustomerViewModel
 import com.neklaway.hme_reporting.feature_time_sheet.presentation.edit_time_sheet.EditTimeSheetScreen
 import com.neklaway.hme_reporting.feature_time_sheet.presentation.edit_time_sheet.EditTimeSheetViewModel
 import com.neklaway.hme_reporting.feature_time_sheet.presentation.hme_code.HMECodeScreen
+import com.neklaway.hme_reporting.feature_time_sheet.presentation.hme_code.HMECodeViewModel
 import com.neklaway.hme_reporting.feature_time_sheet.presentation.ibau_code.IBAUCodeScreen
+import com.neklaway.hme_reporting.feature_time_sheet.presentation.ibau_code.IBAUCodeViewModel
 import com.neklaway.hme_reporting.feature_time_sheet.presentation.new_time_sheet.NewTimeSheetScreen
+import com.neklaway.hme_reporting.feature_time_sheet.presentation.new_time_sheet.NewTimeSheetViewModel
 import com.neklaway.hme_reporting.feature_time_sheet.presentation.time_sheet.TimeSheetScreen
+import com.neklaway.hme_reporting.feature_time_sheet.presentation.time_sheet.TimeSheetViewModel
 
 private const val TAG = "TimeSheetMainScreen"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TimeSheetMainScreen(
-    viewModel: TimeSheetMainViewModel = hiltViewModel(),
+    state: TimeSheetState,
+    userEvents: (TimeSheetMainUserEvent) -> Unit,
     showNavigationMenu: () -> Unit,
 ) {
-    val state by viewModel.state.collectAsState()
     val navController = rememberNavController()
 
 
@@ -67,7 +71,7 @@ fun TimeSheetMainScreen(
             BottomNavigationBar(
                 screenList = screens, navController = navController
             ) {
-                viewModel.screenSelected(it.route)
+                userEvents(TimeSheetMainUserEvent.ScreenSelected(it.route))
                 navController.popBackStack()
                 navController.navigate(it.route)
             }
@@ -112,14 +116,25 @@ private fun Navigation(
     ) {
 
         composable(route = Screen.TimeSheet.route) {
+            val viewModel: TimeSheetViewModel = hiltViewModel()
             ComposableScreenAnimation {
-                TimeSheetScreen(navController = navController)
+                TimeSheetScreen(
+                    navController = navController,
+                    state = viewModel.state.collectAsState().value,
+                    uiEvents = viewModel.uiEvent,
+                    userEvents = viewModel::userEvents
+                )
             }
         }
 
         composable(route = Screen.NewTimeSheet.route) {
+            val viewModel: NewTimeSheetViewModel = hiltViewModel()
             ComposableScreenAnimation {
-                NewTimeSheetScreen()
+                NewTimeSheetScreen(
+                    viewModel.state.collectAsState().value,
+                    viewModel.userMessage,
+                    viewModel::userEvents
+                )
             }
         }
 
@@ -130,26 +145,47 @@ private fun Navigation(
                     defaultValue = -1
                 }
             )) {
+            val viewModel: EditTimeSheetViewModel = hiltViewModel()
             ComposableScreenAnimation {
-                EditTimeSheetScreen(navController)
+                EditTimeSheetScreen(
+                    navController,
+                    viewModel.state.collectAsState().value,
+                    viewModel.uiEvent,
+                    viewModel::userEvents
+                )
             }
         }
 
         composable(route = Screen.Customer.route) {
+            val viewModel: CustomerViewModel = hiltViewModel()
             ComposableScreenAnimation {
-                CustomerScreen()
+                CustomerScreen(
+                    viewModel.state.collectAsState().value,
+                    viewModel.userMessage,
+                    viewModel::userEvent
+                )
             }
         }
 
         composable(route = Screen.HMECode.route) {
+            val viewModel: HMECodeViewModel = hiltViewModel()
             ComposableScreenAnimation {
-                HMECodeScreen()
+                HMECodeScreen(
+                    viewModel.state.collectAsState().value,
+                    viewModel.userMessage,
+                    viewModel::userEvent
+                )
             }
         }
 
         composable(route = Screen.IBAUCode.route) {
+            val viewModel: IBAUCodeViewModel = hiltViewModel()
             ComposableScreenAnimation {
-                IBAUCodeScreen()
+                IBAUCodeScreen(
+                    viewModel.state.collectAsState().value,
+                    viewModel::userEvent,
+                    viewModel.userMessage
+                )
             }
         }
     }

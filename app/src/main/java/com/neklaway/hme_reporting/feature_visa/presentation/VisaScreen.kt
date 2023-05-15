@@ -1,42 +1,62 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package com.neklaway.hme_reporting.feature_visa.presentation
 
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.neklaway.hme_reporting.common.presentation.common.component.CustomDatePicker
 import com.neklaway.hme_reporting.feature_visa.presentation.component.VisaItemCard
 import com.neklaway.hme_reporting.utils.NotificationPermissionRequest
 import com.neklaway.hme_reporting.utils.toDate
-import java.util.*
+import kotlinx.coroutines.flow.Flow
+import java.util.Calendar
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VisaScreen(
+    state: VisaState,
+    userMessage: Flow<String>,
     showNavigationMenu: () -> Unit,
-    viewModel: VisaViewModel = hiltViewModel(),
+    userEvents: (VisaUserEvents) -> Unit
 ) {
-    val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
-
-    val userMessage = viewModel.userMessage
 
     val context = LocalContext.current
 
@@ -51,7 +71,7 @@ fun VisaScreen(
     LaunchedEffect(key1 = dateInteractionSource) {
         dateInteractionSource.interactions.collect {
             when (it) {
-                is PressInteraction.Release -> viewModel.dateClicked()
+                is PressInteraction.Release -> userEvents(VisaUserEvents.DateClicked)
             }
         }
     }
@@ -61,10 +81,10 @@ fun VisaScreen(
             month = state.date?.get(Calendar.MONTH),
             day = state.date?.get(Calendar.DAY_OF_MONTH),
             dateSet = { year, month, day ->
-                viewModel.datePicked(year, month, day)
+                userEvents(VisaUserEvents.DatePicked(year, month, day))
             },
             canceled = {
-                viewModel.datePickedCanceled()
+                userEvents(VisaUserEvents.DatePickedCanceled)
             })
     }
 
@@ -90,7 +110,7 @@ fun VisaScreen(
                 ) {
                     Row {
                         FloatingActionButton(onClick = {
-                            viewModel.updateVisa()
+                            userEvents(VisaUserEvents.UpdateVisa)
                         }) {
                             Icon(
                                 imageVector = Icons.Default.Edit,
@@ -101,7 +121,7 @@ fun VisaScreen(
                     }
                 }
                 FloatingActionButton(onClick = {
-                    viewModel.saveVisa()
+                    userEvents(VisaUserEvents.SaveVisa)
                 }) {
 
                     Icon(imageVector = Icons.Default.Add, contentDescription = "Add Visa")
@@ -119,7 +139,7 @@ fun VisaScreen(
             OutlinedTextField(
                 value = state.country,
                 onValueChange = { country ->
-                    viewModel.countryChanged(country)
+                    userEvents(VisaUserEvents.CountryChanged(country))
                 },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(text = "Country") },
@@ -186,11 +206,11 @@ fun VisaScreen(
                     AnimatedVisibility(visible = visibility) {
 
                         VisaItemCard(visa = visa, cardClicked = {
-                            viewModel.visaClicked(visa)
+                            userEvents(VisaUserEvents.VisaClicked(visa))
                         }, onDeleteClicked = {
-                            viewModel.deleteVisa(visa)
+                            userEvents(VisaUserEvents.DeleteVisa(visa))
                         }, onCheckedChanged = { checked ->
-                            viewModel.visaSelected(visa, checked)
+                            userEvents(VisaUserEvents.VisaSelected(visa, checked))
                         }, visaReminderWarning = state.warningDays
                         )
                     }

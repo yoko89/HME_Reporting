@@ -1,37 +1,58 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package com.neklaway.hme_reporting.feature_time_sheet.presentation.ibau_code
 
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedIconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.neklaway.hme_reporting.common.presentation.common.component.DropDown
+import kotlinx.coroutines.flow.Flow
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun IBAUCodeScreen(
-    viewModel: IBAUCodeViewModel = hiltViewModel(),
+    state: IBAUCodeState,
+    userEvent: (IbauCodeUserEvent) -> Unit,
+    userMessage: Flow<String>,
 ) {
-    val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
-
-    val userMessage = viewModel.userMessage
 
     LaunchedEffect(key1 = userMessage) {
         userMessage.collect {
@@ -49,7 +70,7 @@ fun IBAUCodeScreen(
                 ) {
                     Row {
                         FloatingActionButton(onClick = {
-                            viewModel.updateIBAUCode()
+                            userEvent(IbauCodeUserEvent.UpdateIBAUCode)
                         }) {
                             Icon(
                                 imageVector = Icons.Default.Edit,
@@ -61,7 +82,7 @@ fun IBAUCodeScreen(
                 }
 
                 FloatingActionButton(onClick = {
-                    viewModel.saveIBAUCode()
+                    userEvent(IbauCodeUserEvent.SaveIBAUCode)
                 }) {
 
                     Icon(imageVector = Icons.Default.Add, contentDescription = "Add IBAU Code")
@@ -85,7 +106,7 @@ fun IBAUCodeScreen(
                 dropDownContentDescription = "Select Customer",
                 modifier = Modifier.padding(bottom = 5.dp)
             ) { customer ->
-                viewModel.customerSelected(customer)
+                userEvent(IbauCodeUserEvent.CustomerSelected(customer))
             }
 
             DropDown(
@@ -95,13 +116,13 @@ fun IBAUCodeScreen(
                 dropDownContentDescription = "Select HME Code",
                 modifier = Modifier.padding(bottom = 5.dp)
             ) { hmeCode ->
-                viewModel.hmeCodeSelected(hmeCode)
+                userEvent(IbauCodeUserEvent.HmeCodeSelected(hmeCode))
             }
 
             OutlinedTextField(
                 value = state.ibauCode,
                 onValueChange = { ibauCode ->
-                    viewModel.ibauCodeChanged(ibauCode)
+                    userEvent(IbauCodeUserEvent.IbauCodeChanged(ibauCode))
                 },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(text = "IBAU Code") },
@@ -113,7 +134,7 @@ fun IBAUCodeScreen(
 
             OutlinedTextField(
                 value = state.machineType, onValueChange = { machineType ->
-                    viewModel.machineTypeChanged(machineType)
+                    userEvent(IbauCodeUserEvent.MachineTypeChanged(machineType))
                 },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(text = "Machine Type") },
@@ -123,7 +144,7 @@ fun IBAUCodeScreen(
 
             OutlinedTextField(
                 value = state.machineNumber, onValueChange = { machineNumber ->
-                    viewModel.machineNumberChanged(machineNumber)
+                    userEvent(IbauCodeUserEvent.MachineNumberChanged(machineNumber))
                 },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(text = "Machine Number") },
@@ -133,7 +154,7 @@ fun IBAUCodeScreen(
 
             OutlinedTextField(
                 value = state.workDescription, onValueChange = { workDescription ->
-                    viewModel.workDescriptionChanged(workDescription)
+                    userEvent(IbauCodeUserEvent.WorkDescriptionChanged(workDescription))
                 },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(text = "Work Description") },
@@ -199,7 +220,7 @@ fun IBAUCodeScreen(
                         Card(
                             modifier = Modifier
                                 .padding(all = 2.dp)
-                                .clickable { viewModel.ibauCodeSelected(ibauCode) }
+                                .clickable { userEvent(IbauCodeUserEvent.IbauCodeSelected(ibauCode)) }
                         ) {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -247,7 +268,7 @@ fun IBAUCodeScreen(
 
                                 OutlinedIconButton(
                                     onClick = {
-                                        viewModel.deleteIBAUCode(ibauCode)
+                                        userEvent(IbauCodeUserEvent.DeleteIBAUCode(ibauCode))
                                     },
                                     modifier = Modifier
                                         .weight(0.15f)

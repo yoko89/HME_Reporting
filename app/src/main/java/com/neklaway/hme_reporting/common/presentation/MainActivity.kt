@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -40,9 +39,11 @@ import com.neklaway.hme_reporting.common.ui.theme.HMEReportingTheme
 import com.neklaway.hme_reporting.feature_car_mileage.presentation.CarMileageScreen
 import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.main.ExpanseMainScreen
 import com.neklaway.hme_reporting.feature_settings.presentation.SettingsScreen
+import com.neklaway.hme_reporting.feature_settings.presentation.SettingsViewModel
 import com.neklaway.hme_reporting.feature_time_sheet.presentation.main.TimeSheetMainScreen
+import com.neklaway.hme_reporting.feature_time_sheet.presentation.main.TimeSheetMainViewModel
 import com.neklaway.hme_reporting.feature_visa.presentation.VisaScreen
-import com.neklaway.hme_reporting.utils.DarkTheme
+import com.neklaway.hme_reporting.feature_visa.presentation.VisaViewModel
 import com.neklaway.hmereporting.BuildConfig
 import com.neklaway.hmereporting.R
 import dagger.hilt.android.AndroidEntryPoint
@@ -162,8 +163,13 @@ private fun Navigation(
 
 
         composable(route = Screen.TimeSheetMain.route) {
+            val viewModel: TimeSheetMainViewModel = hiltViewModel()
             ComposableScreenAnimation {
-                TimeSheetMainScreen(showNavigationMenu = showDrawer)
+                TimeSheetMainScreen(
+                    viewModel.state.collectAsState().value,
+                    viewModel::userEvent,
+                    showDrawer
+                )
             }
         }
 
@@ -174,14 +180,16 @@ private fun Navigation(
         }
 
         composable(route = Screen.Visa.route) {
+            val viewModel:VisaViewModel = hiltViewModel()
             ComposableScreenAnimation {
-                VisaScreen(showNavigationMenu = showDrawer)
+                VisaScreen(viewModel.state.collectAsState().value,viewModel.userMessage,showDrawer,viewModel::userEvent)
             }
         }
 
         composable(route = Screen.Settings.route) {
+            val viewModel:SettingsViewModel = hiltViewModel()
             ComposableScreenAnimation {
-                SettingsScreen(showNavigationMenu = showDrawer)
+                SettingsScreen(viewModel.state.collectAsState().value,viewModel.userMessage,viewModel::userEvent,showDrawer)
             }
         }
 
