@@ -37,6 +37,7 @@ import androidx.navigation.compose.rememberNavController
 import com.neklaway.hme_reporting.common.presentation.common.component.ComposableScreenAnimation
 import com.neklaway.hme_reporting.common.ui.theme.HMEReportingTheme
 import com.neklaway.hme_reporting.feature_car_mileage.presentation.CarMileageScreen
+import com.neklaway.hme_reporting.feature_car_mileage.presentation.CarMileageViewModel
 import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.main.ExpanseMainScreen
 import com.neklaway.hme_reporting.feature_settings.presentation.SettingsScreen
 import com.neklaway.hme_reporting.feature_settings.presentation.SettingsViewModel
@@ -194,8 +195,9 @@ private fun Navigation(
         }
 
         composable(route = Screen.CarMileage.route) {
+            val viewModel:CarMileageViewModel = hiltViewModel()
             ComposableScreenAnimation {
-                CarMileageScreen(showNavigationMenu = showDrawer)
+                CarMileageScreen(viewModel.state.collectAsState().value,viewModel.userMessage,viewModel::userEvent,showDrawer)
             }
         }
 

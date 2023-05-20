@@ -1,11 +1,19 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package com.neklaway.hme_reporting.feature_car_mileage.presentation
 
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
@@ -13,8 +21,23 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -23,25 +46,23 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.neklaway.hme_reporting.common.presentation.common.component.CustomDatePicker
 import com.neklaway.hme_reporting.common.presentation.common.component.CustomTimePicker
 import com.neklaway.hme_reporting.feature_car_mileage.presentation.component.CarMileageItemCard
 import com.neklaway.hme_reporting.utils.toDate
 import com.neklaway.hme_reporting.utils.toTime
-import java.util.*
+import kotlinx.coroutines.flow.Flow
+import java.util.Calendar
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CarMileageScreen(
+    state: CarMileageState,
+    userMessage: Flow<String>,
+    userEvent: (CarMileageUserEvents) -> Unit,
     showNavigationMenu: () -> Unit,
-    viewModel: CarMileageViewModel = hiltViewModel(),
 ) {
-    val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
-
-    val userMessage = viewModel.userMessage
 
 
     val startDateInteractionSource = remember { MutableInteractionSource() }
@@ -58,21 +79,21 @@ fun CarMileageScreen(
     LaunchedEffect(key1 = startDateInteractionSource) {
         startDateInteractionSource.interactions.collect {
             when (it) {
-                is PressInteraction.Release -> viewModel.startDateClicked()
+                is PressInteraction.Release -> userEvent(CarMileageUserEvents.StartDateClicked)
             }
         }
     }
     LaunchedEffect(key1 = endDateInteractionSource) {
         endDateInteractionSource.interactions.collect {
             when (it) {
-                is PressInteraction.Release -> viewModel.endDateClicked()
+                is PressInteraction.Release -> userEvent(CarMileageUserEvents.EndDateClicked)
             }
         }
     }
     LaunchedEffect(key1 = startTimeInteractionSource) {
         startTimeInteractionSource.interactions.collect {
             when (it) {
-                is PressInteraction.Release -> viewModel.startTimeClicked()
+                is PressInteraction.Release -> userEvent(CarMileageUserEvents.StartTimeClicked)
             }
         }
     }
@@ -80,7 +101,7 @@ fun CarMileageScreen(
     LaunchedEffect(key1 = endTimeInteractionSource) {
         endTimeInteractionSource.interactions.collect {
             when (it) {
-                is PressInteraction.Release -> viewModel.endTimeClicked()
+                is PressInteraction.Release -> userEvent(CarMileageUserEvents.EndTimeClicked)
             }
         }
     }
@@ -91,9 +112,11 @@ fun CarMileageScreen(
             month = state.startDate?.get(Calendar.MONTH),
             day = state.startDate?.get(Calendar.DAY_OF_MONTH),
             dateSet = { year, month, day ->
-                viewModel.startDatePicked(year, month, day)
+                userEvent(CarMileageUserEvents.StartDatePicked(year, month, day))
             },
-            canceled = viewModel::dateTimePickedHide
+            canceled = {
+                userEvent(CarMileageUserEvents.DateTimePickedHide)
+            }
         )
     }
     if (state.showStartTimePicker) {
@@ -101,9 +124,11 @@ fun CarMileageScreen(
             hour = state.startTime?.get(Calendar.HOUR_OF_DAY),
             minute = state.startTime?.get(Calendar.MINUTE),
             timeSet = { hour, minute ->
-                viewModel.startTimePicked(hour, minute)
+                userEvent(CarMileageUserEvents.StartTimePicked(hour, minute))
             },
-            canceled = viewModel::dateTimePickedHide
+            canceled = {
+                userEvent(CarMileageUserEvents.DateTimePickedHide)
+            }
         )
     }
 
@@ -113,9 +138,11 @@ fun CarMileageScreen(
             month = state.endDate?.get(Calendar.MONTH),
             day = state.endDate?.get(Calendar.DAY_OF_MONTH),
             dateSet = { year, month, day ->
-                viewModel.endDatePicked(year, month, day)
+                userEvent(CarMileageUserEvents.EndDatePicked(year, month, day))
             },
-            canceled = viewModel::dateTimePickedHide
+            canceled = {
+                userEvent(CarMileageUserEvents.DateTimePickedHide)
+            }
         )
     }
     if (state.showEndTimePicker) {
@@ -123,9 +150,11 @@ fun CarMileageScreen(
             hour = state.endTime?.get(Calendar.HOUR_OF_DAY),
             minute = state.endTime?.get(Calendar.MINUTE),
             timeSet = { hour, minute ->
-                viewModel.endTimePicked(hour, minute)
+                userEvent(CarMileageUserEvents.EndTimePicked(hour, minute))
             },
-            canceled = viewModel::dateTimePickedHide
+            canceled = {
+                userEvent(CarMileageUserEvents.DateTimePickedHide)
+            }
         )
     }
 
@@ -147,7 +176,7 @@ fun CarMileageScreen(
                 ) {
                     Row {
                         FloatingActionButton(onClick = {
-                            viewModel.updateCarMileage()
+                            userEvent(CarMileageUserEvents.UpdateCarMileage)
                         }) {
                             Icon(
                                 imageVector = Icons.Default.Edit,
@@ -158,7 +187,7 @@ fun CarMileageScreen(
                     }
                 }
                 FloatingActionButton(onClick = {
-                    viewModel.saveCarMileage()
+                    userEvent(CarMileageUserEvents.SaveCarMileage)
                 }) {
 
                     Icon(
@@ -197,7 +226,7 @@ fun CarMileageScreen(
             OutlinedTextField(
                 value = state.startMileage,
                 onValueChange = { mileage ->
-                    viewModel.startMileageChanged(mileage)
+                    userEvent(CarMileageUserEvents.StartMileageChanged(mileage))
                 },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(text = "Start Mileage") },
@@ -227,7 +256,7 @@ fun CarMileageScreen(
             OutlinedTextField(
                 value = state.endMileage,
                 onValueChange = { mileage ->
-                    viewModel.endMileageChanged(mileage)
+                    userEvent(CarMileageUserEvents.EndMileageChanged(mileage))
                 },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(text = "End Mileage") },
@@ -331,13 +360,11 @@ fun CarMileageScreen(
                     AnimatedVisibility(visible = visibility) {
 
                         CarMileageItemCard(carMileage = carMileage, cardClicked = {
-                            viewModel.carMileageClicked(carMileage)
+                            userEvent(CarMileageUserEvents.CarMileageClicked(carMileage))
                         }, onDeleteClicked = {
-                            viewModel.deleteCarMileage(carMileage)
+                            userEvent(CarMileageUserEvents.DeleteCarMileage(carMileage))
                         })
                     }
-
-
                 }
             }
         }

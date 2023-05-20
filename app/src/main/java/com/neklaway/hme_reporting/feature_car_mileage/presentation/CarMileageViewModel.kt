@@ -22,6 +22,7 @@ import com.neklaway.hme_reporting.feature_car_mileage.domain.use_cases.InsertCar
 import com.neklaway.hme_reporting.feature_car_mileage.domain.use_cases.UpdateCarMileageUseCase
 import com.neklaway.hme_reporting.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.*
@@ -52,8 +53,8 @@ class CarMileageViewModel @Inject constructor(
     private val _state = MutableStateFlow(CarMileageState())
     val state = _state.asStateFlow()
 
-    private val _userMessage = MutableSharedFlow<String>()
-    val userMessage: SharedFlow<String> = _userMessage
+    private val _userMessage = Channel<String>()
+    val userMessage = _userMessage.receiveAsFlow()
 
 
     init {
@@ -90,9 +91,10 @@ class CarMileageViewModel @Inject constructor(
         getAllCarMileageFlowUseCase().onEach { result ->
             when (result) {
                 is Resource.Error -> {
-                    _userMessage.emit(result.message ?: "Can't get Car Mileages")
+                    _userMessage.send(result.message ?: "Can't get Car Mileages")
                     _state.update { it.copy(loading = false) }
                 }
+
                 is Resource.Loading -> _state.update { it.copy(loading = true) }
                 is Resource.Success -> {
                     _state.update {
@@ -118,7 +120,7 @@ class CarMileageViewModel @Inject constructor(
     }
 
 
-    fun saveCarMileage() {
+    private fun saveCarMileage() {
         val startDate = state.value.startDate
         val startTime = state.value.startTime
         val startMileage = state.value.startMileage.toLongOrNull()
@@ -131,9 +133,10 @@ class CarMileageViewModel @Inject constructor(
         ).onEach { result ->
             when (result) {
                 is Resource.Error -> {
-                    _userMessage.emit(result.message ?: "Can't save Car Mileage")
+                    _userMessage.send(result.message ?: "Can't save Car Mileage")
                     _state.update { it.copy(loading = false) }
                 }
+
                 is Resource.Loading -> _state.update { it.copy(loading = true) }
                 is Resource.Success -> clearState()
 
@@ -165,7 +168,7 @@ class CarMileageViewModel @Inject constructor(
     }
 
 
-    fun updateCarMileage() {
+    private fun updateCarMileage() {
         val startDate = state.value.startDate
         val startTime = state.value.startTime
         val startMileage = state.value.startMileage.toLongOrNull()
@@ -187,9 +190,10 @@ class CarMileageViewModel @Inject constructor(
             ).onEach { result ->
                 when (result) {
                     is Resource.Error -> {
-                        _userMessage.emit(result.message ?: "Can't update Car Mileage")
+                        _userMessage.send(result.message ?: "Can't update Car Mileage")
                         _state.update { it.copy(loading = false) }
                     }
+
                     is Resource.Loading -> _state.update { it.copy(loading = true) }
                     is Resource.Success -> clearState()
                 }
@@ -198,14 +202,15 @@ class CarMileageViewModel @Inject constructor(
     }
 
 
-    fun deleteCarMileage(carMileage: CarMileage) {
+    private fun deleteCarMileage(carMileage: CarMileage) {
 
         deleteCarMileageUseCase(carMileage).onEach { result ->
             when (result) {
                 is Resource.Error -> {
-                    _userMessage.emit(result.message ?: "Can't delete Car Mileage")
+                    _userMessage.send(result.message ?: "Can't delete Car Mileage")
                     _state.update { it.copy(loading = false) }
                 }
+
                 is Resource.Loading -> _state.update { it.copy(loading = true) }
                 is Resource.Success -> clearState()
             }
@@ -213,7 +218,7 @@ class CarMileageViewModel @Inject constructor(
     }
 
 
-    fun carMileageClicked(carMileage: CarMileage) {
+    private fun carMileageClicked(carMileage: CarMileage) {
         _state.update {
             it.copy(
                 startMileage = carMileage.startMileage.toString(),
@@ -227,7 +232,7 @@ class CarMileageViewModel @Inject constructor(
         }
     }
 
-    fun startMileageChanged(startMileage: String) {
+    private fun startMileageChanged(startMileage: String) {
         var startMileageLong: Long?
         try {
             startMileageLong = startMileage.toLong()
@@ -236,7 +241,7 @@ class CarMileageViewModel @Inject constructor(
             startMileageLong = null
             if (startMileage.isNotBlank())
                 viewModelScope.launch {
-                    _userMessage.emit("Error in Start mileage Distance " + e.message)
+                    _userMessage.send("Error in Start mileage Distance " + e.message)
                 }
         }
         viewModelScope.launch {
@@ -247,7 +252,7 @@ class CarMileageViewModel @Inject constructor(
         _state.update { it.copy(startMileage = startMileageString) }
     }
 
-    fun endMileageChanged(endMileage: String) {
+    private fun endMileageChanged(endMileage: String) {
         var endMileageLong: Long?
         try {
             endMileageLong = endMileage.toLong()
@@ -256,7 +261,7 @@ class CarMileageViewModel @Inject constructor(
             endMileageLong = null
             if (endMileage.isNotBlank())
                 viewModelScope.launch {
-                    _userMessage.emit("Error in End mileage Distance " + e.message)
+                    _userMessage.send("Error in End mileage Distance " + e.message)
                 }
         }
         viewModelScope.launch {
@@ -268,12 +273,12 @@ class CarMileageViewModel @Inject constructor(
     }
 
 
-    fun startDateClicked() {
+    private fun startDateClicked() {
         _state.update { it.copy(showStartDatePicker = true) }
         Log.d(TAG, "startDateClicked: ")
     }
 
-    fun startDatePicked(year: Int, month: Int, day: Int) {
+    private fun startDatePicked(year: Int, month: Int, day: Int) {
         val date = Calendar.getInstance()
         date.timeZone = TimeZone.getTimeZone("Asia/Dubai")
 
@@ -291,12 +296,12 @@ class CarMileageViewModel @Inject constructor(
         viewModelScope.launch { setCarMileageStartDateUseCase(date) }
     }
 
-    fun endDateClicked() {
+    private fun endDateClicked() {
         _state.update { it.copy(showEndDatePicker = true) }
         Log.d(TAG, "endDateClicked: ")
     }
 
-    fun endDatePicked(year: Int, month: Int, day: Int) {
+    private fun endDatePicked(year: Int, month: Int, day: Int) {
         val date = Calendar.getInstance()
         TimeZone.getTimeZone("Asia/Dubai")
         date.set(
@@ -313,7 +318,7 @@ class CarMileageViewModel @Inject constructor(
         viewModelScope.launch { setCarMileageEndDateUseCase(date) }
     }
 
-    fun dateTimePickedHide() {
+    private fun dateTimePickedHide() {
         _state.update {
             it.copy(
                 showStartDatePicker = false,
@@ -324,11 +329,11 @@ class CarMileageViewModel @Inject constructor(
         }
     }
 
-    fun startTimeClicked() {
+    private fun startTimeClicked() {
         _state.update { it.copy(showStartTimePicker = true) }
     }
 
-    fun startTimePicked(hour: Int, minute: Int) {
+    private fun startTimePicked(hour: Int, minute: Int) {
         val date = state.value.startDate!!.clone() as Calendar
         date.set(Calendar.HOUR_OF_DAY, hour)
         date.set(Calendar.MINUTE, minute)
@@ -339,11 +344,11 @@ class CarMileageViewModel @Inject constructor(
         }
     }
 
-    fun endTimeClicked() {
+    private fun endTimeClicked() {
         _state.update { it.copy(showEndTimePicker = true) }
     }
 
-    fun endTimePicked(hour: Int, minute: Int) {
+    private fun endTimePicked(hour: Int, minute: Int) {
         val date = state.value.endDate!!.clone() as Calendar
         date.set(Calendar.HOUR_OF_DAY, hour)
         date.set(Calendar.MINUTE, minute)
@@ -351,6 +356,36 @@ class CarMileageViewModel @Inject constructor(
         dateTimePickedHide()
         viewModelScope.launch {
             setCarMileageEndTimeUseCase(date)
+        }
+    }
+
+    fun userEvent(event: CarMileageUserEvents) {
+        when (event) {
+            is CarMileageUserEvents.CarMileageClicked -> carMileageClicked(event.carMileage)
+            CarMileageUserEvents.DateTimePickedHide -> dateTimePickedHide()
+            is CarMileageUserEvents.DeleteCarMileage -> deleteCarMileage(event.carMileage)
+            CarMileageUserEvents.EndDateClicked -> endDateClicked()
+            is CarMileageUserEvents.EndDatePicked -> endDatePicked(
+                event.year,
+                event.month,
+                event.day
+            )
+
+            is CarMileageUserEvents.EndMileageChanged -> endMileageChanged(event.mileage)
+            CarMileageUserEvents.EndTimeClicked -> endTimeClicked()
+            is CarMileageUserEvents.EndTimePicked -> endTimePicked(event.hour, event.minute)
+            CarMileageUserEvents.SaveCarMileage -> saveCarMileage()
+            CarMileageUserEvents.StartDateClicked -> startDateClicked()
+            is CarMileageUserEvents.StartDatePicked -> startDatePicked(
+                event.year,
+                event.month,
+                event.day
+            )
+
+            is CarMileageUserEvents.StartMileageChanged -> startMileageChanged(event.mileage)
+            CarMileageUserEvents.StartTimeClicked -> startTimeClicked()
+            is CarMileageUserEvents.StartTimePicked -> startTimePicked(event.hour, event.minute)
+            CarMileageUserEvents.UpdateCarMileage -> updateCarMileage()
         }
     }
 
