@@ -1,7 +1,9 @@
 package com.neklaway.hme_reporting.feature_expanse_sheet.presentation.expanse_sheet.component
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Text
@@ -31,7 +33,6 @@ fun ExpanseSheetItemCard(
                 cardClicked()
             }
     ) {
-
         Text(
             text = expanse.description,
             textAlign = TextAlign.Center,
@@ -39,20 +40,26 @@ fun ExpanseSheetItemCard(
         )
 
 
-            Row(modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = expanse.date.toDate(),
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.weight(2f)
-                )
-                Text(
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = expanse.date.toDate(),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.weight(2f)
+            )
+            Text(
                 text = expanse.invoiceNumber,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.weight(2f)
             )
 
-            Checkbox(checked = expanse.personallyPaid, onCheckedChange = {}, modifier = Modifier.weight(1f))
+            Checkbox(
+                checked = expanse.personallyPaid,
+                onCheckedChange = {},
+                modifier = Modifier.weight(1f)
+            )
         }
 
         Row {

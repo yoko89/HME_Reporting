@@ -24,6 +24,6 @@ data class ExpanseSheetState(
     val missingDailyAllowance: Boolean = false,
     val noAllowanceDays: Int = 0,
     val totalPaidAmount: Float = 0f,
-    val accommodation:Accommodation? = null,
+    val accommodation: Accommodation? = null,
 )
 

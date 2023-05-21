@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package com.neklaway.hme_reporting.feature_expanse_sheet.presentation.currency_exchange_rate
 
 import androidx.compose.animation.*
@@ -19,18 +17,16 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import kotlinx.coroutines.flow.Flow
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CurrencyExchangeScreen(
-    viewModel: CurrencyExchangeViewModel = hiltViewModel(),
+    state:CurrencyExchangeState,
+    userMessage: Flow<String>,
+    userEvent:(CurrencyExchangeUserEvent) ->Unit
 ) {
-    val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
-
-    val userMessage = viewModel.userMessage
 
     LaunchedEffect(key1 = userMessage) {
         userMessage.collect {
@@ -48,7 +44,7 @@ fun CurrencyExchangeScreen(
                 ) {
                     Row {
                         FloatingActionButton(onClick = {
-                            viewModel.updateCurrency()
+                            userEvent(CurrencyExchangeUserEvent.UpdateCurrency)
                         }) {
                             Icon(
                                 imageVector = Icons.Default.Edit,
@@ -60,7 +56,7 @@ fun CurrencyExchangeScreen(
                 }
 
                 FloatingActionButton(onClick = {
-                    viewModel.saveCurrency()
+                    userEvent(CurrencyExchangeUserEvent.SaveCurrency)
                 }) {
 
                     Icon(imageVector = Icons.Default.Add, contentDescription = "Add Currency")
@@ -80,7 +76,7 @@ fun CurrencyExchangeScreen(
             OutlinedTextField(
                 value = state.currencyName,
                 onValueChange = { name ->
-                    viewModel.currencyNameChange(name)
+                    userEvent(CurrencyExchangeUserEvent.CurrencyNameChange(name))
                 },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(text = "Currency Name") },
@@ -92,7 +88,7 @@ fun CurrencyExchangeScreen(
 
             OutlinedTextField(
                 value = state.exchangeRate, onValueChange = { rate ->
-                    viewModel.currencyRateChanged(rate)
+                    userEvent(CurrencyExchangeUserEvent.CurrencyRateChanged(rate))
                 },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(text = "Exchange Rate") },
@@ -155,7 +151,13 @@ fun CurrencyExchangeScreen(
                         Card(
                             modifier = Modifier
                                 .padding(vertical = 2.dp)
-                                .clickable { viewModel.currencySelected(currencyExchange) }
+                                .clickable {
+                                    userEvent(
+                                        CurrencyExchangeUserEvent.CurrencySelected(
+                                            currencyExchange
+                                        )
+                                    )
+                                }
                         ) {
 
                             Row(
@@ -179,7 +181,11 @@ fun CurrencyExchangeScreen(
 
                                 OutlinedIconButton(
                                     onClick = {
-                                        viewModel.deleteRate(currencyExchange)
+                                        userEvent(
+                                            CurrencyExchangeUserEvent.DeleteRate(
+                                                currencyExchange
+                                            )
+                                        )
                                     },
                                     modifier = Modifier.weight(0.5f)
                                 ) {

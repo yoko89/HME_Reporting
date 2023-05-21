@@ -23,10 +23,10 @@ import com.neklaway.hme_reporting.utils.createUriForInvoice
 import com.neklaway.hme_reporting.utils.toFloatWithString
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -53,8 +53,8 @@ class EditExpanseViewModel @Inject constructor(
     private val _state = MutableStateFlow(EditExpanseState())
     val state = _state.asStateFlow()
 
-    private val _event = MutableSharedFlow<EditExpanseEvents>()
-    val event: SharedFlow<EditExpanseEvents> = _event
+    private val _uiEvent = Channel<EditExpanseUiEvents>()
+    val uiEvent = _uiEvent.receiveAsFlow()
 
     private val mutableUriList: MutableList<Uri> = mutableListOf()
 
@@ -73,8 +73,8 @@ class EditExpanseViewModel @Inject constructor(
                 Log.d(TAG, "Expanse: $result")
                 when (result) {
                     is Resource.Error -> {
-                        _event.emit(
-                            EditExpanseEvents.UserMessage(
+                        _uiEvent.send(
+                            EditExpanseUiEvents.UserMessage(
                                 result.message ?: "Error can't retrieve Data "
                             )
                         )
@@ -135,8 +135,8 @@ class EditExpanseViewModel @Inject constructor(
             ).collect { result ->
                 when (result) {
                     is Resource.Error -> {
-                        _event.emit(
-                            EditExpanseEvents.UserMessage(
+                        _uiEvent.send(
+                            EditExpanseUiEvents.UserMessage(
                                 result.message ?: "Error can't update"
                             )
                         )
@@ -146,7 +146,7 @@ class EditExpanseViewModel @Inject constructor(
                     is Resource.Loading -> _state.update { it.copy(loading = true) }
                     is Resource.Success -> {
                         _state.update { it.copy(loading = false) }
-                        _event.emit(EditExpanseEvents.PopBackStack)
+                        _uiEvent.send(EditExpanseUiEvents.PopBackStack)
                     }
                 }
 
@@ -183,15 +183,15 @@ class EditExpanseViewModel @Inject constructor(
 
 
             if (!::returnedExpanse.isInitialized) {
-                _event.emit(EditExpanseEvents.UserMessage("Can't retrieve Expanse"))
+                _uiEvent.send(EditExpanseUiEvents.UserMessage("Can't retrieve Expanse"))
                 return@launch
             }
 
             deleteExpanseUseCase(returnedExpanse).collect { result ->
                 when (result) {
                     is Resource.Error -> {
-                        _event.emit(
-                            EditExpanseEvents.UserMessage(
+                        _uiEvent.send(
+                            EditExpanseUiEvents.UserMessage(
                                 result.message ?: "Error can't delete Expanse"
                             )
                         )
@@ -200,8 +200,8 @@ class EditExpanseViewModel @Inject constructor(
 
                     is Resource.Loading -> _state.update { it.copy(loading = true) }
                     is Resource.Success -> {
-                        _event.emit(EditExpanseEvents.UserMessage("Expanse Deleted"))
-                        _event.emit(EditExpanseEvents.PopBackStack)
+                        _uiEvent.send(EditExpanseUiEvents.UserMessage("Expanse Deleted"))
+                        _uiEvent.send(EditExpanseUiEvents.PopBackStack)
                         _state.update { it.copy(loading = false) }
 
                     }
@@ -223,7 +223,7 @@ class EditExpanseViewModel @Inject constructor(
         val amountInAED = state.value.amount.toFloatWithString().let { resource ->
             when (resource) {
                 is ResourceWithString.Error -> {
-                    _event.emit(EditExpanseEvents.UserMessage(resource.message ?: "Error"))
+                    _uiEvent.send(EditExpanseUiEvents.UserMessage(resource.message ?: "Error"))
                     ""
                 }
 
@@ -256,8 +256,8 @@ class EditExpanseViewModel @Inject constructor(
                 is ResourceWithString.Error -> {
                     viewModelScope.launch {
 
-                        _event.emit(
-                            EditExpanseEvents.UserMessage(
+                        _uiEvent.send(
+                            EditExpanseUiEvents.UserMessage(
                                 resourceWithString.message ?: "Error in Amount"
                             )
                         )
@@ -281,8 +281,8 @@ class EditExpanseViewModel @Inject constructor(
             when (resourceWithString) {
                 is ResourceWithString.Error -> {
                     viewModelScope.launch {
-                        _event.emit(
-                            EditExpanseEvents.UserMessage(
+                        _uiEvent.send(
+                            EditExpanseUiEvents.UserMessage(
                                 resourceWithString.message ?: "Error in Amount"
                             )
                         )
@@ -303,8 +303,8 @@ class EditExpanseViewModel @Inject constructor(
             getAllCurrencyExchangeFlowUseCase().collect { resource ->
                 when (resource) {
                     is Resource.Error -> {
-                        _event.emit(
-                            EditExpanseEvents.UserMessage(
+                        _uiEvent.send(
+                            EditExpanseUiEvents.UserMessage(
                                 resource.message ?: "Error can't get Currency List"
                             )
                         )
@@ -331,14 +331,14 @@ class EditExpanseViewModel @Inject constructor(
     fun takePicture(context: Context) {
         viewModelScope.launch {
             if (!::returnedExpanse.isInitialized) {
-                _event.emit(EditExpanseEvents.UserMessage("Can't retrieve Expanse"))
+                _uiEvent.send(EditExpanseUiEvents.UserMessage("Can't retrieve Expanse"))
                 return@launch
             }
             val selectedHmeId = returnedExpanse.HMEId
             getHMECodeByIdUseCase(selectedHmeId).collect { hmeCodeResource ->
                 when (hmeCodeResource) {
                     is Resource.Error -> {
-                        _event.emit(EditExpanseEvents.UserMessage("Can't Retrieve HME Code"))
+                        _uiEvent.send(EditExpanseUiEvents.UserMessage("Can't Retrieve HME Code"))
                     }
 
                     is Resource.Loading -> Unit
@@ -348,14 +348,14 @@ class EditExpanseViewModel @Inject constructor(
                             hmeCodeResource.data!!.code
                         )
                         mutableUriList.add(uri)
-                        _event.emit(EditExpanseEvents.TakePicture(providerUri))
+                        _uiEvent.send(EditExpanseUiEvents.TakePicture(providerUri))
                     }
                 }
             }
         }
     }
 
-    fun photoTaken(successful: Boolean) {
+    fun photoTaken() {
         val list = mutableUriList.toList()
         _state.update { it.copy(invoicesUris = list) }
     }
@@ -370,7 +370,7 @@ class EditExpanseViewModel @Inject constructor(
 
     fun photoPicked(context: Context, externalUri: Uri?) {
         if (externalUri == null) {
-            viewModelScope.launch { _event.emit(EditExpanseEvents.UserMessage("Can't get photo")) }
+            viewModelScope.launch { _uiEvent.send(EditExpanseUiEvents.UserMessage("Can't get photo")) }
             return
         }
         viewModelScope.launch {
@@ -378,7 +378,7 @@ class EditExpanseViewModel @Inject constructor(
             getHMECodeByIdUseCase(selectedHmeId).collect { hmeCodeResource ->
                 when (hmeCodeResource) {
                     is Resource.Error -> {
-                        _event.emit(EditExpanseEvents.UserMessage("Can't Retrieve HME Code"))
+                        _uiEvent.send(EditExpanseUiEvents.UserMessage("Can't Retrieve HME Code"))
                     }
 
                     is Resource.Loading -> Unit
@@ -398,7 +398,28 @@ class EditExpanseViewModel @Inject constructor(
 
     fun pickPicture() {
         viewModelScope.launch {
-            _event.emit(EditExpanseEvents.PickPicture)
+            _uiEvent.send(EditExpanseUiEvents.PickPicture)
+        }
+    }
+
+    fun userEvent(event: EditExpanseUserEvent){
+        when(event){
+            is EditExpanseUserEvent.AmountAEDChanged -> amountAEDChanged(event.amount)
+            is EditExpanseUserEvent.AmountChanged -> amountChanged(event.amount)
+            is EditExpanseUserEvent.CashCheckChanged -> cashCheckChanged(event.checked)
+            is EditExpanseUserEvent.CurrencySelected -> currencySelected(event.currencyExchange)
+            EditExpanseUserEvent.DateClicked -> dateClicked()
+            is EditExpanseUserEvent.DatePicked -> datePicked(event.year,event.month,event.day)
+            EditExpanseUserEvent.DateShown -> dateShown()
+            EditExpanseUserEvent.DeleteExpanse -> deleteExpanse()
+            is EditExpanseUserEvent.DeleteImage -> deleteImage(event.uri)
+            is EditExpanseUserEvent.DescriptionChanged -> descriptionChanged(event.description)
+            is EditExpanseUserEvent.InvoiceNumberChanged -> invoiceNumberChanged(event.number)
+            is EditExpanseUserEvent.PhotoPicked -> photoPicked(event.context,event.uri)
+            EditExpanseUserEvent.PhotoTaken -> photoTaken()
+            EditExpanseUserEvent.PickPicture -> pickPicture()
+            is EditExpanseUserEvent.TakePicture -> takePicture(event.context)
+            EditExpanseUserEvent.UpdateExpanse -> updateExpanse()
         }
     }
 }

@@ -24,12 +24,12 @@ import com.neklaway.hme_reporting.utils.createUriForInvoice
 import com.neklaway.hme_reporting.utils.toFloatWithString
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -54,8 +54,8 @@ class NewExpanseViewModel @Inject constructor(
     private val _state = MutableStateFlow(NewExpanseState())
     val state = _state.asStateFlow()
 
-    private val _event = MutableSharedFlow<NewExpanseEvents>()
-    val event: SharedFlow<NewExpanseEvents> = _event
+    private val _uiEvent = Channel<NewExpanseUiEvents>()
+    val uiEvent = _uiEvent.receiveAsFlow()
 
     private val mutableUriList = state.value.invoicesUris.toMutableList()
 
@@ -68,8 +68,8 @@ class NewExpanseViewModel @Inject constructor(
         getAllCustomersFlowUseCase().onEach { result ->
             when (result) {
                 is Resource.Error -> {
-                    _event.emit(
-                        NewExpanseEvents.UserMessage(
+                    _uiEvent.send(
+                        NewExpanseUiEvents.UserMessage(
                             result.message ?: "Can't get customers"
                         )
                     )
@@ -111,8 +111,8 @@ class NewExpanseViewModel @Inject constructor(
                 getHMECodeByCustomerIdUseCase(customer.id).collect { resource ->
                     when (resource) {
                         is Resource.Error -> {
-                            _event.emit(
-                                NewExpanseEvents.UserMessage(
+                            _uiEvent.send(
+                                NewExpanseUiEvents.UserMessage(
                                     resource.message ?: "Can't get HME codes"
                                 )
                             )
@@ -142,7 +142,7 @@ class NewExpanseViewModel @Inject constructor(
         }
     }
 
-    fun hmeSelected(hmeCode: HMECode) {
+    private fun hmeSelected(hmeCode: HMECode) {
         viewModelScope.launch {
             _state.update {
                 it.copy(
@@ -156,13 +156,13 @@ class NewExpanseViewModel @Inject constructor(
         }
     }
 
-    fun insertExpanse() {
+    private fun insertExpanse() {
         viewModelScope.launch(Dispatchers.IO) {
 
             val amountInFloat = state.value.amount.toFloatWithString().let { resource ->
                 when (resource) {
                     is ResourceWithString.Error -> {
-                        _event.emit(NewExpanseEvents.UserMessage(resource.message ?: "Error"))
+                        _uiEvent.send(NewExpanseUiEvents.UserMessage(resource.message ?: "Error"))
                         resource.data
                     }
 
@@ -176,7 +176,7 @@ class NewExpanseViewModel @Inject constructor(
             val amountInAEDInFloat = state.value.amountAED.toFloatWithString().let { resource ->
                 when (resource) {
                     is ResourceWithString.Error -> {
-                        _event.emit(NewExpanseEvents.UserMessage(resource.message ?: "Error"))
+                        _uiEvent.send(NewExpanseUiEvents.UserMessage(resource.message ?: "Error"))
                         resource.data
                     }
 
@@ -203,8 +203,8 @@ class NewExpanseViewModel @Inject constructor(
                 when (result) {
                     is Resource.Loading -> _state.update { it.copy(loading = true) }
                     is Resource.Error -> {
-                        _event.emit(
-                            NewExpanseEvents.UserMessage(
+                        _uiEvent.send(
+                            NewExpanseUiEvents.UserMessage(
                                 result.message ?: "Can't Insert Expanse"
                             )
                         )
@@ -212,7 +212,7 @@ class NewExpanseViewModel @Inject constructor(
                     }
 
                     is Resource.Success -> {
-                        _event.emit(NewExpanseEvents.UserMessage("Expanse Saved"))
+                        _uiEvent.send(NewExpanseUiEvents.UserMessage("Expanse Saved"))
                         _state.update { it.copy(loading = false) }
                         clearState()
                     }
@@ -237,12 +237,12 @@ class NewExpanseViewModel @Inject constructor(
         }
     }
 
-    fun dateClicked() {
+    private fun dateClicked() {
         _state.update { it.copy(showDatePicker = true) }
         Log.d(TAG, "dateClicked: ")
     }
 
-    fun datePicked(year: Int, month: Int, day: Int) {
+    private fun datePicked(year: Int, month: Int, day: Int) {
         val date = Calendar.getInstance()
         date.timeZone = TimeZone.getTimeZone("Asia/Dubai")
         date.set(
@@ -257,17 +257,17 @@ class NewExpanseViewModel @Inject constructor(
         _state.update { it.copy(date = date, showDatePicker = false) }
     }
 
-    fun datePickedCanceled() {
+    private fun datePickedCanceled() {
         _state.update { it.copy(showDatePicker = false) }
     }
 
-    fun amountChanged(amount: String) {
+    private fun amountChanged(amount: String) {
         amount.toFloatWithString().let { resourceWithString ->
             when (resourceWithString) {
                 is ResourceWithString.Error -> {
                     viewModelScope.launch {
-                        _event.emit(
-                            NewExpanseEvents.UserMessage(
+                        _uiEvent.send(
+                            NewExpanseUiEvents.UserMessage(
                                 resourceWithString.message ?: "Error in Amount"
                             )
                         )
@@ -286,13 +286,13 @@ class NewExpanseViewModel @Inject constructor(
         }
     }
 
-    fun amountAEDChanged(amount: String) {
+    private fun amountAEDChanged(amount: String) {
         amount.toFloatWithString().let { resourceWithString ->
             when (resourceWithString) {
                 is ResourceWithString.Error -> {
                     viewModelScope.launch {
-                        _event.emit(
-                            NewExpanseEvents.UserMessage(
+                        _uiEvent.send(
+                            NewExpanseUiEvents.UserMessage(
                                 resourceWithString.message ?: "Error in Amount"
                             )
                         )
@@ -313,8 +313,8 @@ class NewExpanseViewModel @Inject constructor(
             getAllCurrencyExchangeFlowUseCase().collect { resource ->
                 when (resource) {
                     is Resource.Error -> {
-                        _event.emit(
-                            NewExpanseEvents.UserMessage(
+                        _uiEvent.send(
+                            NewExpanseUiEvents.UserMessage(
                                 resource.message ?: "Error can't get Currency List"
                             )
                         )
@@ -338,7 +338,7 @@ class NewExpanseViewModel @Inject constructor(
         }
     }
 
-    fun currencySelected(currencyExchange: CurrencyExchange) {
+    private fun currencySelected(currencyExchange: CurrencyExchange) {
         viewModelScope.launch {
             _state.update { it.copy(selectedCurrency = currencyExchange) }
             calculateAmountInAED()
@@ -350,7 +350,7 @@ class NewExpanseViewModel @Inject constructor(
         val amountInAED = state.value.amount.toFloatWithString().let { resource ->
             when (resource) {
                 is ResourceWithString.Error -> {
-                    _event.emit(NewExpanseEvents.UserMessage(resource.message ?: "Error"))
+                    _uiEvent.send(NewExpanseUiEvents.UserMessage(resource.message ?: "Error"))
                     ""
                 }
 
@@ -365,34 +365,34 @@ class NewExpanseViewModel @Inject constructor(
         _state.update { it.copy(amountAED = amountInAED) }
     }
 
-    fun invoiceNumberChanged(invoiceNumber: String) {
+    private fun invoiceNumberChanged(invoiceNumber: String) {
         _state.update { it.copy(invoiceNumber = invoiceNumber) }
     }
 
-    fun descriptionChanged(description: String) {
+    private fun descriptionChanged(description: String) {
         _state.update { it.copy(description = description) }
     }
 
-    fun cashCheckChanged(checked: Boolean) {
+    private fun cashCheckChanged(checked: Boolean) {
         _state.update { it.copy(personallyPaid = checked) }
     }
 
-    fun takePicture(context: Context) {
+    private fun takePicture(context: Context) {
         val selectedHme = state.value.selectedHMECode ?: return
         val (providerUri, uri) = createUriForInvoice(context, selectedHme.code)
         mutableUriList.add(uri)
 
         viewModelScope.launch {
-            _event.emit(NewExpanseEvents.TakePicture(providerUri))
+            _uiEvent.send(NewExpanseUiEvents.TakePicture(providerUri))
         }
     }
 
-    fun photoTaken(successful: Boolean) {
+    private fun photoTaken() {
         val list = mutableUriList.toList()
         _state.update { it.copy(invoicesUris = list) }
     }
 
-    fun deleteImage(uri: Uri) {
+    private fun deleteImage(uri: Uri) {
         mutableUriList.remove(uri)
         uri.toFile().delete()
         val list = mutableUriList.toList()
@@ -400,24 +400,46 @@ class NewExpanseViewModel @Inject constructor(
 
     }
 
-    fun photoPicked(context: Context, externalUri: Uri?) {
+    private fun photoPicked(context: Context, externalUri: Uri?) {
         val selectedHme = state.value.selectedHMECode ?: return
         if (externalUri == null) {
-            viewModelScope.launch { _event.emit(NewExpanseEvents.UserMessage("Can't get photo")) }
+            viewModelScope.launch { _uiEvent.send(NewExpanseUiEvents.UserMessage("Can't get photo")) }
             return
         }
 
         val internalUri = createUriForInvoice(context, selectedHme.code).second
-        copyFiles(context,externalUri, internalUri)
+        copyFiles(context, externalUri, internalUri)
         mutableUriList.add(internalUri)
         _state.update { it.copy(invoicesUris = mutableUriList) }
 
         Log.d(TAG, "photoPicked: ${externalUri.encodedPath}")
     }
 
-    fun pickPicture() {
+    private fun pickPicture() {
         viewModelScope.launch {
-            _event.emit(NewExpanseEvents.PickPicture)
+            _uiEvent.send(NewExpanseUiEvents.PickPicture)
+        }
+    }
+
+    fun userEvent(event:NewExpanseUserEvent){
+        when(event){
+            is NewExpanseUserEvent.AmountAEDChanged -> amountAEDChanged(event.amount)
+            is NewExpanseUserEvent.AmountChanged -> amountChanged(event.amount)
+            is NewExpanseUserEvent.CashCheckChanged -> cashCheckChanged(event.checked)
+            is NewExpanseUserEvent.CurrencySelected -> currencySelected(event.currencyExchange)
+            is NewExpanseUserEvent.CustomerSelected -> customerSelected(event.customer)
+            NewExpanseUserEvent.DateClicked -> dateClicked()
+            is NewExpanseUserEvent.DatePicked -> datePicked(event.year,event.month,event.day)
+            NewExpanseUserEvent.DatePickedCanceled -> datePickedCanceled()
+            is NewExpanseUserEvent.DeleteImage -> deleteImage(event.uri)
+            is NewExpanseUserEvent.DescriptionChanged -> descriptionChanged(event.description)
+            is NewExpanseUserEvent.HmeSelected -> hmeSelected(event.hmeCode)
+            NewExpanseUserEvent.InsertExpanse -> insertExpanse()
+            is NewExpanseUserEvent.InvoiceNumberChanged -> invoiceNumberChanged(event.number)
+            is NewExpanseUserEvent.PhotoPicked -> photoPicked(event.context,event.uri)
+            NewExpanseUserEvent.PhotoTaken -> photoTaken()
+            NewExpanseUserEvent.PickPicture -> pickPicture()
+            is NewExpanseUserEvent.TakePicture -> takePicture(event.context)
         }
     }
 }

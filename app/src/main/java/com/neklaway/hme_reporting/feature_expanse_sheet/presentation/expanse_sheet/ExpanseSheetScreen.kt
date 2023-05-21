@@ -1,20 +1,48 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package com.neklaway.hme_reporting.feature_expanse_sheet.presentation.expanse_sheet
 
 import android.content.Intent
-import androidx.compose.animation.*
-import androidx.compose.animation.core.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColor
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.PictureAsPdf
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
@@ -22,8 +50,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.neklaway.hme_reporting.common.data.entity.Accommodation
 import com.neklaway.hme_reporting.common.presentation.Screen
@@ -34,35 +60,38 @@ import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.expanse_she
 import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.expanse_sheet.component.ExpanseSheetItemCard
 import com.neklaway.hme_reporting.utils.Constants.EXPANSE_FOLDER
 import com.neklaway.hme_reporting.utils.NotificationPermissionRequest
+import kotlinx.coroutines.flow.Flow
 import java.io.File
 
-//private const val TAG = "ExpanseSheetScreen"
+private const val TAG = "ExpanseSheetScreen"
 
 @Composable
 fun ExpanseSheetScreen(
     navController: NavController,
-    viewModel: ExpanseSheetViewModel = hiltViewModel(),
+    state: ExpanseSheetState,
+    uiEvents: Flow<ExpanseSheetUiEvents>,
+    userEvent: (ExpanseSheetUserEvent) -> Unit,
+    getCurrencyExchange:(Long) ->Flow<String>,
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var requestPermission by remember {
         mutableStateOf(false)
     }
-    val events = viewModel.event
 
     val context = LocalContext.current
 
     LaunchedEffect(
-        events
+        uiEvents
     ) {
-        events.collect { event ->
+        uiEvents.collect { event ->
             when (event) {
-                is ExpanseSheetEvents.UserMessage -> snackbarHostState.showSnackbar(event.message)
+                is ExpanseSheetUiEvents.UserMessage -> snackbarHostState.showSnackbar(event.message)
 
-                is ExpanseSheetEvents.NavigateToExpanseSheet -> navController.navigate(
+                is ExpanseSheetUiEvents.NavigateToExpanseSheetUi -> navController.navigate(
                     Screen.EditExpanse.route + "?" + EditExpanseViewModel.EXPANSE_ID + "=" + event.id
                 )
-                is ExpanseSheetEvents.ShowFile -> {
+
+                is ExpanseSheetUiEvents.ShowFile -> {
                     val intent = Intent(Intent.ACTION_VIEW)
                     val fileUri = FileProvider.getUriForFile(
                         context, "com.neklaway.hme_reporting.provider", event.file
@@ -94,7 +123,7 @@ fun ExpanseSheetScreen(
                     FloatingActionButton(onClick = {
 
                         requestPermission = true
-                        viewModel.createExpanseSheet()
+                        userEvent(ExpanseSheetUserEvent.CreateExpanseSheet)
                     }) {
                         Icon(
                             imageVector = Icons.Default.PictureAsPdf,
@@ -103,7 +132,7 @@ fun ExpanseSheetScreen(
                     }
 
                     Spacer(modifier = Modifier.width(5.dp))
-                    FloatingActionButton(onClick = { viewModel.openExpanseSheets() }) {
+                    FloatingActionButton(onClick = { userEvent(ExpanseSheetUserEvent.OpenExpanseSheets) }) {
                         Icon(
                             imageVector = Icons.Default.FolderOpen,
                             contentDescription = "Open ExpanseSheet",
@@ -113,7 +142,7 @@ fun ExpanseSheetScreen(
                 }
             }
 
-            FloatingActionButton(onClick = { viewModel.showMoreFABClicked() }) {
+            FloatingActionButton(onClick = { userEvent(ExpanseSheetUserEvent.ShowMoreFABClicked) }) {
                 Icon(
                     imageVector = Icons.Default.MoreHoriz,
                     contentDescription = "Show More Floating action buttons",
@@ -142,7 +171,7 @@ fun ExpanseSheetScreen(
                 dropDownContentDescription = "Select Customer",
                 modifier = Modifier.padding(vertical = 5.dp)
             ) { customer ->
-                viewModel.customerSelected(customer)
+                userEvent(ExpanseSheetUserEvent.CustomerSelected(customer))
             }
 
             DropDown(
@@ -152,7 +181,7 @@ fun ExpanseSheetScreen(
                 dropDownContentDescription = "Select HME Code",
                 modifier = Modifier.padding(bottom = 5.dp)
             ) { hmeCode ->
-                viewModel.hmeSelected(hmeCode)
+                userEvent(ExpanseSheetUserEvent.HmeSelected(hmeCode))
             }
 
             val infiniteTransition = rememberInfiniteTransition()
@@ -166,7 +195,7 @@ fun ExpanseSheetScreen(
                     .padding(bottom = 5.dp),
                 warning = state.accommodation == null,
             ) { accommodation ->
-                viewModel.accommodationChanged(accommodation)
+                userEvent(ExpanseSheetUserEvent.AccommodationChanged(accommodation))
             }
 
             Row(
@@ -234,8 +263,11 @@ fun ExpanseSheetScreen(
                 items(items = state.expanseList) { expanse ->
                     ExpanseSheetItemCard(
                         expanse = expanse,
-                        currencyExchange = viewModel.getCurrencyExchangeName(expanse).collectAsState(""),
-                        cardClicked = { viewModel.expanseClicked(expanse) },
+                        currencyExchange = getCurrencyExchange(expanse.currencyID)
+                            .collectAsState(
+                                initial = ""
+                            ),
+                        cardClicked = { userEvent(ExpanseSheetUserEvent.ExpanseClicked(expanse)) },
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -257,10 +289,15 @@ fun ExpanseSheetScreen(
         AnimatedVisibility(visible = state.showFileList) {
             val expansePdfDirectory =
                 File(context.filesDir.path + "/" + state.selectedHMECode?.code + "/" + EXPANSE_FOLDER)
-            val listOfFiles = expansePdfDirectory.listFiles()?.filter { it.isFile }?.toList() ?: emptyList()
+            val listOfFiles =
+                expansePdfDirectory.listFiles()?.filter { it.isFile }?.toList() ?: emptyList()
 
 //
-            ListDialog(list = listOfFiles, onClick = viewModel::fileSelected, onCancel = viewModel::fileSelectionCanceled)
+            ListDialog(list = listOfFiles, onClick = {
+                userEvent(ExpanseSheetUserEvent.FileSelected(it))
+            }, onCancel = {
+                userEvent(ExpanseSheetUserEvent.FileSelectionCanceled)
+            })
         }
 
         if (requestPermission) {

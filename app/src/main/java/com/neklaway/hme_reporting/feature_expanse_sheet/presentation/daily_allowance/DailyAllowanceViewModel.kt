@@ -20,6 +20,7 @@ import com.neklaway.hme_reporting.utils.Resource
 import com.neklaway.hme_reporting.utils.toDate
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -42,8 +43,8 @@ class DailyAllowanceViewModel @Inject constructor(
     private val _state = MutableStateFlow(DailyAllowanceState())
     val state = _state.asStateFlow()
 
-    private val _event = MutableSharedFlow<String>()
-    val event: SharedFlow<String> = _event
+    private val _userMessage = Channel<String>()
+    val userMessage = _userMessage.receiveAsFlow()
 
 
     init {
@@ -78,7 +79,7 @@ class DailyAllowanceViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    fun customerSelected(customer: Customer) {
+    private fun customerSelected(customer: Customer) {
         _state.update {
             it.copy(
                 selectedCustomer = customer
@@ -115,7 +116,7 @@ class DailyAllowanceViewModel @Inject constructor(
         }
     }
 
-    fun hmeSelected(hmeCode: HMECode) {
+    private fun hmeSelected(hmeCode: HMECode) {
 
 
         _state.update {
@@ -165,7 +166,7 @@ class DailyAllowanceViewModel @Inject constructor(
         }
     }
 
-    fun timeSheetClicked(timeSheet: TimeSheet, allowanceType: AllowanceType) {
+    private fun timeSheetClicked(timeSheet: TimeSheet, allowanceType: AllowanceType) {
         timeSheet.id?.let {
             Log.d(TAG, "timeSheetClicked: ${timeSheet.date.toDate()} ${allowanceType.name}")
             viewModelScope.launch {
@@ -202,10 +203,10 @@ class DailyAllowanceViewModel @Inject constructor(
     }
 
     private suspend fun sendEvent(event: String) {
-        _event.emit(event)
+        _userMessage.send(event)
     }
 
-    fun selectAll(checked: Boolean) {
+    private fun selectAll(checked: Boolean) {
         val timeSheets = state.value.timeSheetList.map {
             it.copy(expanseSelected = checked)
         }
@@ -223,7 +224,7 @@ class DailyAllowanceViewModel @Inject constructor(
         }
     }
 
-    fun expanseSelectedChanged(timeSheet: TimeSheet, checked: Boolean) {
+    private fun expanseSelectedChanged(timeSheet: TimeSheet, checked: Boolean) {
         timeSheet.id?.let {
             Log.d(TAG, "timeSheetClicked: ${timeSheet.date.toDate()} $checked")
             viewModelScope.launch {
@@ -263,7 +264,7 @@ class DailyAllowanceViewModel @Inject constructor(
         _state.update { it.copy(selectAll = checkBoxAllSelected) }
     }
 
-    fun autoCalculate(){
+    private fun autoCalculate(){
         val timeSheetListAutoCalculated = state.value.timeSheetList.filter { it.expanseSelected }.toMutableList()
         timeSheetListAutoCalculated.forEachIndexed { index, timeSheet ->
             if(timeSheet == timeSheetListAutoCalculated.first() || timeSheet == timeSheetListAutoCalculated.last()){
@@ -287,4 +288,14 @@ class DailyAllowanceViewModel @Inject constructor(
         }
     }
 
+    fun userEvent(event: DailyAllowanceUserEvent){
+        when(event){
+            DailyAllowanceUserEvent.AutoCalculate -> autoCalculate()
+            is DailyAllowanceUserEvent.CustomerSelected -> customerSelected(event.customer)
+            is DailyAllowanceUserEvent.ExpanseSelectedChanged -> expanseSelectedChanged(event.timeSheet,event.checked)
+            is DailyAllowanceUserEvent.HmeSelected -> hmeSelected(event.hmeCode)
+            is DailyAllowanceUserEvent.SelectAll -> selectAll(event.checked)
+            is DailyAllowanceUserEvent.TimeSheetClicked -> timeSheetClicked(event.timeSheet,event.allowanceType)
+        }
+    }
 }

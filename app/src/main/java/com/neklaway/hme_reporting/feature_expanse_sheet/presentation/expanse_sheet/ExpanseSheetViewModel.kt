@@ -24,8 +24,16 @@ import com.neklaway.hme_reporting.utils.CalculateExpanse
 import com.neklaway.hme_reporting.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.File
 import javax.inject.Inject
@@ -52,15 +60,14 @@ class ExpanseSheetViewModel @Inject constructor(
     private val _state = MutableStateFlow(ExpanseSheetState())
     val state = _state.asStateFlow()
 
-    private val _event = MutableSharedFlow<ExpanseSheetEvents>()
-    val event: SharedFlow<ExpanseSheetEvents> = _event
+    private val _uiEvent = Channel<ExpanseSheetUiEvents>()
+    val uiEvent = _uiEvent.receiveAsFlow()
 
     private val totalExpanse = MutableStateFlow(0f)
     private val totalAllowance = MutableStateFlow(0f)
 
     init {
         getCustomers()
-
         totalExpanse.combine(totalAllowance) { totalExpanse, totalAllowance ->
             Pair(
                 totalExpanse,
@@ -69,7 +76,6 @@ class ExpanseSheetViewModel @Inject constructor(
         }.onEach { totalPair ->
             _state.update { it.copy(totalPaidAmount = totalPair.first + totalPair.second) }
         }.launchIn(viewModelScope)
-
     }
 
     private fun getCustomers() {
@@ -77,12 +83,13 @@ class ExpanseSheetViewModel @Inject constructor(
             when (result) {
                 is Resource.Error -> {
                     sendEvent(
-                        ExpanseSheetEvents.UserMessage(
+                        ExpanseSheetUiEvents.UserMessage(
                             result.message ?: "Can't get customers"
                         )
                     )
                     _state.update { it.copy(loading = false) }
                 }
+
                 is Resource.Loading -> _state.update { it.copy(loading = true) }
                 is Resource.Success -> {
                     val savedCustomerId = getCustomerIdUseCase()
@@ -102,7 +109,7 @@ class ExpanseSheetViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    fun customerSelected(customer: Customer) {
+    private fun customerSelected(customer: Customer) {
         _state.update {
             ExpanseSheetState(
                 customers = it.customers,
@@ -118,12 +125,13 @@ class ExpanseSheetViewModel @Inject constructor(
                 when (result) {
                     is Resource.Error -> {
                         sendEvent(
-                            ExpanseSheetEvents.UserMessage(
+                            ExpanseSheetUiEvents.UserMessage(
                                 result.message ?: "Can't get HME codes"
                             )
                         )
                         _state.update { it.copy(loading = false) }
                     }
+
                     is Resource.Loading -> _state.update { it.copy(loading = true) }
                     is Resource.Success -> {
                         val savedSelectedHmeId = getHmeIdUseCase()
@@ -145,7 +153,7 @@ class ExpanseSheetViewModel @Inject constructor(
         }
     }
 
-    fun hmeSelected(hmeCode: HMECode) {
+    private fun hmeSelected(hmeCode: HMECode) {
 
 
         _state.update {
@@ -163,12 +171,13 @@ class ExpanseSheetViewModel @Inject constructor(
             when (result) {
                 is Resource.Error -> {
                     sendEvent(
-                        ExpanseSheetEvents.UserMessage(
+                        ExpanseSheetUiEvents.UserMessage(
                             result.message ?: "Can't get Time Sheets"
                         )
                     )
                     _state.update { it.copy(loading = false) }
                 }
+
                 is Resource.Loading -> _state.update { it.copy(loading = true) }
                 is Resource.Success -> {
                     Log.d(
@@ -199,8 +208,8 @@ class ExpanseSheetViewModel @Inject constructor(
                                 fullDays = fullDay,
                                 noAllowanceDays = noAllowance,
                                 loading = false,
-                                missingDailyAllowance = timeSheetList.any {
-                                    it.dailyAllowance == null && it.expanseSelected
+                                missingDailyAllowance = timeSheetList.any { timeSheet ->
+                                    timeSheet.dailyAllowance == null && timeSheet.expanseSelected
                                 })
                         }
                         totalAllowance.emit(
@@ -210,7 +219,7 @@ class ExpanseSheetViewModel @Inject constructor(
                         if (timeSheetList.any {
                                 it.dailyAllowance == null && it.expanseSelected
                             }) {
-                            sendEvent(ExpanseSheetEvents.UserMessage("Daily Allowance is missing, please Check"))
+                            sendEvent(ExpanseSheetUiEvents.UserMessage("Daily Allowance is missing, please Check"))
                         }
                     }
                 }
@@ -221,12 +230,13 @@ class ExpanseSheetViewModel @Inject constructor(
             when (result) {
                 is Resource.Error -> {
                     sendEvent(
-                        ExpanseSheetEvents.UserMessage(
+                        ExpanseSheetUiEvents.UserMessage(
                             result.message ?: "Can't get Expanses"
                         )
                     )
                     _state.update { it.copy(loading = false) }
                 }
+
                 is Resource.Loading -> _state.update { it.copy(loading = true) }
                 is Resource.Success -> {
                     val expanseList = result.data?.sortedBy { it.date } ?: emptyList()
@@ -248,24 +258,23 @@ class ExpanseSheetViewModel @Inject constructor(
     }
 
 
-    fun expanseClicked(expanse: Expanse) {
+    private fun expanseClicked(expanse: Expanse) {
         expanse.id?.let {
             viewModelScope.launch {
-                sendEvent(ExpanseSheetEvents.NavigateToExpanseSheet(it))
+                sendEvent(ExpanseSheetUiEvents.NavigateToExpanseSheetUi(it))
             }
         }
     }
 
-    fun showMoreFABClicked() {
+    private fun showMoreFABClicked() {
         _state.update { it.copy(fabVisible = !it.fabVisible) }
     }
 
-    fun openExpanseSheets() {
+    private fun openExpanseSheets() {
         _state.update { it.copy(showFileList = true) }
     }
 
-
-    fun createExpanseSheet() {
+    private fun createExpanseSheet() {
         viewModelScope.launch {
             expansePDFWorkerUseCase(
                 state.value.timeSheetList.filter { it.expanseSelected },
@@ -275,12 +284,13 @@ class ExpanseSheetViewModel @Inject constructor(
                     is Resource.Error -> {
                         _state.update { it.copy(loading = false) }
                         delay(1000)
-                        sendEvent(ExpanseSheetEvents.UserMessage("PDF Creation Error"))
+                        sendEvent(ExpanseSheetUiEvents.UserMessage("PDF Creation Error"))
                     }
+
                     is Resource.Loading -> _state.update { it.copy(loading = true) }
                     is Resource.Success -> {
                         _state.update { it.copy(loading = false) }
-                        sendEvent(ExpanseSheetEvents.UserMessage("PDF Created"))
+                        sendEvent(ExpanseSheetUiEvents.UserMessage("PDF Created"))
                     }
                 }
                 Log.d(
@@ -292,37 +302,37 @@ class ExpanseSheetViewModel @Inject constructor(
     }
 
 
-    private fun sendEvent(event: ExpanseSheetEvents) {
+    private fun sendEvent(event: ExpanseSheetUiEvents) {
         viewModelScope.launch {
-            _event.emit(event)
+            _uiEvent.send(event)
             Log.d(TAG, "sendEvent: $event")
         }
     }
 
-    fun fileSelected(file: File) {
+    private fun fileSelected(file: File) {
         _state.update { it.copy(showFileList = false) }
         viewModelScope.launch {
-            sendEvent(ExpanseSheetEvents.ShowFile(file))
+            sendEvent(ExpanseSheetUiEvents.ShowFile(file))
         }
     }
 
-    fun fileSelectionCanceled() {
+    private fun fileSelectionCanceled() {
         _state.update { it.copy(showFileList = false) }
     }
 
-    fun getCurrencyExchangeName(expanse: Expanse): Flow<String> = flow {
-        getCurrencyExchangeByIdUseCase(expanse.currencyID).let { resource ->
-            emit(
-                when (resource) {
-                    is Resource.Error -> "Error"
-                    is Resource.Loading -> ""
-                    is Resource.Success -> resource.data?.currencyName ?: "Error"
-                }
-            )
-        }
+    fun getCurrencyExchangeName(currencyID: Long) = flow {
+            getCurrencyExchangeByIdUseCase(currencyID).let { resource ->
+                emit(
+                    when (resource) {
+                        is Resource.Error -> "Error"
+                        is Resource.Loading -> ""
+                        is Resource.Success -> resource.data?.currencyName ?: "Error"
+                    }
+                )
+            }
     }
 
-    fun accommodationChanged(accommodation: Accommodation) {
+    private fun accommodationChanged(accommodation: Accommodation) {
         viewModelScope.launch {
             state.value.selectedHMECode?.let { hmeCode ->
                 updateHMECodeUseCase(
@@ -340,10 +350,11 @@ class ExpanseSheetViewModel @Inject constructor(
                 ).collect { result ->
                     when (result) {
                         is Resource.Error -> sendEvent(
-                            ExpanseSheetEvents.UserMessage(
+                            ExpanseSheetUiEvents.UserMessage(
                                 result.message ?: "Error"
                             )
                         )
+
                         is Resource.Loading -> Unit
                         is Resource.Success -> {
                             _state.update { it.copy(accommodation = accommodation) }
@@ -352,6 +363,20 @@ class ExpanseSheetViewModel @Inject constructor(
 
                 }
             }
+        }
+    }
+
+    fun userEvent(event: ExpanseSheetUserEvent) {
+        when (event) {
+            is ExpanseSheetUserEvent.AccommodationChanged -> accommodationChanged(event.accommodation)
+            ExpanseSheetUserEvent.CreateExpanseSheet -> createExpanseSheet()
+            is ExpanseSheetUserEvent.CustomerSelected -> customerSelected(event.customer)
+            is ExpanseSheetUserEvent.ExpanseClicked -> expanseClicked(event.expanse)
+            is ExpanseSheetUserEvent.FileSelected -> fileSelected(event.file)
+            ExpanseSheetUserEvent.FileSelectionCanceled -> fileSelectionCanceled()
+            is ExpanseSheetUserEvent.HmeSelected -> hmeSelected(event.hmeCode)
+            ExpanseSheetUserEvent.OpenExpanseSheets -> openExpanseSheets()
+            ExpanseSheetUserEvent.ShowMoreFABClicked -> showMoreFABClicked()
         }
     }
 

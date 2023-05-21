@@ -13,24 +13,24 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.neklaway.hme_reporting.common.presentation.common.component.DropDown
 import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.daily_allowance.component.DailyAllowanceHeader
 import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.daily_allowance.component.DailyAllowanceItemCard
+import kotlinx.coroutines.flow.Flow
 
 
 @Composable
 fun DailyAllowanceScreen(
-    viewModel: DailyAllowanceViewModel = hiltViewModel(),
+    state: DailyAllowanceState,
+    userMessage: Flow<String>,
+    userEvent: (DailyAllowanceUserEvent) -> Unit,
 ) {
-    val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
-    val events = viewModel.event
 
     LaunchedEffect(
-        key1 = events, key2 = state
+        key1 = userMessage, key2 = state
     ) {
-        events.collect { event ->
+        userMessage.collect { event ->
             snackbarHostState.showSnackbar(event)
         }
     }
@@ -40,7 +40,9 @@ fun DailyAllowanceScreen(
             SnackbarHost(hostState = snackbarHostState)
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = viewModel::autoCalculate) {
+            FloatingActionButton(onClick = {
+                userEvent(DailyAllowanceUserEvent.AutoCalculate)
+            }) {
                 Icon(Icons.Default.AutoMode, contentDescription = "Auto calculate daily allowance")
             }
         }
@@ -62,7 +64,7 @@ fun DailyAllowanceScreen(
                 dropDownContentDescription = "Select Customer",
                 modifier = Modifier.padding(vertical = 5.dp)
             ) { customer ->
-                viewModel.customerSelected(customer)
+                userEvent(DailyAllowanceUserEvent.CustomerSelected(customer))
             }
 
             DropDown(
@@ -72,7 +74,7 @@ fun DailyAllowanceScreen(
                 dropDownContentDescription = "Select HME Code",
                 modifier = Modifier.padding(bottom = 5.dp)
             ) { hmeCode ->
-                viewModel.hmeSelected(hmeCode)
+                userEvent(DailyAllowanceUserEvent.HmeSelected(hmeCode))
             }
 
             LazyColumn(
@@ -95,7 +97,7 @@ fun DailyAllowanceScreen(
                     DailyAllowanceHeader(
                         selectAll = state.selectAll,
                         onSelectAllChecked = { checked ->
-                            viewModel.selectAll(checked)
+                            userEvent(DailyAllowanceUserEvent.SelectAll(checked))
                         }
                     )
                 }
@@ -104,10 +106,20 @@ fun DailyAllowanceScreen(
                     DailyAllowanceItemCard(
                         timeSheet = timeSheet,
                         dailyAllowanceChanged = { allowanceType ->
-                            viewModel.timeSheetClicked(timeSheet, allowanceType)
+                            userEvent(
+                                DailyAllowanceUserEvent.TimeSheetClicked(
+                                    timeSheet,
+                                    allowanceType
+                                )
+                            )
                         },
                         onCheckedChanged = { checked ->
-                            viewModel.expanseSelectedChanged(timeSheet, checked)
+                            userEvent(
+                                DailyAllowanceUserEvent.ExpanseSelectedChanged(
+                                    timeSheet,
+                                    checked
+                                )
+                            )
                         }
                     )
                 }
