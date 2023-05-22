@@ -97,7 +97,7 @@ class NewExpanseViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    fun customerSelected(customer: Customer) {
+    private fun customerSelected(customer: Customer) {
         viewModelScope.launch {
             _state.update {
                 it.copy(
