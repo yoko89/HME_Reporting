@@ -115,7 +115,7 @@ class EditExpanseViewModel @Inject constructor(
     }
 
 
-    fun updateExpanse() {
+    private fun updateExpanse() {
         viewModelScope.launch {
             if (!::returnedExpanse.isInitialized) {
                 return@launch
@@ -154,12 +154,12 @@ class EditExpanseViewModel @Inject constructor(
         }
     }
 
-    fun dateClicked() {
+    private fun dateClicked() {
         _state.update { it.copy(showDatePicker = true) }
         Log.d(TAG, "dateClicked: ")
     }
 
-    fun datePicked(year: Int, month: Int, day: Int) {
+    private fun datePicked(year: Int, month: Int, day: Int) {
         val date = Calendar.getInstance()
         date.timeZone = TimeZone.getTimeZone("Asia/Dubai")
         date.set(
@@ -174,11 +174,11 @@ class EditExpanseViewModel @Inject constructor(
         _state.update { it.copy(date = date, showDatePicker = false) }
     }
 
-    fun dateShown() {
+    private fun dateShown() {
         _state.update { it.copy(showDatePicker = false) }
     }
 
-    fun deleteExpanse() {
+    private fun deleteExpanse() {
         viewModelScope.launch {
 
 
@@ -211,7 +211,7 @@ class EditExpanseViewModel @Inject constructor(
     }
 
 
-    fun currencySelected(currencyExchange: CurrencyExchange) {
+    private fun currencySelected(currencyExchange: CurrencyExchange) {
         viewModelScope.launch {
             _state.update { it.copy(selectedCurrency = currencyExchange) }
             calculateAmountInAED()
@@ -238,19 +238,19 @@ class EditExpanseViewModel @Inject constructor(
         _state.update { it.copy(amountAED = amountInAED) }
     }
 
-    fun invoiceNumberChanged(invoiceNumber: String) {
+    private fun invoiceNumberChanged(invoiceNumber: String) {
         _state.update { it.copy(invoiceNumber = invoiceNumber) }
     }
 
-    fun descriptionChanged(description: String) {
+    private fun descriptionChanged(description: String) {
         _state.update { it.copy(description = description) }
     }
 
-    fun cashCheckChanged(cash: Boolean) {
+    private fun cashCheckChanged(cash: Boolean) {
         _state.update { it.copy(personallyPaid = cash) }
     }
 
-    fun amountChanged(amount: String) {
+    private fun amountChanged(amount: String) {
         amount.toFloatWithString().let { resourceWithString ->
             when (resourceWithString) {
                 is ResourceWithString.Error -> {
@@ -276,7 +276,7 @@ class EditExpanseViewModel @Inject constructor(
         }
     }
 
-    fun amountAEDChanged(amount: String) {
+    private fun amountAEDChanged(amount: String) {
         amount.toFloatWithString().let { resourceWithString ->
             when (resourceWithString) {
                 is ResourceWithString.Error -> {
@@ -328,7 +328,7 @@ class EditExpanseViewModel @Inject constructor(
         }
     }
 
-    fun takePicture(context: Context) {
+    private fun takePicture(context: Context) {
         viewModelScope.launch {
             if (!::returnedExpanse.isInitialized) {
                 _uiEvent.send(EditExpanseUiEvents.UserMessage("Can't retrieve Expanse"))
@@ -355,12 +355,12 @@ class EditExpanseViewModel @Inject constructor(
         }
     }
 
-    fun photoTaken() {
+    private fun photoTaken() {
         val list = mutableUriList.toList()
         _state.update { it.copy(invoicesUris = list) }
     }
 
-    fun deleteImage(uri: Uri) {
+    private fun deleteImage(uri: Uri) {
         mutableUriList.remove(uri)
         uri.toFile().delete()
         val list = mutableUriList.toList()
@@ -368,7 +368,7 @@ class EditExpanseViewModel @Inject constructor(
 
     }
 
-    fun photoPicked(context: Context, externalUri: Uri?) {
+    private fun photoPicked(context: Context, externalUri: Uri?) {
         if (externalUri == null) {
             viewModelScope.launch { _uiEvent.send(EditExpanseUiEvents.UserMessage("Can't get photo")) }
             return
@@ -396,7 +396,7 @@ class EditExpanseViewModel @Inject constructor(
         }
     }
 
-    fun pickPicture() {
+    private fun pickPicture() {
         viewModelScope.launch {
             _uiEvent.send(EditExpanseUiEvents.PickPicture)
         }

@@ -57,7 +57,7 @@ class NewExpanseViewModel @Inject constructor(
     private val _uiEvent = Channel<NewExpanseUiEvents>()
     val uiEvent = _uiEvent.receiveAsFlow()
 
-    private val mutableUriList = state.value.invoicesUris.toMutableList()
+    private val mutableUriList: MutableList<Uri> = mutableListOf()
 
     init {
         getCustomers()
@@ -410,7 +410,7 @@ class NewExpanseViewModel @Inject constructor(
         val internalUri = createUriForInvoice(context, selectedHme.code).second
         copyFiles(context, externalUri, internalUri)
         mutableUriList.add(internalUri)
-        _state.update { it.copy(invoicesUris = mutableUriList) }
+        _state.update { it.copy(invoicesUris = mutableUriList.toList()) }
 
         Log.d(TAG, "photoPicked: ${externalUri.encodedPath}")
     }
