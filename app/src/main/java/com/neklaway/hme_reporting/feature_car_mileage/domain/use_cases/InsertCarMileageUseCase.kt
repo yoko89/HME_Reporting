@@ -28,6 +28,10 @@ class InsertCarMileageUseCase @Inject constructor(
             emit(Resource.Error("Start Mileage can't be empty"))
             return@flow
         }
+        if (startMileage < 0){
+            emit(Resource.Error("Start Mileage can't be negative"))
+            return@flow
+        }
         if (startDate == null) {
             emit(Resource.Error("Start Date can't be blank"))
             return@flow
@@ -38,6 +42,10 @@ class InsertCarMileageUseCase @Inject constructor(
         }
         if (endMileage == null) {
             emit(Resource.Error("End Mileage can't be empty"))
+            return@flow
+        }
+        if (endMileage < startMileage) {
+            emit(Resource.Error("End Mileage can't be less than Start Mileage"))
             return@flow
         }
         if (endDate == null) {

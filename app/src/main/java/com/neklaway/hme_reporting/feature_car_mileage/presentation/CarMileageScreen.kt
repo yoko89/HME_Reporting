@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.neklaway.hme_reporting.common.presentation.common.component.CustomDatePicker
 import com.neklaway.hme_reporting.common.presentation.common.component.CustomTimePicker
+import com.neklaway.hme_reporting.common.presentation.common.component.DeleteDialog
 import com.neklaway.hme_reporting.feature_car_mileage.presentation.component.CarMileageItemCard
 import com.neklaway.hme_reporting.utils.toDate
 import com.neklaway.hme_reporting.utils.toTime
@@ -353,6 +354,8 @@ fun CarMileageScreen(
                     var visibility by remember {
                         mutableStateOf(false)
                     }
+                    var deleteDialogVisible by remember { mutableStateOf(false) }
+
 
                     LaunchedEffect(key1 = Unit) {
                         visibility = true
@@ -362,8 +365,17 @@ fun CarMileageScreen(
                         CarMileageItemCard(carMileage = carMileage, cardClicked = {
                             userEvent(CarMileageUserEvents.CarMileageClicked(carMileage))
                         }, onDeleteClicked = {
-                            userEvent(CarMileageUserEvents.DeleteCarMileage(carMileage))
+                            deleteDialogVisible = true
                         })
+                    }
+                    AnimatedVisibility(visible = deleteDialogVisible) {
+                        DeleteDialog(item = carMileage,
+                            onConfirm = {
+                                userEvent(CarMileageUserEvents.DeleteCarMileage(it))
+                                deleteDialogVisible = false
+                            },
+                            onDismiss = { deleteDialogVisible = false }
+                        )
                     }
                 }
             }

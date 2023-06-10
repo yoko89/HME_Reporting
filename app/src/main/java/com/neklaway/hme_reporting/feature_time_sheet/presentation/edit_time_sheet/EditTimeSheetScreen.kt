@@ -29,7 +29,10 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
@@ -38,6 +41,7 @@ import androidx.navigation.NavController
 import com.neklaway.hme_reporting.common.presentation.Screen
 import com.neklaway.hme_reporting.common.presentation.common.component.CustomDatePicker
 import com.neklaway.hme_reporting.common.presentation.common.component.CustomTimePicker
+import com.neklaway.hme_reporting.common.presentation.common.component.DeleteDialog
 import com.neklaway.hme_reporting.common.presentation.common.component.DropDown
 import com.neklaway.hme_reporting.common.presentation.common.component.Selector
 import com.neklaway.hme_reporting.utils.toDate
@@ -61,6 +65,19 @@ fun EditTimeSheetScreen(
     val workStartInteractionSource = remember { MutableInteractionSource() }
     val workEndInteractionSource = remember { MutableInteractionSource() }
 
+    var deleteDialogVisible by remember {
+        mutableStateOf(false)
+    }
+
+    AnimatedVisibility(visible = deleteDialogVisible) {
+        DeleteDialog(item = state.date,
+            onConfirm = {
+                userEvents(EditTimeSheetUserEvents.DeleteTimeSheet)
+                deleteDialogVisible = false
+            },
+            onDismiss = { deleteDialogVisible = false }
+        )
+    }
 
 
     LaunchedEffect(key1 = uiEvent) {
@@ -197,7 +214,7 @@ fun EditTimeSheetScreen(
     Scaffold(
         floatingActionButton = {
             Row {
-                FloatingActionButton(onClick = { userEvents(EditTimeSheetUserEvents.DeleteTimeSheet) }) {
+                FloatingActionButton(onClick = { deleteDialogVisible = true }) {
                     Icon(
                         imageVector = Icons.Default.Delete,
                         contentDescription = "Delete Time Sheet"

@@ -34,14 +34,17 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.neklaway.hme_reporting.common.presentation.common.component.DeleteDialog
 import com.neklaway.hme_reporting.common.presentation.common.component.DropDown
 import kotlinx.coroutines.flow.Flow
 
@@ -211,6 +214,20 @@ fun IBAUCodeScreen(
                         visibility.value = true
                     }
 
+                    var deleteDialogVisible by remember {
+                        mutableStateOf(false)
+                    }
+
+                    AnimatedVisibility(visible = deleteDialogVisible) {
+                        DeleteDialog(item = ibauCode,
+                            onConfirm = {
+                                userEvent(IbauCodeUserEvent.DeleteIBAUCode(it))
+                                deleteDialogVisible = false
+                            },
+                            onDismiss = { deleteDialogVisible = false }
+                        )
+                    }
+
                     AnimatedVisibility(
                         visible = visibility.value,
                         enter = slideInHorizontally(),
@@ -268,7 +285,7 @@ fun IBAUCodeScreen(
 
                                 OutlinedIconButton(
                                     onClick = {
-                                        userEvent(IbauCodeUserEvent.DeleteIBAUCode(ibauCode))
+                                        deleteDialogVisible = true
                                     },
                                     modifier = Modifier
                                         .weight(0.15f)

@@ -44,6 +44,12 @@ android {
         }
     }
 
+        testOptions {
+            unitTests {
+                isIncludeAndroidResources = true
+            }
+        }
+
     kotlinOptions {
         freeCompilerArgs = listOf(
             ("-opt-in=androidx.compose.material3.ExperimentalMaterial3Api")
@@ -89,7 +95,7 @@ dependencies {
     // Compose dependencies
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
     implementation("androidx.compose.runtime:runtime-livedata:1.4.3")
-    implementation("androidx.navigation:navigation-compose:2.5.3")
+    implementation("androidx.navigation:navigation-compose:2.6.0")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.1")
 
     //Room Database
@@ -119,4 +125,18 @@ dependencies {
     //WorkManager
     implementation("androidx.work:work-runtime-ktx:2.8.1")
     implementation("androidx.hilt:hilt-work:1.0.0")
+
+
+    //Testing hilt
+    testImplementation("com.google.dagger:hilt-android-testing:2.46.1")
+    kaptTest("com.google.dagger:hilt-android-compiler:2.46.1")
+    androidTestImplementation("com.google.dagger:hilt-android-testing:2.46.1")
+    kaptAndroidTest("com.google.dagger:hilt-android-compiler:2.46.1")
+
+    //Robolectric
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.robolectric:robolectric:4.10.3")
+
+    //Google truth
+    testImplementation("com.google.truth:truth:1.1.4")
 }
