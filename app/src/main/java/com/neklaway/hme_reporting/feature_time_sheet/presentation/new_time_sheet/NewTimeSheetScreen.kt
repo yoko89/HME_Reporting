@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package com.neklaway.hme_reporting.feature_time_sheet.presentation.new_time_sheet
 
 import androidx.compose.animation.AnimatedVisibility
@@ -7,14 +5,27 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
@@ -26,7 +37,7 @@ import com.neklaway.hme_reporting.common.presentation.common.component.Selector
 import com.neklaway.hme_reporting.utils.toDate
 import com.neklaway.hme_reporting.utils.toTime
 import kotlinx.coroutines.flow.Flow
-import java.util.*
+import java.util.Calendar
 
 @Composable
 fun NewTimeSheetScreen(
@@ -62,7 +73,7 @@ fun NewTimeSheetScreen(
     LaunchedEffect(key1 = travelStartInteractionSource) {
         travelStartInteractionSource.interactions.collect {
             when (it) {
-                is PressInteraction.Release -> state.date?.let { userEvents(NewTimeSheetUserEvents.TravelStartClicked) }
+                is PressInteraction.Press -> userEvents(NewTimeSheetUserEvents.TravelStartClicked)
             }
         }
     }
@@ -70,21 +81,21 @@ fun NewTimeSheetScreen(
     LaunchedEffect(key1 = workStartInteractionSource) {
         workStartInteractionSource.interactions.collect {
             when (it) {
-                is PressInteraction.Release -> state.date?.let { userEvents(NewTimeSheetUserEvents.WorkStartClicked) }
+                is PressInteraction.Release -> userEvents(NewTimeSheetUserEvents.WorkStartClicked)
             }
         }
     }
     LaunchedEffect(key1 = workEndInteractionSource) {
         workEndInteractionSource.interactions.collect {
             when (it) {
-                is PressInteraction.Release -> state.date?.let { userEvents(NewTimeSheetUserEvents.WorkEndClicked) }
+                is PressInteraction.Release ->  userEvents(NewTimeSheetUserEvents.WorkEndClicked)
             }
         }
     }
     LaunchedEffect(key1 = travelEndInteractionSource) {
         travelEndInteractionSource.interactions.collect {
             when (it) {
-                is PressInteraction.Release -> state.date?.let { userEvents(NewTimeSheetUserEvents.TravelEndClicked) }
+                is PressInteraction.Release -> userEvents(NewTimeSheetUserEvents.TravelEndClicked)
             }
         }
     }
@@ -304,7 +315,7 @@ fun NewTimeSheetScreen(
                         .fillMaxWidth(),
                     readOnly = true,
                     enabled = state.date != null,
-                    interactionSource = travelStartInteractionSource
+                    interactionSource = travelStartInteractionSource,
                 )
             }
 

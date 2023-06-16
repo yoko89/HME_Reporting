@@ -32,6 +32,10 @@ class UpdateCarMileageUseCase @Inject constructor(
             emit(Resource.Error("Start Mileage can't be empty"))
             return@flow
         }
+        if (startMileage < 0){
+            emit(Resource.Error("Start Mileage can't be negative"))
+            return@flow
+        }
         if (startDate == null) {
             emit(Resource.Error("Start Date can't be blank"))
             return@flow
@@ -42,6 +46,10 @@ class UpdateCarMileageUseCase @Inject constructor(
         }
         if (endMileage == null) {
             emit(Resource.Error("End Mileage can't be empty"))
+            return@flow
+        }
+        if (endMileage < startMileage) {
+            emit(Resource.Error("End Mileage can't be less than Start Mileage"))
             return@flow
         }
         if (endDate == null) {
@@ -56,7 +64,14 @@ class UpdateCarMileageUseCase @Inject constructor(
             emit(Resource.Error("Car Mileage can't be updated"))
             return@flow
         }
-
+        if (startDate.after(endDate)){
+            emit(Resource.Error("Start Date Must be Before End Date"))
+            return@flow
+        }
+        if (startTime.after(endTime)){
+            emit(Resource.Error("Start time Must be Before End time"))
+            return@flow
+        }
         try {
             val carMileage =
                 CarMileage(startDate, startTime, startMileage, endDate, endTime, endMileage, id)
@@ -65,13 +80,11 @@ class UpdateCarMileageUseCase @Inject constructor(
                 emit(Resource.Success(true))
             } else {
                 emit(Resource.Error("Error: Can't Update Car Mileage"))
-                Log.d(TAG, "invoke: error $result")
             }
         } catch (e: SQLiteConstraintException) {
             e.printStackTrace()
             emit(Resource.Error(e.message ?: "Error: Can't Update Car Mileage"))
             Log.d(TAG, "invoke: error ${e.message}")
-
         }
     }
 }

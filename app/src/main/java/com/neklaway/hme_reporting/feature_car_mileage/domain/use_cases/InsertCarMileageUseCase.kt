@@ -56,6 +56,14 @@ class InsertCarMileageUseCase @Inject constructor(
             emit(Resource.Error("End Time can't be blank"))
             return@flow
         }
+        if (startDate.after(endDate)){
+            emit(Resource.Error("Start Date Must be Before End Date"))
+            return@flow
+        }
+        if (startTime.after(endTime)){
+            emit(Resource.Error("Start time Must be Before End time"))
+            return@flow
+        }
         try {
             val carMileage =
                 CarMileage(startDate, startTime, startMileage, endDate, endTime, endMileage)

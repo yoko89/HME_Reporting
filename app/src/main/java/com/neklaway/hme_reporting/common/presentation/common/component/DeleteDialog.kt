@@ -9,6 +9,7 @@ import com.neklaway.hme_reporting.common.domain.model.Customer
 import com.neklaway.hme_reporting.common.domain.model.HMECode
 import com.neklaway.hme_reporting.common.domain.model.IBAUCode
 import com.neklaway.hme_reporting.feature_car_mileage.domain.model.CarMileage
+import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.CurrencyExchange
 import com.neklaway.hme_reporting.utils.toDate
 import java.util.Calendar
 
@@ -51,7 +52,12 @@ fun <T> DeleteDialog(
                 }
 
                 is CarMileage -> {
-                    Text(text = "Delete Milage entry for day ${item.startDate.toDate()}?")
+                    Text(text = "Delete Mileage entry for day ${item.startDate.toDate()}?")
+                }
+
+                is CurrencyExchange -> {
+                    Text(text = "Delete ${item.currencyName}?")
+
                 }
 
                 else -> {

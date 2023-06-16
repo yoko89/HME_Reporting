@@ -104,7 +104,7 @@ fun EditTimeSheetScreen(
     LaunchedEffect(key1 = travelStartInteractionSource) {
         travelStartInteractionSource.interactions.collect {
             when (it) {
-                is PressInteraction.Release -> state.date?.let { userEvents(EditTimeSheetUserEvents.TravelStartClicked) }
+                is PressInteraction.Release -> userEvents(EditTimeSheetUserEvents.TravelStartClicked)
             }
         }
     }
@@ -112,21 +112,21 @@ fun EditTimeSheetScreen(
     LaunchedEffect(key1 = workStartInteractionSource) {
         workStartInteractionSource.interactions.collect {
             when (it) {
-                is PressInteraction.Release -> state.date?.let { userEvents(EditTimeSheetUserEvents.WorkStartClicked) }
+                is PressInteraction.Release -> userEvents(EditTimeSheetUserEvents.WorkStartClicked)
             }
         }
     }
     LaunchedEffect(key1 = workEndInteractionSource) {
         workEndInteractionSource.interactions.collect {
             when (it) {
-                is PressInteraction.Release -> state.date?.let { userEvents(EditTimeSheetUserEvents.WorkEndClicked) }
+                is PressInteraction.Release -> userEvents(EditTimeSheetUserEvents.WorkEndClicked)
             }
         }
     }
     LaunchedEffect(key1 = travelEndInteractionSource) {
         travelEndInteractionSource.interactions.collect {
             when (it) {
-                is PressInteraction.Release -> state.date?.let { userEvents(EditTimeSheetUserEvents.TravelEndClicked) }
+                is PressInteraction.Release -> userEvents(EditTimeSheetUserEvents.TravelEndClicked)
             }
         }
     }

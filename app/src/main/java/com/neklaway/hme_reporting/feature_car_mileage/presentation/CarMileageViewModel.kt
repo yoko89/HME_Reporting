@@ -292,6 +292,10 @@ class CarMileageViewModel @Inject constructor(
         )
         date.set(Calendar.MILLISECOND, 0)
         _state.update { it.copy(startDate = date) }
+        state.value.startTime?.let {startTime->
+            startTime.set(year,month,day)
+            _state.update { it.copy(startTime = startTime) }
+        }
         dateTimePickedHide()
         viewModelScope.launch { setCarMileageStartDateUseCase(date) }
     }
@@ -314,6 +318,10 @@ class CarMileageViewModel @Inject constructor(
         )
         date.set(Calendar.MILLISECOND, 0)
         _state.update { it.copy(endDate = date) }
+        state.value.endTime?.let {endTime->
+            endTime.set(year,month,day)
+            _state.update { it.copy(endTime = endTime) }
+        }
         dateTimePickedHide()
         viewModelScope.launch { setCarMileageEndDateUseCase(date) }
     }
