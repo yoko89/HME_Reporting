@@ -8,6 +8,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,6 +25,7 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -39,6 +41,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -240,6 +243,7 @@ fun SettingsScreen(
                                 shape = RoundedCornerShape(10.dp)
                             )
                             .clip(RoundedCornerShape(10.dp))
+                            .background(Color.White)
                     )
                     Spacer(modifier = Modifier.height(5.dp))
                 }
@@ -256,7 +260,7 @@ fun SettingsScreen(
 
                 Divider(modifier = Modifier.padding(vertical = 5.dp))
 
-                Button(
+                OutlinedButton(
                     onClick = {
                         requestPermission = true
                         userEvent(SettingsUserEvents.BackupButtonClicked)
@@ -266,7 +270,7 @@ fun SettingsScreen(
             }
 
             item {
-                Button(
+                OutlinedButton(
                     onClick = {
                         requestPermission = true
                         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {

@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 plugins {
     id("com.android.application")
     kotlin("android")
@@ -14,8 +16,8 @@ android {
         applicationId = "com.neklaway.hmereporting"
         minSdk = 29
         targetSdk = 33
-        versionCode = 14
-        versionName = "2.3"
+        versionCode = 15
+        versionName = "2.4"
 
         testInstrumentationRunner = ("androidx.test.runner.AndroidJUnitRunner")
         vectorDrawables {
@@ -79,7 +81,7 @@ dependencies {
 
     implementation("androidx.core:core-ktx:1.10.1")
     implementation("androidx.compose.ui:ui:1.4.3")
-    implementation("androidx.compose.material3:material3:1.1.0")
+    implementation("androidx.compose.material3:material3:1.1.1")
     implementation("androidx.compose.ui:ui-tooling-preview:1.4.3")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")
     implementation("androidx.activity:activity-compose:1.7.2")
@@ -99,9 +101,9 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.1")
 
     //Room Database
-    implementation("androidx.room:room-runtime:2.5.1")
-    kapt("androidx.room:room-compiler:2.5.1")
-    implementation("androidx.room:room-ktx:2.5.1")
+    implementation("androidx.room:room-runtime:2.5.2")
+    kapt("androidx.room:room-compiler:2.5.2")
+    implementation("androidx.room:room-ktx:2.5.2")
 
     // Kotlin coroutine
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1")
