@@ -58,6 +58,7 @@ import com.neklaway.hme_reporting.common.presentation.common.component.CustomDat
 import com.neklaway.hme_reporting.common.presentation.common.component.DeleteDialog
 import com.neklaway.hme_reporting.common.presentation.common.component.DropDown
 import com.neklaway.hme_reporting.utils.BitmapOrientationCorrector
+import com.neklaway.hme_reporting.utils.ResourceWithString
 import com.neklaway.hme_reporting.utils.toDate
 import kotlinx.coroutines.flow.Flow
 import java.util.Calendar
@@ -254,14 +255,18 @@ fun EditExpanseScreen(
             }
 
             OutlinedTextField(
-                value = state.amount,
+                value = state.amount.string ?: "",
                 onValueChange = {
                     userEvent(EditExpanseUserEvent.AmountChanged(it))
                 },
                 label = { Text(text = "Amount") },
                 modifier = Modifier
                     .fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                supportingText = {
+                    Text(text = state.amount.message ?: "")
+                },
+                isError = state.amount is ResourceWithString.Error
             )
 
             DropDown(
@@ -275,14 +280,18 @@ fun EditExpanseScreen(
             )
 
             OutlinedTextField(
-                value = state.amountAED,
+                value = state.amountAED.string ?: "",
                 onValueChange = {
                     userEvent(EditExpanseUserEvent.AmountAEDChanged(it))
                 },
                 label = { Text(text = "Amount in AED") },
                 modifier = Modifier
                     .fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                supportingText = {
+                    Text(text = state.amountAED.message ?: "")
+                },
+                isError = state.amountAED is ResourceWithString.Error
             )
 
             state.invoicesUris.forEach { uri ->

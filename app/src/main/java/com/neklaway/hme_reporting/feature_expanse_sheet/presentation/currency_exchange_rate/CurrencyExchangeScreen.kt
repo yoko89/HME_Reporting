@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
@@ -42,9 +43,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.neklaway.hme_reporting.common.presentation.common.component.DeleteDialog
+import com.neklaway.hme_reporting.utils.ResourceWithString
 import kotlinx.coroutines.flow.Flow
 
 
@@ -115,13 +118,18 @@ fun CurrencyExchangeScreen(
 
 
             OutlinedTextField(
-                value = state.exchangeRate, onValueChange = { rate ->
+                value = state.exchangeRate.string?:"", onValueChange = { rate ->
                     userEvent(CurrencyExchangeUserEvent.CurrencyRateChanged(rate))
                 },
                 modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 label = { Text(text = "Exchange Rate") },
                 singleLine = true,
-                maxLines = 1
+                maxLines = 1,
+                supportingText = {
+                    Text(text = state.exchangeRate.message?:"")
+                },
+                isError = state.exchangeRate is ResourceWithString.Error
             )
 
 
@@ -154,7 +162,7 @@ fun CurrencyExchangeScreen(
                         Text(
                             text = "Exchange Rate",
                             textAlign = TextAlign.Center,
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
                         )
 
                         Spacer(modifier = Modifier.weight(0.5f))

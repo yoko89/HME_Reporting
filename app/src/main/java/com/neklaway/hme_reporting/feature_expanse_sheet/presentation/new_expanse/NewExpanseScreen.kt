@@ -32,6 +32,7 @@ import androidx.core.net.toFile
 import com.neklaway.hme_reporting.common.presentation.common.component.CustomDatePicker
 import com.neklaway.hme_reporting.common.presentation.common.component.DropDown
 import com.neklaway.hme_reporting.utils.BitmapOrientationCorrector
+import com.neklaway.hme_reporting.utils.ResourceWithString
 import com.neklaway.hme_reporting.utils.toDate
 import kotlinx.coroutines.flow.Flow
 import java.util.*
@@ -223,14 +224,18 @@ fun NewExpanseScreen(
             }
 
             OutlinedTextField(
-                value = state.amount,
+                value = state.amount.string?:"",
                 onValueChange = {
                     userEvent(NewExpanseUserEvent.AmountChanged(it))
                 },
                 label = { Text(text = "Amount") },
                 modifier = Modifier
                     .fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                supportingText = {
+                    Text(text = state.amount.message?:"")
+                },
+                isError = state.amount is ResourceWithString.Error
             )
 
             DropDown(
@@ -244,14 +249,18 @@ fun NewExpanseScreen(
             )
 
             OutlinedTextField(
-                value = state.amountAED,
+                value = state.amountAED.string?:"",
                 onValueChange = {
                     userEvent(NewExpanseUserEvent.AmountAEDChanged(it))
                 },
                 label = { Text(text = "Amount in AED") },
                 modifier = Modifier
                     .fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                supportingText = {
+                    Text(text = state.amountAED.message?:"")
+                },
+                isError = state.amountAED is ResourceWithString.Error
             )
             state.invoicesUris.forEach { uri ->
                 val imageFile = uri.toFile()

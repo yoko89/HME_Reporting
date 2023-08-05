@@ -8,6 +8,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -37,6 +38,7 @@ fun ExpanseMainScreen(
     showNavigationMenu: () -> Unit,
 ) {
     val navController = rememberNavController()
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -46,7 +48,8 @@ fun ExpanseMainScreen(
                     IconButton(onClick = showNavigationMenu) {
                         Icon(Icons.Default.Menu, contentDescription = "Menu")
                     }
-                })
+                },
+                scrollBehavior = scrollBehavior)
         },
         bottomBar = {
             val screens = mutableListOf(
@@ -70,6 +73,7 @@ fun ExpanseMainScreen(
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxSize()
+                .nestedScroll(scrollBehavior.nestedScrollConnection)
         ) {
             Navigation(navController = navController, Screen.ExpanseSheet.route)
         }

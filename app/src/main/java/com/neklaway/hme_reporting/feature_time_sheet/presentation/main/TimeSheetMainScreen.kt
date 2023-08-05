@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
@@ -44,7 +45,7 @@ fun TimeSheetMainScreen(
     showNavigationMenu: () -> Unit,
 ) {
     val navController = rememberNavController()
-
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -54,7 +55,8 @@ fun TimeSheetMainScreen(
                     IconButton(onClick = showNavigationMenu) {
                         Icon(Icons.Default.Menu, contentDescription = "Menu")
                     }
-                })
+                },
+                scrollBehavior = scrollBehavior)
         },
         bottomBar = {
             val screens = mutableListOf(
@@ -81,6 +83,7 @@ fun TimeSheetMainScreen(
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxSize()
+                .nestedScroll(scrollBehavior.nestedScrollConnection)
         ) {
             AnimatedVisibility(visible = state.startupRoute == null) {
                 Box(modifier = Modifier.fillMaxSize()) {

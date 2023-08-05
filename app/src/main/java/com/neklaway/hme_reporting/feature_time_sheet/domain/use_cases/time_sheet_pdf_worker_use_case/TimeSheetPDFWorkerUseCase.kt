@@ -47,7 +47,7 @@ class PDFWorkerUseCase @Inject constructor(
             result.collect { workInfoList ->
                 return@collect when (workInfoList.find { it.id == pdfWorkRequest.id }?.state) {
                     WorkInfo.State.SUCCEEDED -> emit(Resource.Success(Unit))
-                    WorkInfo.State.FAILED -> emit(Resource.Error("PDF Error"))
+                    WorkInfo.State.FAILED -> emit(Resource.Error(workInfoList.find { it.id == pdfWorkRequest.id }?.outputData?.getString(Constants.ERROR)?:"PDF Error"))
                     else -> emit(Resource.Loading())
                 }
             }

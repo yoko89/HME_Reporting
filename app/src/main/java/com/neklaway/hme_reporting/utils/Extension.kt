@@ -85,7 +85,7 @@ fun String.toFloatWithString(): ResourceWithString<Float> {
     } catch (e: NumberFormatException) {
         e.printStackTrace()
         return if (string.isNotBlank()) {
-            ResourceWithString.Error(message = "Error " + e.message, string = "")
+            ResourceWithString.Error(message = "Incorrect input: " +e.message.toString(), string = "")
         } else {
             ResourceWithString.Success(0f, "")
         }
@@ -105,7 +105,7 @@ fun String.toIntWithString(): ResourceWithString<Int> {
     } catch (e: NumberFormatException) {
         e.printStackTrace()
         return if (string.isNotBlank()) {
-            ResourceWithString.Error(message = "Error " + e.message, string = "")
+            ResourceWithString.Error(message = "Incorrect input: " + e.message.toString(), string = "")
         } else {
             ResourceWithString.Success(0, "")
         }

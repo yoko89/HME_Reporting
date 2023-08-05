@@ -49,4 +49,8 @@ object Constants {
     //Expanse related
     const val EXPANSE_FOLDER = "Expanse"
     const val EXPANSE_INVOICES_FOLDER = "Photos"
+
+    //Worker
+     const val ERROR = "error"
+
 }

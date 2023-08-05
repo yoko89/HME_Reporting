@@ -329,7 +329,7 @@ class TimeSheetViewModel @Inject constructor(
                     is Resource.Error -> {
                         _state.update { it.copy(loading = false) }
                         delay(1000)
-                        sendEvent(TimeSheetUiEvents.UserMessage("PDF Creation Error"))
+                        sendEvent(TimeSheetUiEvents.UserMessage(resource.message?:"PDF Creation Error"))
                     }
                     is Resource.Loading -> _state.update { it.copy(loading = true) }
                     is Resource.Success -> {

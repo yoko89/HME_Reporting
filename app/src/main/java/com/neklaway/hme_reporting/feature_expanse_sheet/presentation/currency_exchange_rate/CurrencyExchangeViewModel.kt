@@ -68,7 +68,7 @@ class CurrencyExchangeViewModel @Inject constructor(
 
     private fun saveCurrency() {
         val currencyName: String = state.value.currencyName
-        val rate = state.value.exchangeRate.toFloatWithString().let { resource ->
+        val rate = state.value.exchangeRate.let { resource ->
             when (resource) {
                 is ResourceWithString.Error -> {
                     sendEvent(resource.message ?: "Error")
@@ -107,7 +107,7 @@ class CurrencyExchangeViewModel @Inject constructor(
 
     private fun updateCurrency() {
         val currencyName: String = state.value.currencyName
-        val rate = state.value.exchangeRate.toFloatWithString().let { resource ->
+        val rate = state.value.exchangeRate.let { resource ->
             when (resource) {
                 is ResourceWithString.Error -> {
                     sendEvent(resource.message ?: "Error")
@@ -147,7 +147,7 @@ class CurrencyExchangeViewModel @Inject constructor(
             it.copy(
                 selectedCurrency = currencyExchange,
                 currencyName = currencyExchange.currencyName,
-                exchangeRate = currencyExchange.rate.toString()
+                exchangeRate = ResourceWithString.Success(currencyExchange.rate,currencyExchange.rate.toString())
             )
         }
     }
@@ -160,17 +160,7 @@ class CurrencyExchangeViewModel @Inject constructor(
 
     private fun currencyRateChanged(rate: String) {
         rate.toFloatWithString().let { resource ->
-            when (resource) {
-                is ResourceWithString.Error -> {
-                    sendEvent(resource.message ?: "Error")
-                    _state.update { it.copy(exchangeRate = "") }
-                }
-
-                is ResourceWithString.Loading -> Unit
-                is ResourceWithString.Success -> {
-                    _state.update { it.copy(exchangeRate = rate) }
-                }
-            }
+            _state.update { it.copy(exchangeRate = resource) }
         }
     }
 
@@ -193,7 +183,7 @@ class CurrencyExchangeViewModel @Inject constructor(
         _state.update {
             it.copy(
                 loading = false,
-                exchangeRate = "",
+                exchangeRate = ResourceWithString.Success(0f,""),
                 currencyName = "",
                 selectedCurrency = null
             )

@@ -32,6 +32,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -42,6 +43,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -64,6 +66,7 @@ fun CarMileageScreen(
     showNavigationMenu: () -> Unit,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
 
     val startDateInteractionSource = remember { MutableInteractionSource() }
@@ -166,7 +169,8 @@ fun CarMileageScreen(
                     IconButton(onClick = showNavigationMenu) {
                         Icon(Icons.Default.Menu, contentDescription = "Menu")
                     }
-                })
+                },
+                scrollBehavior = scrollBehavior)
         },
         floatingActionButton = {
             Row {
@@ -204,6 +208,7 @@ fun CarMileageScreen(
             modifier = Modifier
                 .padding(it)
                 .padding(5.dp)
+                .nestedScroll(scrollBehavior.nestedScrollConnection)
         ) {
 
             OutlinedTextField(

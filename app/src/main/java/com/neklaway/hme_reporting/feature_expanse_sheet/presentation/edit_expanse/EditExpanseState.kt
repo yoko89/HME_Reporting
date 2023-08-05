@@ -2,7 +2,8 @@ package com.neklaway.hme_reporting.feature_expanse_sheet.presentation.edit_expan
 
 import android.net.Uri
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.CurrencyExchange
-import java.util.*
+import com.neklaway.hme_reporting.utils.ResourceWithString
+import java.util.Calendar
 
 data class EditExpanseState(
     val loading: Boolean = false,
@@ -10,9 +11,9 @@ data class EditExpanseState(
     val invoiceNumber: String = "",
     val description: String = "",
     val personallyPaid: Boolean = false,
-    val amount: String = "",
+    val amount: ResourceWithString<Float> = ResourceWithString.Success(0f, ""),
     val currencyList: List<CurrencyExchange> = emptyList(),
-    val amountAED: String = "",
+    val amountAED: ResourceWithString<Float> = ResourceWithString.Success(0f, ""),
     val invoicesUris: List<Uri> = emptyList(),
     val showDatePicker: Boolean = false,
     val selectedCurrency: CurrencyExchange? = null,

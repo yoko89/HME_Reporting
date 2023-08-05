@@ -29,6 +29,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.math.RoundingMode
+import java.text.DecimalFormat
 import java.util.Calendar
 import java.util.TimeZone
 import javax.inject.Inject
@@ -94,8 +96,14 @@ class EditExpanseViewModel @Inject constructor(
                                 invoiceNumber = expanse.invoiceNumber,
                                 description = expanse.description,
                                 personallyPaid = expanse.personallyPaid,
-                                amount = expanse.amount.toString(),
-                                amountAED = expanse.amountAED.toString(),
+                                amount = ResourceWithString.Success(
+                                    expanse.amount,
+                                    expanse.amount.toString()
+                                ),
+                                amountAED = ResourceWithString.Success(
+                                    expanse.amountAED,
+                                    expanse.amountAED.toString()
+                                ),
                                 invoicesUris = expanse.invoicesUri.map { uriString ->
                                     uriString.toUri()
                                 },
@@ -127,9 +135,9 @@ class EditExpanseViewModel @Inject constructor(
                 invoiceNumber = state.value.invoiceNumber,
                 description = state.value.description,
                 personallyPaid = state.value.personallyPaid,
-                amount = state.value.amount.toFloat(),
+                amount = state.value.amount.data,
                 currencyID = state.value.selectedCurrency?.id,
-                amountAED = state.value.amountAED.toFloat(),
+                amountAED = state.value.amountAED.data,
                 invoiceUris = state.value.invoicesUris.map { it.toString() },
                 id = state.value.expanseId,
             ).collect { result ->
@@ -219,20 +227,23 @@ class EditExpanseViewModel @Inject constructor(
 
     }
 
-    private suspend fun calculateAmountInAED() {
-        val amountInAED = state.value.amount.toFloatWithString().let { resource ->
+    private fun calculateAmountInAED() {
+        val amountInAED = state.value.amount.let { resource ->
             when (resource) {
-                is ResourceWithString.Error -> {
-                    _uiEvent.send(EditExpanseUiEvents.UserMessage(resource.message ?: "Error"))
-                    ""
+                is ResourceWithString.Success -> {
+                    val amount = resource.data?.times(state.value.selectedCurrency?.rate ?: 0f)
+                    Log.d(
+                        TAG, "calculateAmountInAED: rate is ${state.value.selectedCurrency?.rate}"
+                    )
+                    val df = DecimalFormat("#.##")
+                    df.roundingMode = RoundingMode.HALF_UP
+                    val floatRounded = df.format(amount).toFloat()
+
+                    ResourceWithString.Success(floatRounded, floatRounded.toString())
                 }
 
-                is ResourceWithString.Loading -> ""
-                is ResourceWithString.Success -> {
-                    resource.data?.let { amount ->
-                        (amount.times(state.value.selectedCurrency?.rate ?: 0f).toString())
-                    } ?: ""
-                }
+                else -> ResourceWithString.Success(0f, "")
+
             }
         }
         _state.update { it.copy(amountAED = amountInAED) }
@@ -252,50 +263,22 @@ class EditExpanseViewModel @Inject constructor(
 
     private fun amountChanged(amount: String) {
         amount.toFloatWithString().let { resourceWithString ->
+            _state.update { it.copy(amount = resourceWithString) }
+
             when (resourceWithString) {
-                is ResourceWithString.Error -> {
-                    viewModelScope.launch {
-
-                        _uiEvent.send(
-                            EditExpanseUiEvents.UserMessage(
-                                resourceWithString.message ?: "Error in Amount"
-                            )
-                        )
-                    }
-                    _state.update { it.copy(amount = resourceWithString.string ?: "") }
-                }
-
-                is ResourceWithString.Loading -> Unit
                 is ResourceWithString.Success -> {
-                    _state.update { it.copy(amount = resourceWithString.string ?: "") }
                     viewModelScope.launch {
                         calculateAmountInAED()
                     }
                 }
+
+                else -> Unit
             }
         }
     }
 
     private fun amountAEDChanged(amount: String) {
-        amount.toFloatWithString().let { resourceWithString ->
-            when (resourceWithString) {
-                is ResourceWithString.Error -> {
-                    viewModelScope.launch {
-                        _uiEvent.send(
-                            EditExpanseUiEvents.UserMessage(
-                                resourceWithString.message ?: "Error in Amount"
-                            )
-                        )
-                    }
-                    _state.update { it.copy(amountAED = resourceWithString.string ?: "") }
-                }
-
-                is ResourceWithString.Loading -> Unit
-                is ResourceWithString.Success -> {
-                    _state.update { it.copy(amountAED = resourceWithString.string ?: "") }
-                }
-            }
-        }
+        _state.update { it.copy(amountAED = amount.toFloatWithString()) }
     }
 
     private fun getCurrencyList() {
@@ -402,20 +385,20 @@ class EditExpanseViewModel @Inject constructor(
         }
     }
 
-    fun userEvent(event: EditExpanseUserEvent){
-        when(event){
+    fun userEvent(event: EditExpanseUserEvent) {
+        when (event) {
             is EditExpanseUserEvent.AmountAEDChanged -> amountAEDChanged(event.amount)
             is EditExpanseUserEvent.AmountChanged -> amountChanged(event.amount)
             is EditExpanseUserEvent.CashCheckChanged -> cashCheckChanged(event.checked)
             is EditExpanseUserEvent.CurrencySelected -> currencySelected(event.currencyExchange)
             EditExpanseUserEvent.DateClicked -> dateClicked()
-            is EditExpanseUserEvent.DatePicked -> datePicked(event.year,event.month,event.day)
+            is EditExpanseUserEvent.DatePicked -> datePicked(event.year, event.month, event.day)
             EditExpanseUserEvent.DateShown -> dateShown()
             EditExpanseUserEvent.DeleteExpanse -> deleteExpanse()
             is EditExpanseUserEvent.DeleteImage -> deleteImage(event.uri)
             is EditExpanseUserEvent.DescriptionChanged -> descriptionChanged(event.description)
             is EditExpanseUserEvent.InvoiceNumberChanged -> invoiceNumberChanged(event.number)
-            is EditExpanseUserEvent.PhotoPicked -> photoPicked(event.context,event.uri)
+            is EditExpanseUserEvent.PhotoPicked -> photoPicked(event.context, event.uri)
             EditExpanseUserEvent.PhotoTaken -> photoTaken()
             EditExpanseUserEvent.PickPicture -> pickPicture()
             is EditExpanseUserEvent.TakePicture -> takePicture(event.context)

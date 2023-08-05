@@ -8,8 +8,10 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
+import androidx.work.Data
 import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
+import androidx.work.workDataOf
 import com.neklaway.hme_reporting.common.domain.model.Customer
 import com.neklaway.hme_reporting.common.domain.model.HMECode
 import com.neklaway.hme_reporting.common.domain.model.IBAUCode
@@ -251,28 +253,31 @@ class TimeSheetPDFCreatorWorker @AssistedInject constructor(
 
         // Get passed Data
         val timeSheetsSerialized =
-            inputData.getString(TIME_SHEET_LIST_KEY) ?: return Result.failure()
+            inputData.getString(TIME_SHEET_LIST_KEY) ?: return Result.failure(workDataOf(Constants.ERROR to "Timesheet list missing"))
         val timeSheets = Json.decodeFromString(TimeSheet.listSerializer, timeSheetsSerialized)
 
         //Fetching required data
 
+        var errorData:Data?=null
         getHMECodeByIdUseCase(timeSheets.first().HMEId).collect { resource ->
             when (resource) {
                 is Resource.Success -> hmeCode = resource.data ?: return@collect
+                is Resource.Error -> errorData = workDataOf(Constants.ERROR to resource.message)
                 else -> Unit
             }
         }
 
-        if (!this::hmeCode.isInitialized) return Result.failure()
+        if (!this::hmeCode.isInitialized) return errorData?.let { Result.failure(it) }?: Result.failure()
 
         getCustomerByIdUseCase(hmeCode.customerId).collect { resource ->
             when (resource) {
                 is Resource.Success -> customer = resource.data ?: return@collect
+                is Resource.Error -> errorData = workDataOf(Constants.ERROR to resource.message)
                 else -> Unit
             }
         }
 
-        if (!this::customer.isInitialized) return Result.failure()
+        if (!this::customer.isInitialized) return errorData?.let { Result.failure(it) }?: Result.failure()
 
         val isIbau = withContext(Dispatchers.Default) {
             async {
@@ -285,11 +290,12 @@ class TimeSheetPDFCreatorWorker @AssistedInject constructor(
                 getIBAUCodeByIdUseCase(id).collect { resource ->
                     when (resource) {
                         is Resource.Success -> ibau = resource.data ?: return@collect
+                        is Resource.Error -> errorData = workDataOf(Constants.ERROR to resource.message)
                         else -> Unit
                     }
                 }
             }
-            if (!this::ibau.isInitialized) return Result.failure()
+            if (!this::ibau.isInitialized) return errorData?.let { Result.failure(it) }?: Result.failure()
         }
 
         val userName = withContext(Dispatchers.Default) {

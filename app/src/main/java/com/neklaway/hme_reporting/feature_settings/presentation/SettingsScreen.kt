@@ -32,6 +32,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -42,6 +43,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -51,6 +53,7 @@ import com.neklaway.hme_reporting.feature_signature.presentation.signature.Signa
 import com.neklaway.hme_reporting.utils.Constants
 import com.neklaway.hme_reporting.utils.DarkTheme
 import com.neklaway.hme_reporting.utils.NotificationPermissionRequest
+import com.neklaway.hme_reporting.utils.ResourceWithString
 import com.neklaway.hme_reporting.utils.Theme
 import kotlinx.coroutines.flow.Flow
 
@@ -63,6 +66,7 @@ fun SettingsScreen(
     showNavigationMenu: () -> Unit,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
 
     var requestPermission by remember {
@@ -97,14 +101,16 @@ fun SettingsScreen(
                     IconButton(onClick = showNavigationMenu) {
                         Icon(Icons.Default.Menu, contentDescription = "Menu")
                     }
-                })
+                },
+                scrollBehavior = scrollBehavior)
         },
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(5.dp),
+                .padding(5.dp)
+                .nestedScroll(scrollBehavior.nestedScrollConnection),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
@@ -134,13 +140,15 @@ fun SettingsScreen(
 
             item {
                 OutlinedTextField(
-                    value = state.breakDuration,
+                    value = state.breakDuration.string?:"",
                     onValueChange = { userEvent(SettingsUserEvents.BreakDurationChanged(it)) },
                     label = { Text(text = "Break Duration") },
                     modifier = Modifier
                         .fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     singleLine = true,
+                    supportingText = { Text(text = state.breakDuration.message?:"")},
+                    isError = state.breakDuration is ResourceWithString.Error
                 )
             }
 
@@ -148,7 +156,7 @@ fun SettingsScreen(
                 Divider(modifier = Modifier.padding(vertical = 5.dp))
 
                 OutlinedTextField(
-                    value = state.visaReminder,
+                    value = state.visaReminder.string?:"",
                     onValueChange = {
                         userEvent(SettingsUserEvents.SetVisaReminder(it))
                     },
@@ -157,6 +165,8 @@ fun SettingsScreen(
                         .fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
+                    supportingText = { Text(text = state.visaReminder.message?:"")},
+                    isError = state.visaReminder is ResourceWithString.Error
                 )
             }
 
@@ -166,7 +176,7 @@ fun SettingsScreen(
                 Divider(modifier = Modifier.padding(vertical = 5.dp))
 
                 OutlinedTextField(
-                    value = state.fullDayAllowance,
+                    value = state.fullDayAllowance.string?:"",
                     onValueChange = {
                         userEvent(SettingsUserEvents.SetFullDayAllowance(it))
                     },
@@ -175,12 +185,14 @@ fun SettingsScreen(
                         .fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
+                    supportingText = { Text(text = state.fullDayAllowance.message?:"")},
+                    isError = state.fullDayAllowance is ResourceWithString.Error
                 )
             }
 
             item {
                 OutlinedTextField(
-                    value = state._8HAllowance,
+                    value = state._8HAllowance.string?:"",
                     onValueChange = {
                         userEvent(SettingsUserEvents.Set8HAllowance(it))
                     },
@@ -189,12 +201,14 @@ fun SettingsScreen(
                         .fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
+                    supportingText = { Text(text = state._8HAllowance.message?:"")},
+                    isError = state._8HAllowance is ResourceWithString.Error
                 )
             }
 
             item {
                 OutlinedTextField(
-                    value = state.savingDeductible,
+                    value = state.savingDeductible.string?:"",
                     onValueChange = {
                         userEvent(SettingsUserEvents.SetSavingDeductible(it))
                     },
@@ -203,6 +217,8 @@ fun SettingsScreen(
                         .fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
+                    supportingText = { Text(text = state.savingDeductible.message?:"")},
+                    isError = state.savingDeductible is ResourceWithString.Error
                 )
             }
             item {

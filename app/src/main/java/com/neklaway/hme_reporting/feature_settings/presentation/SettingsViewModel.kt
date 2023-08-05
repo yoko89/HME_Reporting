@@ -5,7 +5,12 @@ import android.util.Log
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.neklaway.hme_reporting.feature_settings.domain.use_cases.allowance.*
+import com.neklaway.hme_reporting.feature_settings.domain.use_cases.allowance.Get8HDayAllowanceUseCase
+import com.neklaway.hme_reporting.feature_settings.domain.use_cases.allowance.GetFullDayAllowanceUseCase
+import com.neklaway.hme_reporting.feature_settings.domain.use_cases.allowance.GetSavingDeductibleUseCase
+import com.neklaway.hme_reporting.feature_settings.domain.use_cases.allowance.Set8HAllowanceUseCase
+import com.neklaway.hme_reporting.feature_settings.domain.use_cases.allowance.SetFullDayAllowanceUseCase
+import com.neklaway.hme_reporting.feature_settings.domain.use_cases.allowance.SetSavingDeductibleUseCase
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.backup.StartBackup
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.backup.StartRestore
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.break_time.GetBreakDurationUseCase
@@ -31,7 +36,11 @@ import com.neklaway.hme_reporting.utils.toFloatWithString
 import com.neklaway.hme_reporting.utils.toIntWithString
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -68,7 +77,7 @@ class SettingsViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     private val _userMessage = Channel<String>()
-    val userMessage= _userMessage.receiveAsFlow()
+    val userMessage = _userMessage.receiveAsFlow()
 
     init {
         getUserName()
@@ -91,12 +100,14 @@ class SettingsViewModel @Inject constructor(
             _state.update { it.copy(userName = userName) }
         }
     }
+
     private fun getDarkTheme() {
         viewModelScope.launch {
             val theme = getDarkThemeUseCase.invoke().first()
             _state.update { it.copy(darkTheme = theme) }
         }
     }
+
     private fun getTheme() {
         viewModelScope.launch {
             val theme = getThemeUseCase.invoke().first()
@@ -121,35 +132,70 @@ class SettingsViewModel @Inject constructor(
     private fun getBreakDuration() {
         viewModelScope.launch {
             val breakTime = getBreakDurationUseCase()
-            _state.update { it.copy(breakDuration = breakTime) }
+            _state.update {
+                it.copy(
+                    breakDuration = ResourceWithString.Success(
+                        breakTime.toFloat(),
+                        breakTime
+                    )
+                )
+            }
         }
     }
 
     private fun getVisaReminder() {
         viewModelScope.launch {
             val visaReminder = getVisaReminderUseCase()
-            _state.update { it.copy(visaReminder = visaReminder.toString()) }
+            _state.update {
+                it.copy(
+                    visaReminder = ResourceWithString.Success(
+                        visaReminder,
+                        visaReminder.toString()
+                    )
+                )
+            }
         }
     }
 
     private fun getFullDayAllowance() {
         viewModelScope.launch {
             val fullDayAllowance = getFullDayAllowanceUseCase()
-            _state.update { it.copy(fullDayAllowance = fullDayAllowance.toString()) }
+            _state.update {
+                it.copy(
+                    fullDayAllowance = ResourceWithString.Success(
+                        fullDayAllowance,
+                        fullDayAllowance.toString()
+                    )
+                )
+            }
         }
     }
 
     private fun get8HDayAllowance() {
         viewModelScope.launch {
             val _8HDayAllowance = get8HDayAllowanceUseCase()
-            _state.update { it.copy(_8HAllowance = _8HDayAllowance.toString()) }
+            _state.update {
+                it.copy(
+                    _8HAllowance = ResourceWithString.Success(
+                        _8HDayAllowance,
+                        _8HDayAllowance.toString()
+                    )
+                )
+            }
         }
     }
 
     private fun getSavingDeductible() {
         viewModelScope.launch {
             val savingDeductible = getSavingDeductibleUseCase()
-            _state.update { it.copy(savingDeductible = savingDeductible.toString()) }
+            _state.update {
+                it.copy(
+                    savingDeductible = ResourceWithString.Success(
+                        savingDeductible,
+                        savingDeductible.toString()
+                    )
+                )
+            }
         }
     }
 
@@ -160,12 +206,14 @@ class SettingsViewModel @Inject constructor(
             setUserNameUseCase.invoke(userName)
         }
     }
+
     private fun setTheme(theme: Theme) {
         _state.update { it.copy(theme = theme) }
         viewModelScope.launch {
             setThemeUseCase.invoke(theme)
         }
     }
+
     private fun setDarkTheme(theme: DarkTheme) {
         _state.update { it.copy(darkTheme = theme) }
         viewModelScope.launch {
@@ -174,23 +222,18 @@ class SettingsViewModel @Inject constructor(
     }
 
     private fun setVisaReminder(reminder: String) {
-        viewModelScope.launch {
-            reminder.toIntWithString().let { resourceWithString ->
-                when (resourceWithString) {
-                    is ResourceWithString.Error -> {
-                        _userMessage.send(resourceWithString.message ?: "Error")
-
-                    }
-                    is ResourceWithString.Loading -> Unit
-                    is ResourceWithString.Success -> {
+        reminder.toIntWithString().let { resourceWithString ->
+            when (resourceWithString) {
+                is ResourceWithString.Success -> {
+                    viewModelScope.launch {
                         setVisaReminderUseCase(resourceWithString.data!!)
                     }
                 }
-                _state.update { it.copy(visaReminder = resourceWithString.string ?: "") }
 
+                else -> Unit
             }
+            _state.update { it.copy(visaReminder = resourceWithString) }
         }
-
     }
 
     private fun setIsIbau(isIbau: Boolean) {
@@ -208,30 +251,26 @@ class SettingsViewModel @Inject constructor(
     }
 
     private fun breakDurationChanged(breakDuration: String) {
-            breakDuration.toFloatWithString().let { resourceString ->
-                when (resourceString) {
-                    is ResourceWithString.Error -> {
-                        viewModelScope.launch {
-                            _userMessage.send(resourceString.message ?: "error")
-                        }
-                    }
-                    is ResourceWithString.Loading -> Unit
-                    is ResourceWithString.Success -> {
-                        viewModelScope.launch {
-                            setBreakDurationUseCase(resourceString.data!!).collect { resource ->
-                                when (resource) {
-                                    is Resource.Error -> _userMessage.send(
-                                        resource.message ?: "error"
-                                    )
+        breakDuration.toFloatWithString().let { resourceString ->
+            when (resourceString) {
+                is ResourceWithString.Success -> {
+                    viewModelScope.launch {
+                        setBreakDurationUseCase(resourceString.data!!).collect { resource ->
+                            when (resource) {
+                                is Resource.Error -> _userMessage.send(
+                                    resource.message ?: "error"
+                                )
 
-                                    else -> Unit
-                                }
+                                else -> Unit
                             }
                         }
                     }
                 }
-                _state.update { it.copy(breakDuration = resourceString.string ?: "") }
+
+                else -> Unit
             }
+            _state.update { it.copy(breakDuration = resourceString) }
+        }
     }
 
     private fun signatureBtnClicked() {
@@ -258,6 +297,7 @@ class SettingsViewModel @Inject constructor(
                     _userMessage.send("${signatureResource.message}")
                     _state.update { it.copy(isLoading = false) }
                 }
+
                 is Resource.Loading -> {}
             }
 
@@ -275,66 +315,54 @@ class SettingsViewModel @Inject constructor(
     }
 
     private fun setFullDayAllowance(allowance: String) {
-            allowance.toIntWithString().let { resourceWithString ->
-                when (resourceWithString) {
-                    is ResourceWithString.Error -> {
-                        viewModelScope.launch {
-                            _userMessage.send(resourceWithString.message ?: "Error")
-                        }
-                    }
-                    is ResourceWithString.Loading -> Unit
-                    is ResourceWithString.Success -> {
-                        viewModelScope.launch {
-                            setFullDayAllowanceUseCase(resourceWithString.data!!)
-                        }
+        allowance.toIntWithString().let { resourceWithString ->
+            when (resourceWithString) {
+                is ResourceWithString.Success -> {
+                    viewModelScope.launch {
+                        setFullDayAllowanceUseCase(resourceWithString.data!!)
                     }
                 }
-                _state.update { it.copy(fullDayAllowance = resourceWithString.string ?: "") }
 
+                else -> Unit
             }
+            _state.update { it.copy(fullDayAllowance = resourceWithString) }
+
+        }
     }
 
     private fun set8HAllowance(allowance: String) {
-            allowance.toIntWithString().let { resourceWithString ->
-                when (resourceWithString) {
-                    is ResourceWithString.Error -> {
-                        viewModelScope.launch {
-                            _userMessage.send(resourceWithString.message ?: "Error")
-                        }
-                    }
-                    is ResourceWithString.Loading -> Unit
-                    is ResourceWithString.Success -> {
-                            viewModelScope.launch {
-                                set8HAllowanceUseCase(resourceWithString.data!!)
-                            }
+        allowance.toIntWithString().let { resourceWithString ->
+            when (resourceWithString) {
+                is ResourceWithString.Success -> {
+                    viewModelScope.launch {
+                        set8HAllowanceUseCase(resourceWithString.data!!)
                     }
                 }
-                _state.update { it.copy(_8HAllowance = resourceWithString.string ?: "") }
+
+                else -> Unit
+            }
+            _state.update { it.copy(_8HAllowance = resourceWithString) }
         }
     }
 
     private fun setSavingDeductible(deductible: String) {
-            deductible.toIntWithString().let { resourceWithString ->
-                when (resourceWithString) {
-                    is ResourceWithString.Error -> {
-                        viewModelScope.launch {
-                            _userMessage.send(resourceWithString.message ?: "Error")
-                        }
-                    }
-                    is ResourceWithString.Loading -> Unit
-                    is ResourceWithString.Success -> {
-                        viewModelScope.launch {
-                            setSavingDeductibleUseCase(resourceWithString.data!!)
-                        }
+        deductible.toIntWithString().let { resourceWithString ->
+            when (resourceWithString) {
+                is ResourceWithString.Success -> {
+                    viewModelScope.launch {
+                        setSavingDeductibleUseCase(resourceWithString.data!!)
                     }
                 }
-                _state.update { it.copy(savingDeductible = resourceWithString.string ?: "") }
 
+                else -> Unit
             }
-        }
+            _state.update { it.copy(savingDeductible = resourceWithString) }
 
-    fun userEvent(event:SettingsUserEvents){
-        when(event){
+        }
+    }
+
+    fun userEvent(event: SettingsUserEvents) {
+        when (event) {
             SettingsUserEvents.BackupButtonClicked -> backupButtonClicked()
             is SettingsUserEvents.BreakDurationChanged -> breakDurationChanged(event.duration)
             is SettingsUserEvents.RestoreFolderSelected -> restoreFolderSelected(event.uri)

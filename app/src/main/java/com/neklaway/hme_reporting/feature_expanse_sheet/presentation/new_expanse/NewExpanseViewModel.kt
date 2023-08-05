@@ -32,6 +32,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.math.RoundingMode
+import java.text.DecimalFormat
 import java.util.Calendar
 import java.util.TimeZone
 import javax.inject.Inject
@@ -159,7 +161,7 @@ class NewExpanseViewModel @Inject constructor(
     private fun insertExpanse() {
         viewModelScope.launch(Dispatchers.IO) {
 
-            val amountInFloat = state.value.amount.toFloatWithString().let { resource ->
+            val amountInFloat = state.value.amount.let { resource ->
                 when (resource) {
                     is ResourceWithString.Error -> {
                         _uiEvent.send(NewExpanseUiEvents.UserMessage(resource.message ?: "Error"))
@@ -173,7 +175,7 @@ class NewExpanseViewModel @Inject constructor(
                 }
 
             }
-            val amountInAEDInFloat = state.value.amountAED.toFloatWithString().let { resource ->
+            val amountInAEDInFloat = state.value.amountAED.let { resource ->
                 when (resource) {
                     is ResourceWithString.Error -> {
                         _uiEvent.send(NewExpanseUiEvents.UserMessage(resource.message ?: "Error"))
@@ -228,8 +230,8 @@ class NewExpanseViewModel @Inject constructor(
                 date = null,
                 description = "",
                 invoiceNumber = "",
-                amount = "",
-                amountAED = "",
+                amount = ResourceWithString.Success(0f, ""),
+                amountAED = ResourceWithString.Success(0f, ""),
                 personallyPaid = false,
                 selectedCurrency = null,
                 invoicesUris = emptyList()
@@ -263,48 +265,23 @@ class NewExpanseViewModel @Inject constructor(
 
     private fun amountChanged(amount: String) {
         amount.toFloatWithString().let { resourceWithString ->
-            when (resourceWithString) {
-                is ResourceWithString.Error -> {
-                    viewModelScope.launch {
-                        _uiEvent.send(
-                            NewExpanseUiEvents.UserMessage(
-                                resourceWithString.message ?: "Error in Amount"
-                            )
-                        )
-                    }
-                    _state.update { it.copy(amount = resourceWithString.string ?: "") }
-                }
+            _state.update { it.copy(amount = resourceWithString) }
 
-                is ResourceWithString.Loading -> Unit
+            when (resourceWithString) {
                 is ResourceWithString.Success -> {
-                    _state.update { it.copy(amount = resourceWithString.string ?: "") }
                     viewModelScope.launch {
                         calculateAmountInAED()
                     }
                 }
+
+                else -> Unit
             }
         }
     }
 
     private fun amountAEDChanged(amount: String) {
         amount.toFloatWithString().let { resourceWithString ->
-            when (resourceWithString) {
-                is ResourceWithString.Error -> {
-                    viewModelScope.launch {
-                        _uiEvent.send(
-                            NewExpanseUiEvents.UserMessage(
-                                resourceWithString.message ?: "Error in Amount"
-                            )
-                        )
-                    }
-                    _state.update { it.copy(amountAED = resourceWithString.string ?: "") }
-                }
-
-                is ResourceWithString.Loading -> Unit
-                is ResourceWithString.Success -> {
-                    _state.update { it.copy(amountAED = resourceWithString.string ?: "") }
-                }
-            }
+            _state.update { it.copy(amountAED = resourceWithString) }
         }
     }
 
@@ -346,20 +323,23 @@ class NewExpanseViewModel @Inject constructor(
 
     }
 
-    private suspend fun calculateAmountInAED() {
-        val amountInAED = state.value.amount.toFloatWithString().let { resource ->
+    private fun calculateAmountInAED() {
+        val amountInAED = state.value.amount.let {resource ->
             when (resource) {
-                is ResourceWithString.Error -> {
-                    _uiEvent.send(NewExpanseUiEvents.UserMessage(resource.message ?: "Error"))
-                    ""
+                is ResourceWithString.Success -> {
+                    val amount = resource.data?.times(state.value.selectedCurrency?.rate ?: 0f)
+                    Log.d(
+                        TAG,"calculateAmountInAED: rate is ${state.value.selectedCurrency?.rate}"
+                    )
+                    val df = DecimalFormat("#.##")
+                    df.roundingMode = RoundingMode.HALF_UP
+                    val floatRounded = df.format(amount).toFloat()
+
+                    ResourceWithString.Success(floatRounded, floatRounded.toString())
                 }
 
-                is ResourceWithString.Loading -> ""
-                is ResourceWithString.Success -> {
-                    resource.data?.let { amount ->
-                        (amount.times(state.value.selectedCurrency?.rate ?: 0f).toString())
-                    } ?: ""
-                }
+                else -> ResourceWithString.Success(0f, "")
+
             }
         }
         _state.update { it.copy(amountAED = amountInAED) }
@@ -421,22 +401,22 @@ class NewExpanseViewModel @Inject constructor(
         }
     }
 
-    fun userEvent(event:NewExpanseUserEvent){
-        when(event){
+    fun userEvent(event: NewExpanseUserEvent) {
+        when (event) {
             is NewExpanseUserEvent.AmountAEDChanged -> amountAEDChanged(event.amount)
             is NewExpanseUserEvent.AmountChanged -> amountChanged(event.amount)
             is NewExpanseUserEvent.CashCheckChanged -> cashCheckChanged(event.checked)
             is NewExpanseUserEvent.CurrencySelected -> currencySelected(event.currencyExchange)
             is NewExpanseUserEvent.CustomerSelected -> customerSelected(event.customer)
             NewExpanseUserEvent.DateClicked -> dateClicked()
-            is NewExpanseUserEvent.DatePicked -> datePicked(event.year,event.month,event.day)
+            is NewExpanseUserEvent.DatePicked -> datePicked(event.year, event.month, event.day)
             NewExpanseUserEvent.DatePickedCanceled -> datePickedCanceled()
             is NewExpanseUserEvent.DeleteImage -> deleteImage(event.uri)
             is NewExpanseUserEvent.DescriptionChanged -> descriptionChanged(event.description)
             is NewExpanseUserEvent.HmeSelected -> hmeSelected(event.hmeCode)
             NewExpanseUserEvent.InsertExpanse -> insertExpanse()
             is NewExpanseUserEvent.InvoiceNumberChanged -> invoiceNumberChanged(event.number)
-            is NewExpanseUserEvent.PhotoPicked -> photoPicked(event.context,event.uri)
+            is NewExpanseUserEvent.PhotoPicked -> photoPicked(event.context, event.uri)
             NewExpanseUserEvent.PhotoTaken -> photoTaken()
             NewExpanseUserEvent.PickPicture -> pickPicture()
             is NewExpanseUserEvent.TakePicture -> takePicture(event.context)
