@@ -8,7 +8,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 
 @Composable
-fun ComposableScreenAnimation(content: @Composable () -> Unit) {
+fun ComposableScreenAnimation(content: @Composable AnimatedVisibilityScope.() -> Unit) {
     AnimatedVisibility(
         visibleState = remember {
             MutableTransitionState(
@@ -17,8 +17,7 @@ fun ComposableScreenAnimation(content: @Composable () -> Unit) {
         },
         modifier = Modifier.fillMaxSize(),
         enter = slideInHorizontally().plus(fadeIn()),
-        exit = slideOutHorizontally().plus(fadeOut())
-    ) {
-        content()
-    }
+        exit = slideOutHorizontally().plus(fadeOut()),
+        content = content
+    )
 }
