@@ -8,6 +8,7 @@ import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import com.neklaway.hme_reporting.utils.Constants
 import dagger.hilt.android.HiltAndroidApp
+import java.util.TimeZone
 import javax.inject.Inject
 
 
@@ -68,7 +69,8 @@ class HMEReportingApp : Application(), Configuration.Provider {
         )
         manager.createNotificationChannel(restoreNotificationChannel)
 
-
+        //Set default timezone to Dubai
+        TimeZone.setDefault(TimeZone.getTimeZone("Asia/Dubai"))
     }
 
 }
