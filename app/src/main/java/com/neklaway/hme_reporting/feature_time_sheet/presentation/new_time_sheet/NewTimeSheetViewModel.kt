@@ -391,6 +391,7 @@ class NewTimeSheetViewModel @Inject constructor(
 
     private fun travelStartPicked(hour: Int, minute: Int) {
         val date = state.value.date!!.clone() as Calendar
+        date.timeZone = TimeZone.getTimeZone("Asia/Dubai")
         date.set(Calendar.HOUR_OF_DAY, hour)
         date.set(Calendar.MINUTE, minute)
         _state.update { it.copy(travelStart = date) }
@@ -406,6 +407,7 @@ class NewTimeSheetViewModel @Inject constructor(
 
     private fun workStartPicked(hour: Int, minute: Int) {
         val date = state.value.date!!.clone() as Calendar
+        date.timeZone = TimeZone.getTimeZone("Asia/Dubai")
         date.set(Calendar.HOUR_OF_DAY, hour)
         date.set(Calendar.MINUTE, minute)
         _state.update { it.copy(workStart = date) }
@@ -421,6 +423,7 @@ class NewTimeSheetViewModel @Inject constructor(
 
     private fun workEndPicked(hour: Int, minute: Int) {
         val date = state.value.date!!.clone() as Calendar
+        date.timeZone = TimeZone.getTimeZone("Asia/Dubai")
         date.set(Calendar.HOUR_OF_DAY, hour)
         date.set(Calendar.MINUTE, minute)
         _state.update { it.copy(workEnd = date) }
@@ -436,6 +439,7 @@ class NewTimeSheetViewModel @Inject constructor(
 
     private fun travelEndPicked(hour: Int, minute: Int) {
         val date = state.value.date!!.clone() as Calendar
+        date.timeZone = TimeZone.getTimeZone("Asia/Dubai")
         date.set(Calendar.HOUR_OF_DAY, hour)
         date.set(Calendar.MINUTE, minute)
         _state.update { it.copy(travelEnd = date) }
