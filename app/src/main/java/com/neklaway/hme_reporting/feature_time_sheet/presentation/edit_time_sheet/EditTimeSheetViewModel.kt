@@ -18,6 +18,8 @@ import com.neklaway.hme_reporting.common.domain.use_cases.time_sheet_use_cases.G
 import com.neklaway.hme_reporting.common.domain.use_cases.time_sheet_use_cases.UpdateTimeSheetUseCase
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.is_ibau.GetIsIbauUseCase
 import com.neklaway.hme_reporting.utils.Resource
+import com.neklaway.hme_reporting.utils.toDate
+import com.neklaway.hme_reporting.utils.toTime
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
@@ -68,7 +70,6 @@ class EditTimeSheetViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update { it.copy(isIbau = getIsIBAUUseCase.invoke()) }
         }
-
     }
 
     private fun getTimeSheet() {
@@ -81,6 +82,9 @@ class EditTimeSheetViewModel @Inject constructor(
         timeSheet = viewModelScope.async(Dispatchers.IO) {
             getTimeSheetByIdUseCase(timeSheetId).collect { result ->
                 Log.d(TAG, "TimeSheet: $result")
+                Log.d(TAG, "travel start date: ${result.data?.date.toDate()}")
+                Log.d(TAG, "travel start date: ${result.data?.travelStart.toDate()}")
+                Log.d(TAG, "work start date: ${result.data?.workStart.toDate()}")
                 when (result) {
                     is Resource.Error -> {
                         _uiEvent.send(
@@ -233,7 +237,29 @@ class EditTimeSheetViewModel @Inject constructor(
             0
         )
         date.set(Calendar.MILLISECOND, 0)
-        _state.update { it.copy(date = date, showDatePicker = false) }
+
+        val travelStart = state.value.travelStart
+        travelStart?.set(year, month, day)
+        val workStart = state.value.workStart
+        workStart?.set(year, month, day)
+        val workEnd = state.value.workEnd
+        workEnd?.set(year, month, day)
+        val travelEnd = state.value.travelEnd
+        travelEnd?.set(year, month, day)
+
+
+        _state.update {
+            it.copy(
+                date = date,
+                travelStart = travelStart,
+                workStart = workStart,
+                workEnd = workEnd,
+                travelEnd = travelEnd,
+                showDatePicker = false
+            )
+        }
+
+        Log.d(TAG, "datePicked: ${date.toDate()}")
     }
 
     private fun travelStartClicked() {
@@ -244,6 +270,7 @@ class EditTimeSheetViewModel @Inject constructor(
 
     private fun travelStartPicked(hour: Int, minute: Int) {
         val date = state.value.date!!.clone() as Calendar
+        date.timeZone = TimeZone.getTimeZone("Asia/Dubai")
         date.set(Calendar.HOUR_OF_DAY, hour)
         date.set(Calendar.MINUTE, minute)
         _state.update { it.copy(travelStart = date) }
@@ -256,9 +283,11 @@ class EditTimeSheetViewModel @Inject constructor(
 
     private fun workStartPicked(hour: Int, minute: Int) {
         val date = state.value.date!!.clone() as Calendar
+        date.timeZone = TimeZone.getTimeZone("Asia/Dubai")
         date.set(Calendar.HOUR_OF_DAY, hour)
         date.set(Calendar.MINUTE, minute)
         _state.update { it.copy(workStart = date) }
+        Log.d(TAG, "workStartPicked: ${date.toDate()} -- ${date.toTime()}")
         timePickerShown()
     }
 

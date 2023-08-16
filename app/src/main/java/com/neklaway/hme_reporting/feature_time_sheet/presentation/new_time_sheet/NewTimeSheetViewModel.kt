@@ -41,8 +41,10 @@ import com.neklaway.hme_reporting.feature_settings.domain.use_cases.is_auto_clea
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.is_ibau.GetIsIbauUseCase
 import com.neklaway.hme_reporting.utils.Resource
 import com.neklaway.hme_reporting.utils.ResourceWithString
+import com.neklaway.hme_reporting.utils.toDate
 import com.neklaway.hme_reporting.utils.toFloatWithString
 import com.neklaway.hme_reporting.utils.toIntWithString
+import com.neklaway.hme_reporting.utils.toTime
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -411,6 +413,7 @@ class NewTimeSheetViewModel @Inject constructor(
         date.set(Calendar.HOUR_OF_DAY, hour)
         date.set(Calendar.MINUTE, minute)
         _state.update { it.copy(workStart = date) }
+        Log.d(TAG, "workStartPicked: ${date.toDate()} -- ${date.toTime()}")
         timePickerShown()
         viewModelScope.launch {
             setWorkStartUseCase(date)

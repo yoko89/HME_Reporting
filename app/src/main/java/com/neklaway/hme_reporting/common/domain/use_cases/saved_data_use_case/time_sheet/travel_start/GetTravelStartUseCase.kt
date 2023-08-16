@@ -3,6 +3,7 @@ package com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.t
 import com.neklaway.hme_reporting.common.domain.repository.SavedDataRepository
 import kotlinx.coroutines.flow.first
 import java.util.Calendar
+import java.util.TimeZone
 import javax.inject.Inject
 
 class GetTravelStartUseCase @Inject constructor(
@@ -11,7 +12,7 @@ class GetTravelStartUseCase @Inject constructor(
     suspend operator fun invoke():Calendar?{
         val timeInMills = repository.getTravelStart().first()
 
-        val cal = Calendar.getInstance()
+        val cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Dubai"))
         return if (timeInMills != null){
             cal.timeInMillis = timeInMills
             cal
