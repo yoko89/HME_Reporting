@@ -39,6 +39,7 @@ import com.neklaway.hme_reporting.common.ui.theme.HMEReportingTheme
 import com.neklaway.hme_reporting.feature_car_mileage.presentation.CarMileageScreen
 import com.neklaway.hme_reporting.feature_car_mileage.presentation.CarMileageViewModel
 import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.main.ExpanseMainScreen
+import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.main.ExpanseSheetMainViewModel
 import com.neklaway.hme_reporting.feature_settings.presentation.SettingsScreen
 import com.neklaway.hme_reporting.feature_settings.presentation.SettingsViewModel
 import com.neklaway.hme_reporting.feature_time_sheet.presentation.main.TimeSheetMainScreen
@@ -175,8 +176,13 @@ private fun Navigation(
         }
 
         composable(route = Screen.ExpanseMain.route) {
+            val viewModel: ExpanseSheetMainViewModel = hiltViewModel()
             ComposableScreenAnimation {
-                ExpanseMainScreen(showNavigationMenu = showDrawer)
+                ExpanseMainScreen(
+                    viewModel.state.collectAsState().value,
+                    viewModel::userEvent,
+                    showDrawer
+                )
             }
         }
 

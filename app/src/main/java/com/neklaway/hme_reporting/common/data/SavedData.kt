@@ -29,6 +29,7 @@ class SavedData @Inject constructor(@ApplicationContext context: Context) {
         val weekend = booleanPreferencesKey("weekend")
         val travel_day = booleanPreferencesKey("travel_day")
         val timesheet_route = stringPreferencesKey("timesheet_route")
+        val expanse_sheet_route = stringPreferencesKey("expanse_sheet_route")
         val car_mileage_start_date = longPreferencesKey("car_mileage_start_date")
         val car_mileage_start_time = longPreferencesKey("car_mileage_start_time")
         val car_mileage_start_mileage = longPreferencesKey("car_mileage_start_mileage")
@@ -213,6 +214,16 @@ class SavedData @Inject constructor(@ApplicationContext context: Context) {
 
     val getTimeSheetRoute: Flow<String?> = savedDataDataStore.data.map { settings ->
         settings[timesheet_route]
+    }
+
+    suspend fun setExpanseSheetRoute(route: String) {
+        savedDataDataStore.edit { settings ->
+            settings[expanse_sheet_route] = route
+        }
+    }
+
+    val getExpanseSheetRoute: Flow<String?> = savedDataDataStore.data.map { settings ->
+        settings[expanse_sheet_route]
     }
 
     suspend fun setCarMileageStartDate(carMileageStartDateInMills: Long?) {

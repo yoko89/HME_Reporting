@@ -1,6 +1,7 @@
 package com.neklaway.hme_reporting.feature_expanse_sheet.presentation.main
 
 import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
@@ -35,6 +36,8 @@ private const val TAG = "ExpanseMainScreen"
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExpanseMainScreen(
+    state: ExpanseSheetState,
+    userEvents: (ExpanseSheetMainUserEvent) -> Unit,
     showNavigationMenu: () -> Unit,
 ) {
     val navController = rememberNavController()
@@ -43,13 +46,15 @@ fun ExpanseMainScreen(
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            TopAppBar(title = { Text(text = "Expanse Sheet") },
+            TopAppBar(
+                title = { Text(text = "Expanse Sheet") },
                 navigationIcon = {
                     IconButton(onClick = showNavigationMenu) {
                         Icon(Icons.Default.Menu, contentDescription = "Menu")
                     }
                 },
-                scrollBehavior = scrollBehavior)
+                scrollBehavior = scrollBehavior
+            )
         },
         bottomBar = {
             val screens = mutableListOf(
@@ -64,6 +69,7 @@ fun ExpanseMainScreen(
             BottomNavigationBar(
                 screenList = screens, navController = navController
             ) {
+                userEvents(ExpanseSheetMainUserEvent.ScreenSelected(it.route))
                 navController.popBackStack()
                 navController.navigate(it.route)
             }
@@ -75,7 +81,13 @@ fun ExpanseMainScreen(
                 .fillMaxSize()
                 .nestedScroll(scrollBehavior.nestedScrollConnection)
         ) {
-            Navigation(navController = navController, Screen.ExpanseSheet.route)
+            AnimatedVisibility(visible = state.startupRoute != null) {
+
+                Navigation(
+                    navController = navController,
+                    state.startupRoute!!
+                )
+            }
         }
 
     }
@@ -120,15 +132,23 @@ private fun Navigation(
         }
 
         composable(route = Screen.DailyAllowance.route) {
-            val viewModel:DailyAllowanceViewModel = hiltViewModel()
+            val viewModel: DailyAllowanceViewModel = hiltViewModel()
             ComposableScreenAnimation {
-                DailyAllowanceScreen(viewModel.state.collectAsState().value,viewModel.userMessage,viewModel::userEvent)
+                DailyAllowanceScreen(
+                    viewModel.state.collectAsState().value,
+                    viewModel.userMessage,
+                    viewModel::userEvent
+                )
             }
         }
         composable(route = Screen.CurrencyExchange.route) {
-            val viewModel:CurrencyExchangeViewModel = hiltViewModel()
+            val viewModel: CurrencyExchangeViewModel = hiltViewModel()
             ComposableScreenAnimation {
-                CurrencyExchangeScreen(viewModel.state.collectAsState().value,viewModel.userMessage,viewModel::userEvent)
+                CurrencyExchangeScreen(
+                    viewModel.state.collectAsState().value,
+                    viewModel.userMessage,
+                    viewModel::userEvent
+                )
             }
         }
 
@@ -139,9 +159,14 @@ private fun Navigation(
                     defaultValue = -1
                 }
             )) {
-            val viewModel:EditExpanseViewModel = hiltViewModel()
+            val viewModel: EditExpanseViewModel = hiltViewModel()
             ComposableScreenAnimation {
-                EditExpanseScreen(navController,viewModel.state.collectAsState().value,viewModel.uiEvent,viewModel::userEvent)
+                EditExpanseScreen(
+                    navController,
+                    viewModel.state.collectAsState().value,
+                    viewModel.uiEvent,
+                    viewModel::userEvent
+                )
             }
         }
     }
