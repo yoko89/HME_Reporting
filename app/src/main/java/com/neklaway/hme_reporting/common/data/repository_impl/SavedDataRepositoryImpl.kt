@@ -127,6 +127,13 @@ class SavedDataRepositoryImpl @Inject constructor(
     override fun getExpanseSheetRoute(): Flow<String?> {
         return savedData.getExpanseSheetRoute
     }
+    override suspend fun setMainRoute(route: String) {
+        savedData.setMainRoute(route)
+    }
+
+    override fun getMainRoute(): Flow<String> {
+        return savedData.getMainRoute
+    }
 
     override suspend fun setCarMileageStartDate(carMileageStartDateInMills: Long?) {
         savedData.setCarMileageStartDate(carMileageStartDateInMills)

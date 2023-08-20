@@ -62,6 +62,9 @@ interface SavedDataRepository {
     suspend fun setExpanseSheetRoute(route: String)
 
     fun getExpanseSheetRoute(): Flow<String?>
+    suspend fun setMainRoute(route: String)
+
+    fun getMainRoute(): Flow<String>
 
     suspend fun setCarMileageStartDate(carMileageStartDateInMills: Long?)
 
