@@ -3,6 +3,7 @@ package com.neklaway.hme_reporting.common.data
 import android.content.Context
 import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
+import com.neklaway.hme_reporting.common.presentation.Screen
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -30,6 +31,7 @@ class SavedData @Inject constructor(@ApplicationContext context: Context) {
         val travel_day = booleanPreferencesKey("travel_day")
         val timesheet_route = stringPreferencesKey("timesheet_route")
         val expanse_sheet_route = stringPreferencesKey("expanse_sheet_route")
+        val main_route = stringPreferencesKey("main_route")
         val car_mileage_start_date = longPreferencesKey("car_mileage_start_date")
         val car_mileage_start_time = longPreferencesKey("car_mileage_start_time")
         val car_mileage_start_mileage = longPreferencesKey("car_mileage_start_mileage")
@@ -224,6 +226,15 @@ class SavedData @Inject constructor(@ApplicationContext context: Context) {
 
     val getExpanseSheetRoute: Flow<String?> = savedDataDataStore.data.map { settings ->
         settings[expanse_sheet_route]
+    }
+    suspend fun setMainRoute(route: String) {
+        savedDataDataStore.edit { settings ->
+            settings[main_route] = route
+        }
+    }
+
+    val getMainRoute: Flow<String> = savedDataDataStore.data.map { settings ->
+        settings[main_route]?:Screen.TimeSheetMain.route
     }
 
     suspend fun setCarMileageStartDate(carMileageStartDateInMills: Long?) {

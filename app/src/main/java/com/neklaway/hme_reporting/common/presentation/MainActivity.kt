@@ -21,8 +21,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -55,9 +53,7 @@ import javax.inject.Inject
 private const val TAG = "MainActivity"
 
 @AndroidEntryPoint
-class MainActivity @Inject constructor(
-
-) : ComponentActivity() {
+class MainActivity @Inject constructor() : ComponentActivity() {
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -68,6 +64,7 @@ class MainActivity @Inject constructor(
             Log.d(TAG, "onCreate: ${viewModel.darkThemeState} ${viewModel.themeState}")
             val themeState = viewModel.themeState.collectAsState()
             val darkThemeState = viewModel.darkThemeState.collectAsState()
+            val route = viewModel.route.collectAsState()
 
 
             HMEReportingTheme(darkThemeState.value, themeState.value) {
@@ -83,10 +80,6 @@ class MainActivity @Inject constructor(
                         Screen.CarMileage,
                         Screen.Settings
                     )
-                val selectedItem = remember {
-                    mutableStateOf(items.find { it.route == navController.currentDestination?.route }
-                        ?: items[0])
-                }
 
                 ModalNavigationDrawer(
                     drawerState = drawerState,
@@ -116,10 +109,10 @@ class MainActivity @Inject constructor(
                                         }
                                     },
                                     label = { Text(item.name) },
-                                    selected = item == selectedItem.value,
+                                    selected = item.route == route.value,
                                     onClick = {
                                         scope.launch { drawerState.close() }
-                                        selectedItem.value = item
+                                        viewModel.setRoute(item.route)
                                         navController.popBackStack()
                                         navController.navigate(item.route)
                                     },
@@ -140,7 +133,7 @@ class MainActivity @Inject constructor(
                         }
                     },
                     content = {
-                        Navigation(navController = navController) {
+                        Navigation(route.value, navController) {
                             scope.launch {
                                 drawerState.open()
                             }
@@ -155,12 +148,13 @@ class MainActivity @Inject constructor(
 
 @Composable
 private fun Navigation(
+    route: String,
     navController: NavHostController,
     showDrawer: () -> Unit
 ) {
     NavHost(
         navController = navController,
-        startDestination = Screen.TimeSheetMain.route
+        startDestination = route
     ) {
 
 
@@ -187,23 +181,38 @@ private fun Navigation(
         }
 
         composable(route = Screen.Visa.route) {
-            val viewModel:VisaViewModel = hiltViewModel()
+            val viewModel: VisaViewModel = hiltViewModel()
             ComposableScreenAnimation {
-                VisaScreen(viewModel.state.collectAsState().value,viewModel.userMessage,showDrawer,viewModel::userEvent)
+                VisaScreen(
+                    viewModel.state.collectAsState().value,
+                    viewModel.userMessage,
+                    showDrawer,
+                    viewModel::userEvent
+                )
             }
         }
 
         composable(route = Screen.Settings.route) {
-            val viewModel:SettingsViewModel = hiltViewModel()
+            val viewModel: SettingsViewModel = hiltViewModel()
             ComposableScreenAnimation {
-                SettingsScreen(viewModel.state.collectAsState().value,viewModel.userMessage,viewModel::userEvent,showDrawer)
+                SettingsScreen(
+                    viewModel.state.collectAsState().value,
+                    viewModel.userMessage,
+                    viewModel::userEvent,
+                    showDrawer
+                )
             }
         }
 
         composable(route = Screen.CarMileage.route) {
-            val viewModel:CarMileageViewModel = hiltViewModel()
+            val viewModel: CarMileageViewModel = hiltViewModel()
             ComposableScreenAnimation {
-                CarMileageScreen(viewModel.state.collectAsState().value,viewModel.userMessage,viewModel::userEvent,showDrawer)
+                CarMileageScreen(
+                    viewModel.state.collectAsState().value,
+                    viewModel.userMessage,
+                    viewModel::userEvent,
+                    showDrawer
+                )
             }
         }
 
