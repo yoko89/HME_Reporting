@@ -26,18 +26,18 @@ import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.daily_allow
 import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.daily_allowance.DailyAllowanceViewModel
 import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.edit_expanse.EditExpanseScreen
 import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.edit_expanse.EditExpanseViewModel
-import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.expanse_sheet.ExpanseSheetScreen
+import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.expanse_sheet.ExpenseSheetScreen
 import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.expanse_sheet.ExpanseSheetViewModel
-import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.new_expanse.NewExpanseScreen
-import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.new_expanse.NewExpanseViewModel
+import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.new_expense.NewExpanseScreen
+import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.new_expense.NewExpenseViewModel
 
 private const val TAG = "ExpanseMainScreen"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ExpanseMainScreen(
-    state: ExpanseSheetState,
-    userEvents: (ExpanseSheetMainUserEvent) -> Unit,
+fun ExpenseMainScreen(
+    state: ExpenseSheetState,
+    userEvents: (ExpenseSheetMainUserEvent) -> Unit,
     showNavigationMenu: () -> Unit,
 ) {
     val navController = rememberNavController()
@@ -47,7 +47,7 @@ fun ExpanseMainScreen(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                title = { Text(text = "Expanse Sheet") },
+                title = { Text(text = "Expense Sheet") },
                 navigationIcon = {
                     IconButton(onClick = showNavigationMenu) {
                         Icon(Icons.Default.Menu, contentDescription = "Menu")
@@ -58,9 +58,9 @@ fun ExpanseMainScreen(
         },
         bottomBar = {
             val screens = mutableListOf(
-                Screen.ExpanseSheet,
+                Screen.ExpenseSheet,
                 Screen.DailyAllowance,
-                Screen.NewExpanse,
+                Screen.NewExpense,
                 Screen.CurrencyExchange
             )
 
@@ -69,7 +69,7 @@ fun ExpanseMainScreen(
             BottomNavigationBar(
                 screenList = screens, navController = navController
             ) {
-                userEvents(ExpanseSheetMainUserEvent.ScreenSelected(it.route))
+                userEvents(ExpenseSheetMainUserEvent.ScreenSelected(it.route))
                 navController.popBackStack()
                 navController.navigate(it.route)
             }
@@ -104,10 +104,10 @@ private fun Navigation(
         startDestination = startDestination
     ) {
 
-        composable(route = Screen.ExpanseSheet.route) {
+        composable(route = Screen.ExpenseSheet.route) {
             val viewModel: ExpanseSheetViewModel = hiltViewModel()
             ComposableScreenAnimation {
-                ExpanseSheetScreen(
+                ExpenseSheetScreen(
                     navController,
                     viewModel.state.collectAsState().value,
                     viewModel.uiEvent,
@@ -119,9 +119,9 @@ private fun Navigation(
 
         composable(
             route =
-            Screen.NewExpanse.route
+            Screen.NewExpense.route
         ) {
-            val viewModel: NewExpanseViewModel = hiltViewModel()
+            val viewModel: NewExpenseViewModel = hiltViewModel()
             ComposableScreenAnimation {
                 NewExpanseScreen(
                     viewModel.state.collectAsState().value,
@@ -152,7 +152,7 @@ private fun Navigation(
             }
         }
 
-        composable(route = Screen.EditExpanse.route + "?" + EditExpanseViewModel.EXPANSE_ID + "={" + EditExpanseViewModel.EXPANSE_ID + "}",
+        composable(route = Screen.EditExpense.route + "?" + EditExpanseViewModel.EXPANSE_ID + "={" + EditExpanseViewModel.EXPANSE_ID + "}",
             arguments = listOf(
                 navArgument(EditExpanseViewModel.EXPANSE_ID) {
                     type = NavType.LongType

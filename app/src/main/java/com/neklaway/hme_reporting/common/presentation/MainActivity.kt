@@ -36,8 +36,8 @@ import com.neklaway.hme_reporting.common.presentation.common.component.Composabl
 import com.neklaway.hme_reporting.common.ui.theme.HMEReportingTheme
 import com.neklaway.hme_reporting.feature_car_mileage.presentation.CarMileageScreen
 import com.neklaway.hme_reporting.feature_car_mileage.presentation.CarMileageViewModel
-import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.main.ExpanseMainScreen
-import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.main.ExpanseSheetMainViewModel
+import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.main.ExpenseMainScreen
+import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.main.ExpenseSheetMainViewModel
 import com.neklaway.hme_reporting.feature_settings.presentation.SettingsScreen
 import com.neklaway.hme_reporting.feature_settings.presentation.SettingsViewModel
 import com.neklaway.hme_reporting.feature_time_sheet.presentation.main.TimeSheetMainScreen
@@ -75,7 +75,7 @@ class MainActivity @Inject constructor() : ComponentActivity() {
                 val items =
                     listOf(
                         Screen.TimeSheetMain,
-                        Screen.ExpanseMain,
+                        Screen.ExpenseMain,
                         Screen.Visa,
                         Screen.CarMileage,
                         Screen.Settings
@@ -169,10 +169,10 @@ private fun Navigation(
             }
         }
 
-        composable(route = Screen.ExpanseMain.route) {
-            val viewModel: ExpanseSheetMainViewModel = hiltViewModel()
+        composable(route = Screen.ExpenseMain.route) {
+            val viewModel: ExpenseSheetMainViewModel = hiltViewModel()
             ComposableScreenAnimation {
-                ExpanseMainScreen(
+                ExpenseMainScreen(
                     viewModel.state.collectAsState().value,
                     viewModel::userEvent,
                     showDrawer
