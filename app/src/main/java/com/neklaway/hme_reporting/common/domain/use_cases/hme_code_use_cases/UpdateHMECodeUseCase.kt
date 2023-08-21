@@ -25,7 +25,7 @@ class UpdateHMECodeUseCase @Inject constructor(
         machineNumber: String?,
         workDescription: String?,
         fileNumber: Int,
-        expanseNumber:Int,
+        expenseNumber:Int,
         signerName: String? = null,
         signatureDate: Calendar? = null,
         accommodation: Accommodation?=null
@@ -57,7 +57,7 @@ class UpdateHMECodeUseCase @Inject constructor(
                 machineNumber?.trim(),
                 workDescription?.trim(),
                 fileNumber,
-                expanseNumber,
+                expenseNumber,
                 signerName?.trim(),
                 signatureDate,
                 accommodation,

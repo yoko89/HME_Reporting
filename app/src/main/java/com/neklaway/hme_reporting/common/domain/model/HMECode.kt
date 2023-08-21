@@ -14,7 +14,7 @@ data class HMECode(
     val machineNumber: String?,
     val workDescription: String?,
     val fileNumber: Int = 0,
-    val expanseNumber: Int = 0,
+    val expenseNumber: Int = 0,
     val signerName: String? = null,
     @Serializable(with = CalendarAsLongSerializer::class)
     val signatureDate: Calendar? = null,
@@ -48,7 +48,7 @@ fun HMECode.toHMECodeEntity(): HMECodeEntity {
         machineNumber = machineNumber,
         workDescription = workDescription,
         fileNumber = fileNumber,
-        expanseNumber = expanseNumber,
+        expanseNumber = expenseNumber,
         signerName = signerName,
         signatureDate = signatureDate?.timeInMillis,
         accommodation = accommodation

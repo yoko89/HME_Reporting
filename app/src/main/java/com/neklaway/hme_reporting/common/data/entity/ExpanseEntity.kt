@@ -1,7 +1,7 @@
 package com.neklaway.hme_reporting.common.data.entity
 
 import androidx.room.*
-import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.Expanse
+import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.Expense
 import com.neklaway.hme_reporting.utils.toCalender
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
@@ -41,8 +41,8 @@ data class ExpanseEntity(
     val id: Long?
 )
 
-fun ExpanseEntity.toExpanse(): Expanse {
-    return Expanse(
+fun ExpanseEntity.toExpanse(): Expense {
+    return Expense(
         HMEId = HMEId,
         date = date.toCalender(),
         invoiceNumber = invoiceNumber,

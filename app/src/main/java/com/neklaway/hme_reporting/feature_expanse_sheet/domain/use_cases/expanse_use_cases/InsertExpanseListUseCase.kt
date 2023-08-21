@@ -3,7 +3,7 @@ package com.neklaway.hme_reporting.feature_expanse_sheet.domain.use_cases.expans
 import android.database.sqlite.SQLiteConstraintException
 import android.util.Log
 import com.neklaway.hme_reporting.common.domain.repository.ExpanseRepository
-import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.Expanse
+import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.Expense
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.toExpansesEntity
 import com.neklaway.hme_reporting.utils.Resource
 import kotlinx.coroutines.flow.Flow
@@ -15,11 +15,11 @@ class InsertExpanseListUseCase @Inject constructor(
     val repo: ExpanseRepository
 ) {
 
-    operator fun invoke(expanseList: List<Expanse>): Flow<Resource<Boolean>> = flow {
+    operator fun invoke(expenseList: List<Expense>): Flow<Resource<Boolean>> = flow {
         emit(Resource.Loading())
         Log.d(TAG, "invoke: Loading")
         try {
-            val results = repo.insert(expanseList.map { it.toExpansesEntity() })
+            val results = repo.insert(expenseList.map { it.toExpansesEntity() })
             Log.d(TAG, "invoke: Result is $results")
             val failed = results.find { result ->
                 result == 0L

@@ -44,7 +44,7 @@ fun HMECodeEntity.toHMECode(): HMECode {
         machineNumber = machineNumber,
         workDescription = workDescription,
         fileNumber = fileNumber,
-        expanseNumber = expanseNumber,
+        expenseNumber = expanseNumber,
         signerName = signerName,
         signatureDate = signatureDate?.toCalender(),
         accommodation = accommodation,

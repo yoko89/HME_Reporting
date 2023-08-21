@@ -3,7 +3,7 @@ package com.neklaway.hme_reporting.feature_expanse_sheet.domain.use_cases.expans
 import android.database.sqlite.SQLiteConstraintException
 import android.util.Log
 import com.neklaway.hme_reporting.common.domain.repository.ExpanseRepository
-import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.Expanse
+import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.Expense
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.toExpansesEntity
 import com.neklaway.hme_reporting.utils.Resource
 import kotlinx.coroutines.flow.Flow
@@ -73,7 +73,7 @@ class UpdateExpanseUseCase @Inject constructor(
         }
 
         try {
-            val expanse = Expanse(
+            val expense = Expense(
                 HMEId,
                 date,
                 invoiceNumber,
@@ -85,7 +85,7 @@ class UpdateExpanseUseCase @Inject constructor(
                 invoiceUris,
                 id
             )
-            val result = repo.update(expanse.toExpansesEntity())
+            val result = repo.update(expense.toExpansesEntity())
             if (result > 0) {
                 emit(Resource.Success(true))
             } else {

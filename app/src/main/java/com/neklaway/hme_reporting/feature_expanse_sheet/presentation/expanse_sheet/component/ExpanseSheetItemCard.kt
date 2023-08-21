@@ -13,12 +13,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.Expanse
+import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.Expense
 import com.neklaway.hme_reporting.utils.toDate
 
 @Composable
 fun ExpanseSheetItemCard(
-    expanse: Expanse,
+    expense: Expense,
     currencyExchange: State<String>,
     cardClicked: () -> Unit,
     modifier: Modifier = Modifier
@@ -34,7 +34,7 @@ fun ExpanseSheetItemCard(
             }
     ) {
         Text(
-            text = expanse.description,
+            text = expense.description,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
         )
@@ -45,18 +45,18 @@ fun ExpanseSheetItemCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = expanse.date.toDate(),
+                text = expense.date.toDate(),
                 textAlign = TextAlign.Center,
                 modifier = Modifier.weight(2f)
             )
             Text(
-                text = expanse.invoiceNumber,
+                text = expense.invoiceNumber,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.weight(2f)
             )
 
             Checkbox(
-                checked = expanse.personallyPaid,
+                checked = expense.personallyPaid,
                 onCheckedChange = {},
                 modifier = Modifier.weight(1f)
             )
@@ -64,7 +64,7 @@ fun ExpanseSheetItemCard(
 
         Row {
             Text(
-                text = expanse.amount.toString(),
+                text = expense.amount.toString(),
                 textAlign = TextAlign.Center,
                 modifier = Modifier.weight(1f)
             )
@@ -77,7 +77,7 @@ fun ExpanseSheetItemCard(
             )
 
             Text(
-                text = expanse.amountAED.toString(),
+                text = expense.amountAED.toString(),
                 textAlign = TextAlign.Center,
                 modifier = Modifier.weight(1f)
             )

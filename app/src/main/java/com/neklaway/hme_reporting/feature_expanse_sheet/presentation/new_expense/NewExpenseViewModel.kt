@@ -1,4 +1,4 @@
-package com.neklaway.hme_reporting.feature_expanse_sheet.presentation.new_expanse
+package com.neklaway.hme_reporting.feature_expanse_sheet.presentation.new_expense
 
 import android.content.Context
 import android.net.Uri
@@ -41,7 +41,7 @@ import javax.inject.Inject
 private const val TAG = "NewExpanseViewModel"
 
 @HiltViewModel
-class NewExpanseViewModel @Inject constructor(
+class NewExpenseViewModel @Inject constructor(
     private val getAllCustomersFlowUseCase: GetAllCustomersFlowUseCase,
     private val getHMECodeByCustomerIdUseCase: GetHMECodeByCustomerIdUseCase,
     private val getCustomerIdUseCase: GetCustomerIdUseCase,
@@ -53,10 +53,10 @@ class NewExpanseViewModel @Inject constructor(
 ) : ViewModel() {
 
 
-    private val _state = MutableStateFlow(NewExpanseState())
+    private val _state = MutableStateFlow(NewExpenseState())
     val state = _state.asStateFlow()
 
-    private val _uiEvent = Channel<NewExpanseUiEvents>()
+    private val _uiEvent = Channel<NewExpenseUiEvents>()
     val uiEvent = _uiEvent.receiveAsFlow()
 
     private val mutableUriList: MutableList<Uri> = mutableListOf()
@@ -71,7 +71,7 @@ class NewExpanseViewModel @Inject constructor(
             when (result) {
                 is Resource.Error -> {
                     _uiEvent.send(
-                        NewExpanseUiEvents.UserMessage(
+                        NewExpenseUiEvents.UserMessage(
                             result.message ?: "Can't get customers"
                         )
                     )
@@ -114,7 +114,7 @@ class NewExpanseViewModel @Inject constructor(
                     when (resource) {
                         is Resource.Error -> {
                             _uiEvent.send(
-                                NewExpanseUiEvents.UserMessage(
+                                NewExpenseUiEvents.UserMessage(
                                     resource.message ?: "Can't get HME codes"
                                 )
                             )
@@ -164,7 +164,7 @@ class NewExpanseViewModel @Inject constructor(
             val amountInFloat = state.value.amount.let { resource ->
                 when (resource) {
                     is ResourceWithString.Error -> {
-                        _uiEvent.send(NewExpanseUiEvents.UserMessage(resource.message ?: "Error"))
+                        _uiEvent.send(NewExpenseUiEvents.UserMessage(resource.message ?: "Error"))
                         resource.data
                     }
 
@@ -178,7 +178,7 @@ class NewExpanseViewModel @Inject constructor(
             val amountInAEDInFloat = state.value.amountAED.let { resource ->
                 when (resource) {
                     is ResourceWithString.Error -> {
-                        _uiEvent.send(NewExpanseUiEvents.UserMessage(resource.message ?: "Error"))
+                        _uiEvent.send(NewExpenseUiEvents.UserMessage(resource.message ?: "Error"))
                         resource.data
                     }
 
@@ -206,7 +206,7 @@ class NewExpanseViewModel @Inject constructor(
                     is Resource.Loading -> _state.update { it.copy(loading = true) }
                     is Resource.Error -> {
                         _uiEvent.send(
-                            NewExpanseUiEvents.UserMessage(
+                            NewExpenseUiEvents.UserMessage(
                                 result.message ?: "Can't Insert Expanse"
                             )
                         )
@@ -214,7 +214,7 @@ class NewExpanseViewModel @Inject constructor(
                     }
 
                     is Resource.Success -> {
-                        _uiEvent.send(NewExpanseUiEvents.UserMessage("Expanse Saved"))
+                        _uiEvent.send(NewExpenseUiEvents.UserMessage("Expanse Saved"))
                         _state.update { it.copy(loading = false) }
                         clearState()
                     }
@@ -291,7 +291,7 @@ class NewExpanseViewModel @Inject constructor(
                 when (resource) {
                     is Resource.Error -> {
                         _uiEvent.send(
-                            NewExpanseUiEvents.UserMessage(
+                            NewExpenseUiEvents.UserMessage(
                                 resource.message ?: "Error can't get Currency List"
                             )
                         )
@@ -363,7 +363,7 @@ class NewExpanseViewModel @Inject constructor(
         mutableUriList.add(uri)
 
         viewModelScope.launch {
-            _uiEvent.send(NewExpanseUiEvents.TakePicture(providerUri))
+            _uiEvent.send(NewExpenseUiEvents.TakePicture(providerUri))
         }
     }
 
@@ -383,7 +383,7 @@ class NewExpanseViewModel @Inject constructor(
     private fun photoPicked(context: Context, externalUri: Uri?) {
         val selectedHme = state.value.selectedHMECode ?: return
         if (externalUri == null) {
-            viewModelScope.launch { _uiEvent.send(NewExpanseUiEvents.UserMessage("Can't get photo")) }
+            viewModelScope.launch { _uiEvent.send(NewExpenseUiEvents.UserMessage("Can't get photo")) }
             return
         }
 
@@ -397,29 +397,29 @@ class NewExpanseViewModel @Inject constructor(
 
     private fun pickPicture() {
         viewModelScope.launch {
-            _uiEvent.send(NewExpanseUiEvents.PickPicture)
+            _uiEvent.send(NewExpenseUiEvents.PickPicture)
         }
     }
 
-    fun userEvent(event: NewExpanseUserEvent) {
+    fun userEvent(event: NewExpenseUserEvent) {
         when (event) {
-            is NewExpanseUserEvent.AmountAEDChanged -> amountAEDChanged(event.amount)
-            is NewExpanseUserEvent.AmountChanged -> amountChanged(event.amount)
-            is NewExpanseUserEvent.CashCheckChanged -> cashCheckChanged(event.checked)
-            is NewExpanseUserEvent.CurrencySelected -> currencySelected(event.currencyExchange)
-            is NewExpanseUserEvent.CustomerSelected -> customerSelected(event.customer)
-            NewExpanseUserEvent.DateClicked -> dateClicked()
-            is NewExpanseUserEvent.DatePicked -> datePicked(event.year, event.month, event.day)
-            NewExpanseUserEvent.DatePickedCanceled -> datePickedCanceled()
-            is NewExpanseUserEvent.DeleteImage -> deleteImage(event.uri)
-            is NewExpanseUserEvent.DescriptionChanged -> descriptionChanged(event.description)
-            is NewExpanseUserEvent.HmeSelected -> hmeSelected(event.hmeCode)
-            NewExpanseUserEvent.InsertExpanse -> insertExpanse()
-            is NewExpanseUserEvent.InvoiceNumberChanged -> invoiceNumberChanged(event.number)
-            is NewExpanseUserEvent.PhotoPicked -> photoPicked(event.context, event.uri)
-            NewExpanseUserEvent.PhotoTaken -> photoTaken()
-            NewExpanseUserEvent.PickPicture -> pickPicture()
-            is NewExpanseUserEvent.TakePicture -> takePicture(event.context)
+            is NewExpenseUserEvent.AmountAEDChanged -> amountAEDChanged(event.amount)
+            is NewExpenseUserEvent.AmountChanged -> amountChanged(event.amount)
+            is NewExpenseUserEvent.CashCheckChanged -> cashCheckChanged(event.checked)
+            is NewExpenseUserEvent.CurrencySelected -> currencySelected(event.currencyExchange)
+            is NewExpenseUserEvent.CustomerSelected -> customerSelected(event.customer)
+            NewExpenseUserEvent.DateClicked -> dateClicked()
+            is NewExpenseUserEvent.DatePicked -> datePicked(event.year, event.month, event.day)
+            NewExpenseUserEvent.DatePickedCanceled -> datePickedCanceled()
+            is NewExpenseUserEvent.DeleteImage -> deleteImage(event.uri)
+            is NewExpenseUserEvent.DescriptionChanged -> descriptionChanged(event.description)
+            is NewExpenseUserEvent.HmeSelected -> hmeSelected(event.hmeCode)
+            NewExpenseUserEvent.InsertExpense -> insertExpanse()
+            is NewExpenseUserEvent.InvoiceNumberChanged -> invoiceNumberChanged(event.number)
+            is NewExpenseUserEvent.PhotoPicked -> photoPicked(event.context, event.uri)
+            NewExpenseUserEvent.PhotoTaken -> photoTaken()
+            NewExpenseUserEvent.PickPicture -> pickPicture()
+            is NewExpenseUserEvent.TakePicture -> takePicture(event.context)
         }
     }
 }

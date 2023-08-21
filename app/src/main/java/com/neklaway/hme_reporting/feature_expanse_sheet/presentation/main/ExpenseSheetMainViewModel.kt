@@ -12,18 +12,18 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class ExpanseSheetMainViewModel @Inject constructor(
+class ExpenseSheetMainViewModel @Inject constructor(
     private val getExpanseSheetRouteUseCase: GetExpanseSheetRouteUseCase,
     private val setExpanseSheetRouteUseCase: SetExpanseSheetRouteUseCase,
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(ExpanseSheetState())
+    private val _state = MutableStateFlow(ExpenseSheetState())
     val state = _state.asStateFlow()
 
     init {
         viewModelScope.launch {
-            _state.value = ExpanseSheetState(
-                startupRoute = getExpanseSheetRouteUseCase() ?: Screen.ExpanseSheet.route
+            _state.value = ExpenseSheetState(
+                startupRoute = getExpanseSheetRouteUseCase() ?: Screen.ExpenseSheet.route
             )
         }
     }
@@ -34,9 +34,9 @@ class ExpanseSheetMainViewModel @Inject constructor(
         }
     }
 
-    fun userEvent(event: ExpanseSheetMainUserEvent) {
+    fun userEvent(event: ExpenseSheetMainUserEvent) {
         when (event) {
-            is ExpanseSheetMainUserEvent.ScreenSelected -> screenSelected(event.route)
+            is ExpenseSheetMainUserEvent.ScreenSelected -> screenSelected(event.route)
         }
     }
 }

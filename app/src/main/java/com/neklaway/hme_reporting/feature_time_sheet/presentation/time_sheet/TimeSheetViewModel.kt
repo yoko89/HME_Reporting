@@ -366,7 +366,7 @@ class TimeSheetViewModel @Inject constructor(
                     machineNumber = hmeCode.machineNumber,
                     workDescription = hmeCode.workDescription,
                     fileNumber = hmeCode.fileNumber,
-                    expanseNumber = hmeCode.expanseNumber,
+                    expenseNumber = hmeCode.expenseNumber,
                     signerName = signerName,
                     signatureDate = Calendar.getInstance()
                 ).collect { resource ->

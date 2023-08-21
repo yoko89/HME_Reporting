@@ -1,4 +1,4 @@
-package com.neklaway.hme_reporting.feature_expanse_sheet.presentation.new_expanse
+package com.neklaway.hme_reporting.feature_expanse_sheet.presentation.new_expense
 
 import android.net.Uri
 import com.neklaway.hme_reporting.common.domain.model.Customer
@@ -7,7 +7,7 @@ import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.CurrencyExc
 import com.neklaway.hme_reporting.utils.ResourceWithString
 import java.util.*
 
-data class NewExpanseState(
+data class NewExpenseState(
     val customers: List<Customer> = emptyList(),
     val selectedCustomer: Customer? = null,
     val hmeCodes: List<HMECode> = emptyList(),

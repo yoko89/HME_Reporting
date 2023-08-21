@@ -105,7 +105,7 @@ fun EditExpanseScreen(
         uiEvents.collect { event ->
             when (event) {
                 EditExpanseUiEvents.PopBackStack -> navController.popBackStack(
-                    Screen.ExpanseSheet.route,
+                    Screen.ExpenseSheet.route,
                     false
                 )
 

@@ -1,4 +1,4 @@
-package com.neklaway.hme_reporting.feature_expanse_sheet.presentation.new_expanse
+package com.neklaway.hme_reporting.feature_expanse_sheet.presentation.new_expense
 
 import android.graphics.BitmapFactory
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -37,13 +37,11 @@ import com.neklaway.hme_reporting.utils.toDate
 import kotlinx.coroutines.flow.Flow
 import java.util.*
 
-private const val TAG = "NewExpanseScreen"
-
 @Composable
 fun NewExpanseScreen(
-    state: NewExpanseState,
-    uiEvent: Flow<NewExpanseUiEvents>,
-    userEvent: (NewExpanseUserEvent) -> Unit,
+    state: NewExpenseState,
+    uiEvent: Flow<NewExpenseUiEvents>,
+    userEvent: (NewExpenseUserEvent) -> Unit,
 ) {
     val context = LocalContext.current
 
@@ -54,27 +52,27 @@ fun NewExpanseScreen(
     val imageCapture = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture(),
         onResult = {
-            userEvent(NewExpanseUserEvent.PhotoTaken)
+            userEvent(NewExpenseUserEvent.PhotoTaken)
         }
     )
 
     val imageSelection = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = { uri ->
-            userEvent(NewExpanseUserEvent.PhotoPicked(context, uri))
+            userEvent(NewExpenseUserEvent.PhotoPicked(context, uri))
         }
     )
 
     LaunchedEffect(key1 = uiEvent) {
         uiEvent.collect { event ->
             when (event) {
-                is NewExpanseUiEvents.TakePicture -> {
+                is NewExpenseUiEvents.TakePicture -> {
                     imageCapture.launch(event.uri)
                 }
 
-                is NewExpanseUiEvents.UserMessage -> snackbarHostState.showSnackbar(event.message)
+                is NewExpenseUiEvents.UserMessage -> snackbarHostState.showSnackbar(event.message)
 
-                NewExpanseUiEvents.PickPicture -> imageSelection.launch(
+                NewExpenseUiEvents.PickPicture -> imageSelection.launch(
                     PickVisualMediaRequest(
                         ActivityResultContracts.PickVisualMedia.ImageOnly
                     )
@@ -87,7 +85,7 @@ fun NewExpanseScreen(
     LaunchedEffect(key1 = dateInteractionSource) {
         dateInteractionSource.interactions.collect {
             when (it) {
-                is PressInteraction.Release -> userEvent(NewExpanseUserEvent.DateClicked)
+                is PressInteraction.Release -> userEvent(NewExpenseUserEvent.DateClicked)
             }
         }
     }
@@ -99,10 +97,10 @@ fun NewExpanseScreen(
             day = state.date?.get(Calendar.DAY_OF_MONTH),
             dateSet =
             { year, month, day ->
-                userEvent(NewExpanseUserEvent.DatePicked(year, month, day))
+                userEvent(NewExpenseUserEvent.DatePicked(year, month, day))
             },
             canceled = {
-                userEvent(NewExpanseUserEvent.DatePickedCanceled)
+                userEvent(NewExpenseUserEvent.DatePickedCanceled)
             }
         )
     }
@@ -110,7 +108,7 @@ fun NewExpanseScreen(
     Scaffold(
         floatingActionButton = {
             Row {
-                FloatingActionButton(onClick = { userEvent(NewExpanseUserEvent.TakePicture(context)) }) {
+                FloatingActionButton(onClick = { userEvent(NewExpenseUserEvent.TakePicture(context)) }) {
                     Icon(
                         imageVector = Icons.Default.PhotoCamera,
                         contentDescription = "Add Invoice Image from camera"
@@ -118,7 +116,7 @@ fun NewExpanseScreen(
                 }
                 Spacer(modifier = Modifier.width(5.dp))
 
-                FloatingActionButton(onClick = { userEvent(NewExpanseUserEvent.PickPicture) }) {
+                FloatingActionButton(onClick = { userEvent(NewExpenseUserEvent.PickPicture) }) {
                     Icon(
                         imageVector = Icons.Default.Image,
                         contentDescription = "Add Invoice Image from gallery"
@@ -126,7 +124,7 @@ fun NewExpanseScreen(
                 }
                 Spacer(modifier = Modifier.width(5.dp))
 
-                FloatingActionButton(onClick = { userEvent(NewExpanseUserEvent.InsertExpanse) }) {
+                FloatingActionButton(onClick = { userEvent(NewExpenseUserEvent.InsertExpense) }) {
                     Icon(
                         imageVector = Icons.Default.Add,
                         contentDescription = "Add Expanse"
@@ -156,7 +154,7 @@ fun NewExpanseScreen(
                 dropDownContentDescription = "Select Customer",
                 modifier = Modifier.padding(vertical = 5.dp)
             ) { customer ->
-                userEvent(NewExpanseUserEvent.CustomerSelected(customer))
+                userEvent(NewExpenseUserEvent.CustomerSelected(customer))
             }
 
             DropDown(
@@ -166,7 +164,7 @@ fun NewExpanseScreen(
                 dropDownContentDescription = "Select HME Code",
                 modifier = Modifier.padding(bottom = 5.dp)
             ) { hmeCode ->
-                userEvent(NewExpanseUserEvent.HmeSelected(hmeCode))
+                userEvent(NewExpenseUserEvent.HmeSelected(hmeCode))
             }
 
             AnimatedVisibility(
@@ -191,7 +189,7 @@ fun NewExpanseScreen(
             OutlinedTextField(
                 value = state.invoiceNumber,
                 onValueChange = {
-                    userEvent(NewExpanseUserEvent.InvoiceNumberChanged(it))
+                    userEvent(NewExpenseUserEvent.InvoiceNumberChanged(it))
                 },
                 label = { Text(text = "Invoice Number") },
                 modifier = Modifier
@@ -201,7 +199,7 @@ fun NewExpanseScreen(
             OutlinedTextField(
                 value = state.description,
                 onValueChange = {
-                    userEvent(NewExpanseUserEvent.DescriptionChanged(it))
+                    userEvent(NewExpenseUserEvent.DescriptionChanged(it))
                 },
                 label = { Text(text = "Description") },
                 modifier = Modifier
@@ -217,7 +215,7 @@ fun NewExpanseScreen(
                 Checkbox(
                     checked = state.personallyPaid,
                     onCheckedChange = {
-                        userEvent(NewExpanseUserEvent.CashCheckChanged(it))
+                        userEvent(NewExpenseUserEvent.CashCheckChanged(it))
                     }
                 )
 
@@ -226,7 +224,7 @@ fun NewExpanseScreen(
             OutlinedTextField(
                 value = state.amount.string?:"",
                 onValueChange = {
-                    userEvent(NewExpanseUserEvent.AmountChanged(it))
+                    userEvent(NewExpenseUserEvent.AmountChanged(it))
                 },
                 label = { Text(text = "Amount") },
                 modifier = Modifier
@@ -244,14 +242,14 @@ fun NewExpanseScreen(
                 label = "Currency",
                 dropDownContentDescription = "Currency",
                 onSelect = {
-                    userEvent(NewExpanseUserEvent.CurrencySelected(it))
+                    userEvent(NewExpenseUserEvent.CurrencySelected(it))
                 }
             )
 
             OutlinedTextField(
                 value = state.amountAED.string?:"",
                 onValueChange = {
-                    userEvent(NewExpanseUserEvent.AmountAEDChanged(it))
+                    userEvent(NewExpenseUserEvent.AmountAEDChanged(it))
                 },
                 label = { Text(text = "Amount in AED") },
                 modifier = Modifier
@@ -280,7 +278,7 @@ fun NewExpanseScreen(
                         )
                         IconButton(
                             onClick = {
-                                userEvent(NewExpanseUserEvent.DeleteImage(uri))
+                                userEvent(NewExpenseUserEvent.DeleteImage(uri))
                             },
                             modifier = Modifier.align(
                                 Alignment.TopEnd

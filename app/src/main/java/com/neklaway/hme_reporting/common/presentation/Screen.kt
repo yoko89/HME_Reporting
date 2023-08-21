@@ -22,13 +22,13 @@ sealed class Screen(
     object IBAUCode : Screen("IBAU Code", "ibau_code_screen", imageId = R.drawable.ibau_logo)
     object NewTimeSheet : Screen("New", "new_time_sheet_screen", Icons.Default.NoteAdd)
     object EditTimeSheet : Screen("Edit", "edit_time_sheet_screen", Icons.Default.EditNote)
-    object ExpanseMain : Screen("Expanse","expanse_main",Icons.Default.Payment)
-    object ExpanseSheet : Screen("Expanse Sheet", "expanse_sheet_screen", Icons.Default.Payment)
-    object NewExpanse : Screen("New Expanse", "new_expanse_screen", Icons.Default.Receipt)
+    object ExpenseMain : Screen("Expense","expanse_main",Icons.Default.Payment)
+    object ExpenseSheet : Screen("Expense Sheet", "expanse_sheet_screen", Icons.Default.Payment)
+    object NewExpense : Screen("New Expense", "new_expanse_screen", Icons.Default.Receipt)
     object DailyAllowance :
         Screen("Daily Allowance", "daily_allowance_screen", Icons.Default.AttachMoney)
 
-    object EditExpanse : Screen("Edit Expanse", "edit_expanse_screen", Icons.Default.Receipt)
+    object EditExpense : Screen("Edit Expense", "edit_expanse_screen", Icons.Default.Receipt)
     object CurrencyExchange : Screen(
         "Currency Exchange Rate",
         "currency_exchange_rate_screen",

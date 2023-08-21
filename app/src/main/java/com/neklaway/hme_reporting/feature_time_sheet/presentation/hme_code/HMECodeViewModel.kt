@@ -157,7 +157,7 @@ class HMECodeViewModel @Inject constructor(
             machineNumber = machineNumber,
             workDescription = workDescription,
             fileNumber = selectedHMECode.fileNumber,
-            expanseNumber = selectedHMECode.expanseNumber,
+            expenseNumber = selectedHMECode.expenseNumber,
             signerName = selectedHMECode.signerName,
             signatureDate = selectedHMECode.signatureDate
         ).onEach { result ->

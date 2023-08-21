@@ -1124,7 +1124,7 @@ class TimeSheetPDFCreatorWorker @AssistedInject constructor(
                     hmeCode.machineNumber,
                     hmeCode.workDescription,
                     hmeCode.fileNumber + 1,
-                    hmeCode.expanseNumber,
+                    hmeCode.expenseNumber,
                     hmeCode.signerName,
                     Calendar.getInstance()
                 ).collect()

@@ -24,7 +24,7 @@ import com.neklaway.hme_reporting.common.domain.use_cases.time_sheet_use_cases.I
 import com.neklaway.hme_reporting.feature_car_mileage.domain.model.CarMileage
 import com.neklaway.hme_reporting.feature_car_mileage.domain.use_cases.InsertCarMileageListUseCase
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.CurrencyExchange
-import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.Expanse
+import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.Expense
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.use_cases.currency_exchange_use_cases.InsertCurrencyExchangeListUseCase
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.use_cases.expanse_use_cases.InsertExpanseListUseCase
 import com.neklaway.hme_reporting.feature_settings.data.broadcast.RestartReceiver
@@ -195,12 +195,12 @@ class RestoreWorker @AssistedInject constructor(
                 }
 
                 "08_expanse.json" -> {
-                    val expanseList = Json.decodeFromStream(
-                        ListSerializer(Expanse.serializer()),
+                    val expenseList = Json.decodeFromStream(
+                        ListSerializer(Expense.serializer()),
                         backupInputStream
                     )
-                    Log.d(TAG, "doWork:Deserialized Expanse $expanseList")
-                    insertExpanseListUseCase(expanseList).collect { resource ->
+                    Log.d(TAG, "doWork:Deserialized Expanse $expenseList")
+                    insertExpanseListUseCase(expenseList).collect { resource ->
                         when (resource) {
                             is Resource.Success -> filesRestored["expanse"] = true
                             else -> Unit

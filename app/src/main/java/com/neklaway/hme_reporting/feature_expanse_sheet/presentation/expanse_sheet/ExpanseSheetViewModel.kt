@@ -15,7 +15,7 @@ import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.ti
 import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.time_sheet.hme_id.GetHMEIdUseCase
 import com.neklaway.hme_reporting.common.domain.use_cases.saved_data_use_case.time_sheet.hme_id.SetHMEIdUseCase
 import com.neklaway.hme_reporting.common.domain.use_cases.time_sheet_use_cases.GetTimeSheetByHMECodeIdUseCase
-import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.Expanse
+import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.Expense
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.use_cases.currency_exchange_use_cases.GetCurrencyExchangeByIdUseCase
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.use_cases.expanse_pdf_worker_use_case.ExpansePDFWorkerUseCase
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.use_cases.expanse_use_cases.GetExpanseByHMEIdUseCase
@@ -246,7 +246,7 @@ class ExpanseSheetViewModel @Inject constructor(
                     )
                     _state.update {
                         it.copy(
-                            expanseList = expanseList,
+                            expenseList = expanseList,
                             loading = false,
                         )
                     }
@@ -258,8 +258,8 @@ class ExpanseSheetViewModel @Inject constructor(
     }
 
 
-    private fun expanseClicked(expanse: Expanse) {
-        expanse.id?.let {
+    private fun expanseClicked(expense: Expense) {
+        expense.id?.let {
             viewModelScope.launch {
                 sendEvent(ExpanseSheetUiEvents.NavigateToExpanseSheetUi(it))
             }
@@ -278,7 +278,7 @@ class ExpanseSheetViewModel @Inject constructor(
         viewModelScope.launch {
             expansePDFWorkerUseCase(
                 state.value.timeSheetList.filter { it.expanseSelected },
-                state.value.expanseList
+                state.value.expenseList
             ).collect { resource ->
                 when (resource) {
                     is Resource.Error -> {
@@ -343,7 +343,7 @@ class ExpanseSheetViewModel @Inject constructor(
                     machineNumber = hmeCode.machineNumber,
                     workDescription = hmeCode.workDescription,
                     fileNumber = hmeCode.fileNumber,
-                    expanseNumber = hmeCode.expanseNumber,
+                    expenseNumber = hmeCode.expenseNumber,
                     signerName = hmeCode.signerName,
                     signatureDate = hmeCode.signatureDate,
                     accommodation = accommodation
@@ -371,7 +371,7 @@ class ExpanseSheetViewModel @Inject constructor(
             is ExpanseSheetUserEvent.AccommodationChanged -> accommodationChanged(event.accommodation)
             ExpanseSheetUserEvent.CreateExpanseSheet -> createExpanseSheet()
             is ExpanseSheetUserEvent.CustomerSelected -> customerSelected(event.customer)
-            is ExpanseSheetUserEvent.ExpanseClicked -> expanseClicked(event.expanse)
+            is ExpanseSheetUserEvent.ExpanseClicked -> expanseClicked(event.expense)
             is ExpanseSheetUserEvent.FileSelected -> fileSelected(event.file)
             ExpanseSheetUserEvent.FileSelectionCanceled -> fileSelectionCanceled()
             is ExpanseSheetUserEvent.HmeSelected -> hmeSelected(event.hmeCode)

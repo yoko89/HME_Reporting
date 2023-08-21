@@ -2,7 +2,7 @@ package com.neklaway.hme_reporting.feature_expanse_sheet.domain.use_cases.expans
 
 import com.neklaway.hme_reporting.common.data.entity.toExpanse
 import com.neklaway.hme_reporting.common.domain.repository.ExpanseRepository
-import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.Expanse
+import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.Expense
 import com.neklaway.hme_reporting.utils.Resource
 import javax.inject.Inject
 
@@ -10,7 +10,7 @@ class GetAllExpansesUseCase @Inject constructor(
     val repo: ExpanseRepository
 ) {
 
-    suspend operator fun invoke(): Resource<List<Expanse>> {
+    suspend operator fun invoke(): Resource<List<Expense>> {
         return try {
             Resource.Success(
                 repo.getAll().map { expanse ->

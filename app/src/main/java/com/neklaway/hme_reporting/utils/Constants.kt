@@ -16,9 +16,9 @@ object Constants {
     const val PDF_NOTIFICATION_ID = 1
 
     //Expanse Notification
-    const val EXPANSE_PDF_CHANNEL_ID = "expanse_channel_id"
+    const val EXPENSE_PDF_CHANNEL_ID = "expanse_channel_id"
     const val EXPANSE_PDF_CHANNEL_NAME = "Expanse PDF Creator"
-    const val EXPANSE_PDF_NOTIFICATION_ID = 2
+    const val EXPENSE_PDF_NOTIFICATION_ID = 2
 
 
     //Visa Notification
@@ -47,7 +47,7 @@ object Constants {
     const val Visa_WORKER_TAG = "visa_tag"
 
     //Expanse related
-    const val EXPANSE_FOLDER = "Expanse"
+    const val EXPENSE_FOLDER = "Expanse"
     const val EXPANSE_INVOICES_FOLDER = "Photos"
 
     //Worker

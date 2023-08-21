@@ -58,15 +58,14 @@ import com.neklaway.hme_reporting.common.presentation.common.component.ListDialo
 import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.edit_expanse.EditExpanseViewModel
 import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.expanse_sheet.component.ExpanseSheetHeader
 import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.expanse_sheet.component.ExpanseSheetItemCard
-import com.neklaway.hme_reporting.utils.Constants.EXPANSE_FOLDER
+import com.neklaway.hme_reporting.utils.Constants.EXPENSE_FOLDER
 import com.neklaway.hme_reporting.utils.NotificationPermissionRequest
 import kotlinx.coroutines.flow.Flow
 import java.io.File
 
-private const val TAG = "ExpanseSheetScreen"
 
 @Composable
-fun ExpanseSheetScreen(
+fun ExpenseSheetScreen(
     navController: NavController,
     state: ExpanseSheetState,
     uiEvents: Flow<ExpanseSheetUiEvents>,
@@ -88,7 +87,7 @@ fun ExpanseSheetScreen(
                 is ExpanseSheetUiEvents.UserMessage -> snackbarHostState.showSnackbar(event.message)
 
                 is ExpanseSheetUiEvents.NavigateToExpanseSheetUi -> navController.navigate(
-                    Screen.EditExpanse.route + "?" + EditExpanseViewModel.EXPANSE_ID + "=" + event.id
+                    Screen.EditExpense.route + "?" + EditExpanseViewModel.EXPANSE_ID + "=" + event.id
                 )
 
                 is ExpanseSheetUiEvents.ShowFile -> {
@@ -260,9 +259,9 @@ fun ExpanseSheetScreen(
                     ExpanseSheetHeader(modifier = Modifier.fillMaxWidth())
                 }
 
-                items(items = state.expanseList) { expanse ->
+                items(items = state.expenseList) { expanse ->
                     ExpanseSheetItemCard(
-                        expanse = expanse,
+                        expense = expanse,
                         currencyExchange = getCurrencyExchange(expanse.currencyID)
                             .collectAsState(
                                 initial = ""
@@ -288,7 +287,7 @@ fun ExpanseSheetScreen(
 
         AnimatedVisibility(visible = state.showFileList) {
             val expansePdfDirectory =
-                File(context.filesDir.path + "/" + state.selectedHMECode?.code + "/" + EXPANSE_FOLDER)
+                File(context.filesDir.path + "/" + state.selectedHMECode?.code + "/" + EXPENSE_FOLDER)
             val listOfFiles =
                 expansePdfDirectory.listFiles()?.filter { it.isFile }?.toList() ?: emptyList()
 

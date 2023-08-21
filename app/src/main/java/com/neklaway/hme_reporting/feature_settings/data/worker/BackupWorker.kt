@@ -26,7 +26,7 @@ import com.neklaway.hme_reporting.common.domain.use_cases.time_sheet_use_cases.G
 import com.neklaway.hme_reporting.feature_car_mileage.domain.model.CarMileage
 import com.neklaway.hme_reporting.feature_car_mileage.domain.use_cases.GetAllCarMileageUseCase
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.CurrencyExchange
-import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.Expanse
+import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.Expense
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.use_cases.currency_exchange_use_cases.GetAllCurrencyExchangeUseCase
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.use_cases.expanse_use_cases.GetAllExpansesUseCase
 import com.neklaway.hme_reporting.feature_visa.domain.model.Visa
@@ -398,8 +398,8 @@ class BackupWorker @AssistedInject constructor(
                 is Resource.Error -> resultError.add(resource.message ?: "Can't load Expanse List")
                 is Resource.Loading -> Unit
                 is Resource.Success -> {
-                    val serializedExpanse = Json.encodeToString(
-                        ListSerializer(Expanse.serializer()),
+                    val serializedExpense = Json.encodeToString(
+                        ListSerializer(Expense.serializer()),
                         resource.data.orEmpty()
                     )
 
@@ -415,8 +415,8 @@ class BackupWorker @AssistedInject constructor(
                             ?.also { uri ->
                                 appContext.contentResolver.openOutputStream(uri)
                                     .use { outputStream ->
-                                        outputStream?.write(serializedExpanse.toByteArray())
-                                        Log.d(TAG, "Expanse serialized: $serializedExpanse")
+                                        outputStream?.write(serializedExpense.toByteArray())
+                                        Log.d(TAG, "Expanse serialized: $serializedExpense")
                                         outputStream?.flush()
                                         outputStream?.close()
                                     }

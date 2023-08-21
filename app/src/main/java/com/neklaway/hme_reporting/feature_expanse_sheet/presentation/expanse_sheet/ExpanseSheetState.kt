@@ -4,7 +4,7 @@ import com.neklaway.hme_reporting.common.data.entity.Accommodation
 import com.neklaway.hme_reporting.common.domain.model.Customer
 import com.neklaway.hme_reporting.common.domain.model.HMECode
 import com.neklaway.hme_reporting.common.domain.model.TimeSheet
-import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.Expanse
+import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.Expense
 
 data class ExpanseSheetState(
     val isLoading: Boolean = false,
@@ -12,7 +12,7 @@ data class ExpanseSheetState(
     val selectedCustomer: Customer? = null,
     val hmeCodes: List<HMECode> = emptyList(),
     val selectedHMECode: HMECode? = null,
-    val expanseList: List<Expanse> = emptyList(),
+    val expenseList: List<Expense> = emptyList(),
     val timeSheetList: List<TimeSheet> = emptyList(),
     val loading: Boolean = false,
     val navigateToExpanseId: Long? = null,

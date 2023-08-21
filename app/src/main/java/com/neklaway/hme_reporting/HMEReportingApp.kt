@@ -38,7 +38,7 @@ class HMEReportingApp : Application(), Configuration.Provider {
 
         //Expanse PDF Notification channel
         val expansePdfNotificationChannel = NotificationChannel(
-            Constants.EXPANSE_PDF_CHANNEL_ID,
+            Constants.EXPENSE_PDF_CHANNEL_ID,
             Constants.EXPANSE_PDF_CHANNEL_NAME,
             NotificationManager.IMPORTANCE_DEFAULT
         )

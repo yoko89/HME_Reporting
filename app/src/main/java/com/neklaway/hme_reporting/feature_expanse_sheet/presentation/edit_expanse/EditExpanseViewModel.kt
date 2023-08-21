@@ -10,7 +10,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.neklaway.hme_reporting.common.domain.use_cases.hme_code_use_cases.GetHMECodeByIdUseCase
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.CurrencyExchange
-import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.Expanse
+import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.Expense
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.use_cases.currency_exchange_use_cases.GetAllCurrencyExchangeFlowUseCase
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.use_cases.currency_exchange_use_cases.GetCurrencyExchangeByIdUseCase
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.use_cases.expanse_use_cases.DeleteExpanseUseCase
@@ -61,7 +61,7 @@ class EditExpanseViewModel @Inject constructor(
     private val mutableUriList: MutableList<Uri> = mutableListOf()
 
     private val expanseId: Long
-    private lateinit var returnedExpanse: Expanse
+    private lateinit var returnedExpense: Expense
 
     init {
         getCurrencyList()
@@ -113,24 +113,24 @@ class EditExpanseViewModel @Inject constructor(
                             )
                         }
                         mutableUriList.addAll(state.value.invoicesUris)
-                        returnedExpanse = expanse
+                        returnedExpense = expanse
                     }
                 }
             }
-            Log.d(TAG, "returned expanse: $returnedExpanse")
-            returnedExpanse
+            Log.d(TAG, "returned expanse: $returnedExpense")
+            returnedExpense
         }
     }
 
 
     private fun updateExpanse() {
         viewModelScope.launch {
-            if (!::returnedExpanse.isInitialized) {
+            if (!::returnedExpense.isInitialized) {
                 return@launch
             }
 
             updateExpanseUseCase.invoke(
-                HMEId = returnedExpanse.HMEId,
+                HMEId = returnedExpense.HMEId,
                 date = state.value.date,
                 invoiceNumber = state.value.invoiceNumber,
                 description = state.value.description,
@@ -190,12 +190,12 @@ class EditExpanseViewModel @Inject constructor(
         viewModelScope.launch {
 
 
-            if (!::returnedExpanse.isInitialized) {
+            if (!::returnedExpense.isInitialized) {
                 _uiEvent.send(EditExpanseUiEvents.UserMessage("Can't retrieve Expanse"))
                 return@launch
             }
 
-            deleteExpanseUseCase(returnedExpanse).collect { result ->
+            deleteExpanseUseCase(returnedExpense).collect { result ->
                 when (result) {
                     is Resource.Error -> {
                         _uiEvent.send(
@@ -313,11 +313,11 @@ class EditExpanseViewModel @Inject constructor(
 
     private fun takePicture(context: Context) {
         viewModelScope.launch {
-            if (!::returnedExpanse.isInitialized) {
+            if (!::returnedExpense.isInitialized) {
                 _uiEvent.send(EditExpanseUiEvents.UserMessage("Can't retrieve Expanse"))
                 return@launch
             }
-            val selectedHmeId = returnedExpanse.HMEId
+            val selectedHmeId = returnedExpense.HMEId
             getHMECodeByIdUseCase(selectedHmeId).collect { hmeCodeResource ->
                 when (hmeCodeResource) {
                     is Resource.Error -> {
@@ -357,7 +357,7 @@ class EditExpanseViewModel @Inject constructor(
             return
         }
         viewModelScope.launch {
-            val selectedHmeId = returnedExpanse.HMEId
+            val selectedHmeId = returnedExpense.HMEId
             getHMECodeByIdUseCase(selectedHmeId).collect { hmeCodeResource ->
                 when (hmeCodeResource) {
                     is Resource.Error -> {

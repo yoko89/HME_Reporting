@@ -25,7 +25,7 @@ import com.neklaway.hme_reporting.common.domain.model.TimeSheet
 import com.neklaway.hme_reporting.common.domain.use_cases.customer_use_cases.GetCustomerByIdUseCase
 import com.neklaway.hme_reporting.common.domain.use_cases.hme_code_use_cases.GetHMECodeByIdUseCase
 import com.neklaway.hme_reporting.common.domain.use_cases.hme_code_use_cases.UpdateHMECodeUseCase
-import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.Expanse
+import com.neklaway.hme_reporting.feature_expanse_sheet.domain.model.Expense
 import com.neklaway.hme_reporting.feature_expanse_sheet.domain.use_cases.currency_exchange_use_cases.GetCurrencyExchangeByIdUseCase
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.allowance.Get8HDayAllowanceUseCase
 import com.neklaway.hme_reporting.feature_settings.domain.use_cases.allowance.GetFullDayAllowanceUseCase
@@ -35,7 +35,7 @@ import com.neklaway.hme_reporting.feature_signature.domain.use_cases.bitmap_use_
 import com.neklaway.hme_reporting.utils.BitmapOrientationCorrector
 import com.neklaway.hme_reporting.utils.CalculateAllowance
 import com.neklaway.hme_reporting.utils.Constants
-import com.neklaway.hme_reporting.utils.Constants.EXPANSE_FOLDER
+import com.neklaway.hme_reporting.utils.Constants.EXPENSE_FOLDER
 import com.neklaway.hme_reporting.utils.Resource
 import com.neklaway.hme_reporting.utils.toStdDate
 import com.neklaway.hme_reporting.utils.toTime24
@@ -53,7 +53,7 @@ import java.io.IOException
 import java.util.Calendar
 import java.util.Locale
 
-private const val TAG = "ExpansePDFCreatorWorker"
+private const val TAG = "ExpensePDFCreatorWorker"
 //Times new roman font
 
 private const val HEADER_TEXT_SIZE = 20f
@@ -110,7 +110,7 @@ private const val X_TABLE_LEFT = 15f
 private const val TABLE_WIDTH = 560f
 private const val SUMMARY_COLUMN_SHIFT = TABLE_WIDTH / 8
 private const val DETAILS_COLUMN_SHIFT = TABLE_WIDTH / 5
-private const val Expanse_COLUMN_SHIFT = TABLE_WIDTH / 7
+private const val EXPENSE_COLUMN_SHIFT = TABLE_WIDTH / 7
 
 
 //Y position start initialization
@@ -157,13 +157,13 @@ private const val TOTAL_DAILY_ALLOWANCE_HEADER_SHIFT = 25
 private const val RATE_HEADER_SHIFT = 25
 private const val RATE_SHIFT = 25
 private const val AMOUNT_HEADER_SHIFT = 15
-private const val EXPANSE_AMOUNT_HEADER_SHIFT = 5
-private const val EXPANSE_AMOUNT_SHIFT = 5
+private const val EXPENSE_AMOUNT_HEADER_SHIFT = 5
+private const val EXPENSE_AMOUNT_SHIFT = 5
 private const val AMOUNT_SHIFT = 25
 private const val DATE_SHIFT = 2
 private const val ACCRUED_SAVING_HEADER_SHIFT = 25
 private const val AMOUNT_PAYABLE_HEADER_SHIFT = 25
-private const val EXPANSE_SUMMERY_HEADER_SHIFT = 25
+private const val EXPENSE_SUMMERY_HEADER_SHIFT = 25
 private const val TOTAL_PAYABLE_AMOUNT_SHIFT = 20
 private const val INVOICE_NUMBER_HEADER_SHIFT = 5
 private const val INVOICE_NUMBER_SHIFT = 2
@@ -185,7 +185,7 @@ private const val SIGNATURE_LINE_SHIFT = -5f
 private const val ENGINEER_LINE_LENGTH = 90f
 
 @HiltWorker
-class ExpanseSheetPDFCreatorWorker @AssistedInject constructor(
+class ExpenseSheetPDFCreatorWorker @AssistedInject constructor(
     @Assisted appContext: Context,
     @Assisted workerParameters: WorkerParameters,
     private val getHMECodeByIdUseCase: GetHMECodeByIdUseCase,
@@ -209,7 +209,7 @@ class ExpanseSheetPDFCreatorWorker @AssistedInject constructor(
     private val timesFontFamily: Typeface = applicationContext.resources.getFont(R.font.times)
     private val timesBold = Typeface.create(timesFontFamily, Typeface.BOLD)
 
-    //Expanse Sheet Header
+    //Expense Sheet Header
     private val paintHeader = Paint()
 
     // Normal Text
@@ -257,7 +257,7 @@ class ExpanseSheetPDFCreatorWorker @AssistedInject constructor(
 
     companion object {
         const val TIME_SHEET_LIST_KEY = "time_sheet_list"
-        const val EXPANSE_LIST_KEY = "expanse_list"
+        const val EXPENSE_LIST_KEY = "expense_list"
     }
 
 
@@ -266,14 +266,14 @@ class ExpanseSheetPDFCreatorWorker @AssistedInject constructor(
 
 
     override suspend fun getForegroundInfo(): ForegroundInfo {
-        return ForegroundInfo(Constants.EXPANSE_PDF_NOTIFICATION_ID, createNotification())
+        return ForegroundInfo(Constants.EXPENSE_PDF_NOTIFICATION_ID, createNotification())
     }
 
     private fun createNotification(): Notification {
-        return NotificationCompat.Builder(applicationContext, Constants.EXPANSE_PDF_CHANNEL_ID)
+        return NotificationCompat.Builder(applicationContext, Constants.EXPENSE_PDF_CHANNEL_ID)
             .setSmallIcon(R.drawable.hb_logo)
-            .setContentTitle("Expanse PDF Creation on going")
-            .setContentText("Expanse PDF is under preparation")
+            .setContentTitle("Expense PDF Creation on going")
+            .setContentText("Expense PDF is under preparation")
             .build()
     }
 
@@ -285,9 +285,9 @@ class ExpanseSheetPDFCreatorWorker @AssistedInject constructor(
             inputData.getString(TIME_SHEET_LIST_KEY) ?: return Result.failure()
         val timeSheets = Json.decodeFromString(TimeSheet.listSerializer, timeSheetsSerialized)
 
-        val expanseSerialized =
-            inputData.getString(EXPANSE_LIST_KEY) ?: return Result.failure()
-        val expanses = Json.decodeFromString(Expanse.listSerializer, expanseSerialized)
+        val expenseSerialized =
+            inputData.getString(EXPENSE_LIST_KEY) ?: return Result.failure()
+        val expenses = Json.decodeFromString(Expense.listSerializer, expenseSerialized)
 
 
         //Fetching required data
@@ -321,10 +321,10 @@ class ExpanseSheetPDFCreatorWorker @AssistedInject constructor(
                 val signature =
                     loadBitmapUseCase(Constants.SIGNATURES_FOLDER, Constants.USER_SIGNATURE)
                 if (signature is Resource.Success) {
-                    Log.d(TAG, "Expanse PDF worker doWork: userSignature ${signature.data}")
+                    Log.d(TAG, "Expense PDF worker doWork: userSignature ${signature.data}")
                     signature.data
                 } else {
-                    Log.d(TAG, "Expanse PDF worker doWork: userSignature $signature")
+                    Log.d(TAG, "Expense PDF worker doWork: userSignature $signature")
                     null
                 }
             }
@@ -458,33 +458,33 @@ class ExpanseSheetPDFCreatorWorker @AssistedInject constructor(
 
         pdfDocument.finishPage(page[currentPageCount])
 
-        val ccExpanses = expanses.filter { !it.personallyPaid }
-        if (ccExpanses.isNotEmpty()) {
+        val ccExpenses = expenses.filter { !it.personallyPaid }
+        if (ccExpenses.isNotEmpty()) {
             currentPageCount++
             createNewPage(timeSheets, userName.await())
-            createExpanseTable(ccExpanses, false)
+            createExpenseTable(ccExpenses, false)
 
         }
 
-        val cashExpanses = expanses.filter { it.personallyPaid }
-        if (cashExpanses.isNotEmpty()) {
+        val cashExpenses = expenses.filter { it.personallyPaid }
+        if (cashExpenses.isNotEmpty()) {
             currentPageCount++
             createNewPage(timeSheets, userName.await())
-            createExpanseTable(cashExpanses, true)
+            createExpenseTable(cashExpenses, true)
 
         }
 
 
         // Save PDF
 
-        val directory = File(applicationContext.filesDir.path + "/" + hmeCode.code, EXPANSE_FOLDER)
+        val directory = File(applicationContext.filesDir.path + "/" + hmeCode.code, EXPENSE_FOLDER)
         if (!directory.exists()) {
             directory.mkdirs()
         }
 
         return withContext(Dispatchers.IO) {
             try {
-                if (hmeCode.expanseNumber == 0) {
+                if (hmeCode.expenseNumber == 0) {
                     pdfDocument.writeTo(
                         FileOutputStream(
                             File(
@@ -494,7 +494,7 @@ class ExpanseSheetPDFCreatorWorker @AssistedInject constructor(
                         )
                     )
                 } else {
-                    val fileNumber = hmeCode.expanseNumber + 1
+                    val fileNumber = hmeCode.expenseNumber + 1
                     pdfDocument.writeTo(
                         FileOutputStream(
                             File(
@@ -515,7 +515,7 @@ class ExpanseSheetPDFCreatorWorker @AssistedInject constructor(
                     machineNumber = hmeCode.machineNumber,
                     workDescription = hmeCode.workDescription,
                     fileNumber = hmeCode.fileNumber,
-                    expanseNumber = hmeCode.expanseNumber + 1,
+                    expenseNumber = hmeCode.expenseNumber + 1,
                     signerName = hmeCode.signerName,
                     signatureDate = Calendar.getInstance(),
                     accommodation = hmeCode.accommodation
@@ -606,7 +606,7 @@ class ExpanseSheetPDFCreatorWorker @AssistedInject constructor(
         createNewEmptyPage()
 
         canvas[currentPageCount].drawText(
-            "Expanse Sheet",
+            "Expense Sheet",
             TITLE_X,
             TITLE_Y + paintHeader.descent() - paintHeader.ascent(),
             paintHeader
@@ -1212,7 +1212,7 @@ class ExpanseSheetPDFCreatorWorker @AssistedInject constructor(
         )
     }
 
-    private fun createExpanseHeader(headerLocationY: Float) {
+    private fun createExpenseHeader(headerLocationY: Float) {
         // Draw Lines
         canvas[currentPageCount].drawLine(
             X_TABLE_LEFT,
@@ -1240,7 +1240,7 @@ class ExpanseSheetPDFCreatorWorker @AssistedInject constructor(
         //Invoice No
         canvas[currentPageCount].drawText(
             applicationContext.getString(R.string.invoice_no),
-            X_TABLE_LEFT + Expanse_COLUMN_SHIFT + INVOICE_NUMBER_HEADER_SHIFT,
+            X_TABLE_LEFT + EXPENSE_COLUMN_SHIFT + INVOICE_NUMBER_HEADER_SHIFT,
             headerLocationY,
             paintBoldText
         )
@@ -1248,7 +1248,7 @@ class ExpanseSheetPDFCreatorWorker @AssistedInject constructor(
         //Description
         canvas[currentPageCount].drawText(
             applicationContext.getString(R.string.description),
-            X_TABLE_LEFT + 2 * Expanse_COLUMN_SHIFT + DESCRIPTION_HEADER_SHIFT,
+            X_TABLE_LEFT + 2 * EXPENSE_COLUMN_SHIFT + DESCRIPTION_HEADER_SHIFT,
             headerLocationY,
             paintBoldText
         )
@@ -1256,7 +1256,7 @@ class ExpanseSheetPDFCreatorWorker @AssistedInject constructor(
         //Amount
         canvas[currentPageCount].drawText(
             applicationContext.getString(R.string.amount),
-            X_TABLE_LEFT + 4 * Expanse_COLUMN_SHIFT + EXPANSE_AMOUNT_HEADER_SHIFT,
+            X_TABLE_LEFT + 4 * EXPENSE_COLUMN_SHIFT + EXPENSE_AMOUNT_HEADER_SHIFT,
             headerLocationY,
             paintBoldText
         )
@@ -1264,50 +1264,50 @@ class ExpanseSheetPDFCreatorWorker @AssistedInject constructor(
         //Currency
         canvas[currentPageCount].drawText(
             applicationContext.getString(R.string.currency),
-            X_TABLE_LEFT + 5 * Expanse_COLUMN_SHIFT + CURRENCY_HEADER_SHIFT,
+            X_TABLE_LEFT + 5 * EXPENSE_COLUMN_SHIFT + CURRENCY_HEADER_SHIFT,
             headerLocationY,
             paintBoldText
         )
         //Amount AED
         canvas[currentPageCount].drawText(
             applicationContext.getString(R.string.amount_AED),
-            X_TABLE_LEFT + 6 * Expanse_COLUMN_SHIFT + AMOUNT_AED_HEADER_SHIFT,
+            X_TABLE_LEFT + 6 * EXPENSE_COLUMN_SHIFT + AMOUNT_AED_HEADER_SHIFT,
             headerLocationY,
             paintBoldText
         )
 
     }
 
-    private suspend fun createExpanseTable(expanses: List<Expanse>, personal: Boolean) {
+    private suspend fun createExpenseTable(expenses: List<Expense>, personal: Boolean) {
 
         // Subtitle
         canvas[currentPageCount].drawText(
             if (personal) applicationContext.getString(R.string.cash) else applicationContext.getString(
                 R.string.company_cc
             ),
-            LEFT_DATA_START + EXPANSE_SUMMERY_HEADER_SHIFT,
+            LEFT_DATA_START + EXPENSE_SUMMERY_HEADER_SHIFT,
             DATA_TOP + 8 * (textRowHeight),
             paintHeaderData
         )
         canvas[currentPageCount].drawText(
             applicationContext.getText(R.string.accomodation)
                 .toString() + ": " + hmeCode.accommodation?.name,
-            LEFT_DATA_START + EXPANSE_SUMMERY_HEADER_SHIFT,
+            LEFT_DATA_START + EXPENSE_SUMMERY_HEADER_SHIFT,
             DATA_TOP + 9 * (textRowHeight),
             paintHeaderData
         )
 
         var yPositionForCurrentItem = Y_TABLE_TOP + textRowHeight
-        var firstExpansePage = true
-        createExpanseHeader(Y_TABLE_TOP)
+        var firstExpensePage = true
+        createExpenseHeader(Y_TABLE_TOP)
 
         var totalInAED = 0f
 
-        for (currentItem in expanses) {
+        for (currentItem in expenses) {
 
             totalInAED += currentItem.amountAED
 
-            if (currentItem == expanses.last())
+            if (currentItem == expenses.last())
                 canvas[currentPageCount].drawLine(
                     X_TABLE_LEFT,
                     yPositionForCurrentItem + paintThickLineTableBorder.descent(),
@@ -1332,19 +1332,19 @@ class ExpanseSheetPDFCreatorWorker @AssistedInject constructor(
             )
             canvas[currentPageCount].drawText(
                 currentItem.invoiceNumber,
-                X_TABLE_LEFT + Expanse_COLUMN_SHIFT + INVOICE_NUMBER_SHIFT,
+                X_TABLE_LEFT + EXPENSE_COLUMN_SHIFT + INVOICE_NUMBER_SHIFT,
                 yPositionForCurrentItem,
                 paintText
             )
             canvas[currentPageCount].drawText(
                 currentItem.description,
-                X_TABLE_LEFT + 2 * Expanse_COLUMN_SHIFT + DESCRIPTION_SHIFT,
+                X_TABLE_LEFT + 2 * EXPENSE_COLUMN_SHIFT + DESCRIPTION_SHIFT,
                 yPositionForCurrentItem,
                 paintText
             )
             canvas[currentPageCount].drawText(
                 currentItem.amount.toString(),
-                X_TABLE_LEFT + 4 * Expanse_COLUMN_SHIFT + EXPANSE_AMOUNT_SHIFT,
+                X_TABLE_LEFT + 4 * EXPENSE_COLUMN_SHIFT + EXPENSE_AMOUNT_SHIFT,
                 yPositionForCurrentItem,
                 paintText
             )
@@ -1358,28 +1358,28 @@ class ExpanseSheetPDFCreatorWorker @AssistedInject constructor(
 
             canvas[currentPageCount].drawText(
                 currency,
-                X_TABLE_LEFT + 5 * Expanse_COLUMN_SHIFT + CURRENCY_SHIFT,
+                X_TABLE_LEFT + 5 * EXPENSE_COLUMN_SHIFT + CURRENCY_SHIFT,
                 yPositionForCurrentItem,
                 paintText
             )
             canvas[currentPageCount].drawText(
                 currentItem.amountAED.toString(),
-                X_TABLE_LEFT + 6 * Expanse_COLUMN_SHIFT + AMOUNT_AED_SHIFT,
+                X_TABLE_LEFT + 6 * EXPENSE_COLUMN_SHIFT + AMOUNT_AED_SHIFT,
                 yPositionForCurrentItem,
                 paintText
             )
 
             yPositionForCurrentItem += (textRowHeight)
-            if (yPositionForCurrentItem > SIGNATURE_BOTTOM - textRowHeight - userSignHeight || currentItem == expanses.last()) {
+            if (yPositionForCurrentItem > SIGNATURE_BOTTOM - textRowHeight - userSignHeight || currentItem == expenses.last()) {
 
                 // Draw Table Columns
                 for (i in 0..7) {
                     when (i) {
                         0, 7 -> {
                             canvas[currentPageCount].drawLine(
-                                X_TABLE_LEFT + i * Expanse_COLUMN_SHIFT,
-                                (if (firstExpansePage) Y_TABLE_TOP else TITLE_Y + 2 * textRowHeight) + paintThickLineTableBorder.ascent(),
-                                X_TABLE_LEFT + i * Expanse_COLUMN_SHIFT,
+                                X_TABLE_LEFT + i * EXPENSE_COLUMN_SHIFT,
+                                (if (firstExpensePage) Y_TABLE_TOP else TITLE_Y + 2 * textRowHeight) + paintThickLineTableBorder.ascent(),
+                                X_TABLE_LEFT + i * EXPENSE_COLUMN_SHIFT,
                                 yPositionForCurrentItem - textRowHeight + paintThickLineTableBorder.descent(),
                                 paintThickLineTableBorder
                             )
@@ -1388,9 +1388,9 @@ class ExpanseSheetPDFCreatorWorker @AssistedInject constructor(
                         3 -> Unit
                         else -> {
                             canvas[currentPageCount].drawLine(
-                                X_TABLE_LEFT + i * Expanse_COLUMN_SHIFT,
-                                (if (firstExpansePage) Y_TABLE_TOP else TITLE_Y + 2 * textRowHeight) + paintThickLineTableBorder.ascent(),
-                                X_TABLE_LEFT + i * Expanse_COLUMN_SHIFT,
+                                X_TABLE_LEFT + i * EXPENSE_COLUMN_SHIFT,
+                                (if (firstExpensePage) Y_TABLE_TOP else TITLE_Y + 2 * textRowHeight) + paintThickLineTableBorder.ascent(),
+                                X_TABLE_LEFT + i * EXPENSE_COLUMN_SHIFT,
                                 yPositionForCurrentItem - textRowHeight + paintThickLineTableBorder.descent(),
                                 paintText
                             )
@@ -1404,33 +1404,33 @@ class ExpanseSheetPDFCreatorWorker @AssistedInject constructor(
                     pdfDocument.finishPage(page[currentPageCount])
                     yPositionForCurrentItem = TITLE_Y + 3 * textRowHeight
                     currentPageCount++
-                    firstExpansePage = false
+                    firstExpensePage = false
                 }
 
             }
 
             if (currentPageCount > lastPageCreated) {
                 createNewEmptyPage()
-                createExpanseHeader(TITLE_Y + 2 * textRowHeight)
+                createExpenseHeader(TITLE_Y + 2 * textRowHeight)
             }
 
         }
         if (personal) {
             canvas[currentPageCount].drawText(
                 applicationContext.getString(R.string.totalInAED),
-                X_TABLE_LEFT + 5 * Expanse_COLUMN_SHIFT + AMOUNT_AED_SHIFT,
+                X_TABLE_LEFT + 5 * EXPENSE_COLUMN_SHIFT + AMOUNT_AED_SHIFT,
                 yPositionForCurrentItem,
                 paintBoldText
             )
             canvas[currentPageCount].drawText(
                 totalInAED.toString(),
-                X_TABLE_LEFT + 6 * Expanse_COLUMN_SHIFT + AMOUNT_AED_SHIFT,
+                X_TABLE_LEFT + 6 * EXPENSE_COLUMN_SHIFT + AMOUNT_AED_SHIFT,
                 yPositionForCurrentItem,
                 paintText
             )
 
             canvas[currentPageCount].drawLine(
-                X_TABLE_LEFT + 5 * Expanse_COLUMN_SHIFT,
+                X_TABLE_LEFT + 5 * EXPENSE_COLUMN_SHIFT,
                 yPositionForCurrentItem + paintThickLineTableBorder.descent(),
                 X_TABLE_LEFT + TABLE_WIDTH,
                 yPositionForCurrentItem + paintThickLineTableBorder.descent(),
@@ -1439,9 +1439,9 @@ class ExpanseSheetPDFCreatorWorker @AssistedInject constructor(
 
             for (i in 5..7)
                 canvas[currentPageCount].drawLine(
-                    X_TABLE_LEFT + i * Expanse_COLUMN_SHIFT,
+                    X_TABLE_LEFT + i * EXPENSE_COLUMN_SHIFT,
                     yPositionForCurrentItem + paintThickLineTableBorder.descent(),
-                    X_TABLE_LEFT + i * Expanse_COLUMN_SHIFT,
+                    X_TABLE_LEFT + i * EXPENSE_COLUMN_SHIFT,
                     yPositionForCurrentItem - textRowHeight + paintThickLineTableBorder.descent(),
                     paintThickLineTableBorder
                 )
@@ -1449,10 +1449,10 @@ class ExpanseSheetPDFCreatorWorker @AssistedInject constructor(
 
         pdfDocument.finishPage(page[currentPageCount])
 
-        for (currentItem in expanses) {
+        for (currentItem in expenses) {
             Log.d(
                 TAG,
-                "createExpanseTable: Expanse ${currentItem.description} is checked for invoices"
+                "createExpenseTable: Expense ${currentItem.description} is checked for invoices"
             )
             if (currentItem.invoicesUri.isEmpty()) continue
             for (imageUriAsString in currentItem.invoicesUri) {
@@ -1468,15 +1468,15 @@ class ExpanseSheetPDFCreatorWorker @AssistedInject constructor(
                     if (imageCorrected.width > IMAGE_MAX_WIDTH) {
                         IMAGE_MAX_WIDTH / imageCorrected.width
                     } else 1f
-                Log.d(TAG, "createExpanseTable: width ratio $widthRatio")
+                Log.d(TAG, "createExpenseTable: width ratio $widthRatio")
                 val heightRatio =
                     if (imageCorrected.height > IMAGE_MAX_HEIGHT) {
                         IMAGE_MAX_HEIGHT / imageCorrected.height
                     } else 1f
-                Log.d(TAG, "createExpanseTable: height ratio $heightRatio")
+                Log.d(TAG, "createExpenseTable: height ratio $heightRatio")
 
                 val ratio = if (widthRatio < heightRatio) widthRatio else heightRatio
-                Log.d(TAG, "createExpanseTable: Ratio $ratio")
+                Log.d(TAG, "createExpenseTable: Ratio $ratio")
                 currentPageCount++
                 createNewEmptyPage()
                 //HME Code
