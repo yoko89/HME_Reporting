@@ -35,7 +35,7 @@ import com.neklaway.hme_reporting.utils.NotificationPermissionRequest
 import kotlinx.coroutines.flow.Flow
 import java.io.File
 
-private const val TAG = "TimeSheetScreen"
+//private const val TAG = "TimeSheetScreen"
 
 
 @Composable
@@ -87,7 +87,7 @@ fun TimeSheetScreen(
 
     val fabRotation = animateFloatAsState(
         targetValue = if (state.fabVisible) 90f else 0f,
-        animationSpec = tween(500)
+        animationSpec = tween(500), label = ""
     )
 
 

@@ -18,12 +18,12 @@ interface IBAUCodeDao {
     @Update
     suspend fun update(ibauCode: IBAUCodeEntity):Int
 
-    @Query("SELECT * FROM ibauCodeTable")
+    @Query("SELECT * FROM ibauCodeTable ORDER BY code ASC")
     suspend fun getAll(): List<IBAUCodeEntity>
 
-    @Query("SELECT * FROM ibauCodeTable WHERE id = :id")
+    @Query("SELECT * FROM ibauCodeTable WHERE id = :id ORDER BY code ASC")
     fun getById(id: Long): IBAUCodeEntity
 
-    @Query("SELECT * FROM ibauCodeTable WHERE HMEId = :hmeId")
+    @Query("SELECT * FROM ibauCodeTable WHERE HMEId = :hmeId ORDER BY code ASC")
     fun getByHMECodeId(hmeId: Long): List<IBAUCodeEntity>
 }

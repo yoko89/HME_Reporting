@@ -23,9 +23,9 @@ interface VisaDao {
     @Query("SELECT * FROM visaTable WHERE id = :id")
     suspend fun getById(id: Long): VisaEntity
 
-    @Query("SELECT * FROM visaTable")
+    @Query("SELECT * FROM visaTable ORDER BY date ASC")
     fun getAllFlow(): Flow<List<VisaEntity>>
 
-    @Query("SELECT * FROM visaTable")
+    @Query("SELECT * FROM visaTable ORDER BY date ASC")
     fun getAll(): List<VisaEntity>
 }

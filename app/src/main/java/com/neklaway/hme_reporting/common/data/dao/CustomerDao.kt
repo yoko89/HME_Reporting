@@ -23,9 +23,9 @@ interface CustomerDao {
     @Query("SELECT * FROM customerTable WHERE id = :id")
     suspend fun getById(id:Long): CustomerEntity
 
-    @Query("SELECT * FROM customerTable")
+    @Query("SELECT * FROM customerTable ORDER BY name ASC")
     fun getAllFlow(): Flow<List<CustomerEntity>>
 
-    @Query("SELECT * FROM customerTable")
+    @Query("SELECT * FROM customerTable ORDER BY name ASC")
     fun getAll(): List<CustomerEntity>
 }

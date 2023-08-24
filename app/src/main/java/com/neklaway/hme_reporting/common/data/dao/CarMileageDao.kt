@@ -23,10 +23,10 @@ interface CarMileageDao {
     @Query("SELECT * FROM carMileageTable WHERE id = :id")
     suspend fun getById(id: Long): CarMileageEntity
 
-    @Query("SELECT * FROM carMileageTable")
+    @Query("SELECT * FROM carMileageTable ORDER BY startDate ASC")
     fun getAllFlow(): Flow<List<CarMileageEntity>>
 
-    @Query("SELECT * FROM carMileageTable")
+    @Query("SELECT * FROM carMileageTable ORDER BY startDate ASC")
     fun getAll(): List<CarMileageEntity>
 
 }

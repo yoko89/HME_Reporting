@@ -18,13 +18,13 @@ interface HMECodeDao {
     @Update
     suspend fun update(hmeCode: HMECodeEntity):Int
 
-    @Query("SELECT * FROM hmeCodeTable")
+    @Query("SELECT * FROM hmeCodeTable ORDER BY code ASC")
     suspend fun getAll(): List<HMECodeEntity>
 
     @Query("SELECT * FROM hmeCodeTable WHERE id = :id")
     suspend fun getById(id: Long): HMECodeEntity
 
-    @Query("SELECT * FROM hmeCodeTable WHERE customerId = :customerId")
+    @Query("SELECT * FROM hmeCodeTable WHERE customerId = :customerId ORDER BY code ASC")
     suspend fun getByCustomerId(customerId: Long): List<HMECodeEntity>
 
 }

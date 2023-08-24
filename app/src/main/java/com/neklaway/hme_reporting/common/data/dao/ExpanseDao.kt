@@ -22,14 +22,14 @@ interface ExpanseDao {
     @Update
     suspend fun update(expanseEntities: List<ExpanseEntity>): Int
 
-    @Query("SELECT * FROM expansesTable")
+    @Query("SELECT * FROM expansesTable ORDER BY date ASC")
     fun getAllFlow(): Flow<List<ExpanseEntity>>
-    @Query("SELECT * FROM expansesTable")
+    @Query("SELECT * FROM expansesTable ORDER BY date ASC")
     fun getAll(): List<ExpanseEntity>
 
-    @Query("SELECT * FROM expansesTable WHERE id = :id")
+    @Query("SELECT * FROM expansesTable WHERE id = :id ORDER BY date ASC")
     fun getById(id: Long): ExpanseEntity
 
-    @Query("SELECT * FROM expansesTable WHERE HMEId = :id")
+    @Query("SELECT * FROM expansesTable WHERE HMEId = :id ORDER BY date ASC")
     fun getByHMECodeId(id: Long): Flow<List<ExpanseEntity>>
 }
