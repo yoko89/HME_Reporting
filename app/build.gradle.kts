@@ -71,7 +71,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    buildToolsVersion = "33.0.1"
+    buildToolsVersion = "34.0.0"
 }
 
 dependencies {
