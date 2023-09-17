@@ -222,14 +222,31 @@ class RestoreWorker @AssistedInject constructor(
                     Log.d(TAG, "doWork: ${files.listFiles().map { it.name }}")
                     files.listFiles().forEach listForeach@{ file ->
 
+                        if (!file.isDirectory){
                         val backupInputStreamFile =
                             applicationContext.contentResolver.openInputStream(file.uri)
                                 ?: return@listForeach
                         val restoreFile = File(backedFolder, file.name!!)
                         Log.d(TAG, "doWork: ${file.name}")
-
                         copyFiles(backupInputStreamFile, restoreFile)
                     }
+                        else {
+                            val backedExpanseFolder = File(backedFolder, file.name!!)
+
+                            if (!internalStorageFiles!!.any { it.name == file.name }){
+                                backedExpanseFolder.mkdir()
+                            }
+                            file.listFiles().forEach { expanseFile->
+                                val backupInputStreamFile =
+                                    applicationContext.contentResolver.openInputStream(expanseFile.uri)
+                                        ?: return@listForeach
+                                val restoreFile = File(backedExpanseFolder, expanseFile.name!!)
+                                Log.d(TAG, "doWork: ${expanseFile.name}")
+
+                                copyFiles(backupInputStreamFile, restoreFile)
+                            }
+                    }
+                }
                 }
 
             }
@@ -252,7 +269,7 @@ class RestoreWorker @AssistedInject constructor(
 
 
         var notificationText = if (filesRestored.values.any { !it }) {
-            filesRestored.filter {it ->
+            filesRestored.filter {
                 !it.value
             }.toString()
         } else {

@@ -497,37 +497,65 @@ class BackupWorker @AssistedInject constructor(
             ?.onEach { files ->
                 files.listFiles()?.onEach { file ->
 
-                    val contentValues = ContentValues().apply {
-                        put(MediaStore.Files.FileColumns.DISPLAY_NAME, file.name)
+                    if (!file.isDirectory) {
+                        val contentValues = ContentValues().apply {
+                            put(MediaStore.Files.FileColumns.DISPLAY_NAME, file.name)
 
-                        put(MediaStore.Files.FileColumns.MIME_TYPE, "*/*")
-                        put(
-                            folderPath.first,
-                            folderPath.second + "/" + files.name
-                        )
-
-
+                            put(MediaStore.Files.FileColumns.MIME_TYPE, "*/*")
+                            put(
+                                folderPath.first,
+                                folderPath.second + "/" + files.name
+                            )
+                        }
+                        try {
+                            Log.d(TAG, "backup: File writing started")
+                            appContext.contentResolver.insert(collection, contentValues)
+                                ?.also { uri ->
+                                    appContext.contentResolver.openOutputStream(uri)
+                                        .use { outputStream ->
+                                            outputStream?.write(file.readBytes())
+                                            Log.d(TAG, "File: ${file.name}")
+                                            outputStream?.flush()
+                                            outputStream?.close()
+                                        }
+                                    Log.d(TAG, "doWork: resolver use closed")
+                                }
+                        } catch (e: IOException) {
+                            e.printStackTrace()
+                            resultError.add("File " + e.message)
+                            Log.d(TAG, "File: failed ${file.name} ${e.message}")
+                        }
                     }
+                    else{
+                        file.listFiles()?.onEach { expanseFile ->
+                            val contentValues = ContentValues().apply {
+                                put(MediaStore.Files.FileColumns.DISPLAY_NAME, expanseFile.name)
 
-
-
-                    try {
-                        Log.d(TAG, "backup: File writing started")
-                        appContext.contentResolver.insert(collection, contentValues)
-                            ?.also { uri ->
-                                appContext.contentResolver.openOutputStream(uri)
-                                    .use { outputStream ->
-                                        outputStream?.write(file.readBytes())
-                                        Log.d(TAG, "File: ${file.name}")
-                                        outputStream?.flush()
-                                        outputStream?.close()
-                                    }
-                                Log.d(TAG, "doWork: resolver use closed")
+                                put(MediaStore.Files.FileColumns.MIME_TYPE, "*/*")
+                                put(
+                                    folderPath.first,
+                                    folderPath.second + "/" + files.name + "/" + file.name
+                                )
                             }
-                    } catch (e: IOException) {
-                        e.printStackTrace()
-                        resultError.add("File " + e.message)
-                        Log.d(TAG, "File: failed ${file.name} ${e.message}")
+                            try {
+                                Log.d(TAG, "backup: File writing started")
+                                appContext.contentResolver.insert(collection, contentValues)
+                                    ?.also { uri ->
+                                        appContext.contentResolver.openOutputStream(uri)
+                                            .use { outputStream ->
+                                                outputStream?.write(expanseFile.readBytes())
+                                                Log.d(TAG, "File: ${expanseFile.name}")
+                                                outputStream?.flush()
+                                                outputStream?.close()
+                                            }
+                                        Log.d(TAG, "doWork: resolver use closed")
+                                    }
+                            } catch (e: IOException) {
+                                e.printStackTrace()
+                                resultError.add("File " + e.message)
+                                Log.d(TAG, "File: failed ${expanseFile.name} ${e.message}")
+                            }
+                        }
                     }
                 }
 

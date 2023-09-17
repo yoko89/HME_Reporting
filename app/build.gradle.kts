@@ -16,8 +16,8 @@ android {
         applicationId = "com.neklaway.hmereporting"
         minSdk = 29
         targetSdk = 34
-        versionCode = 21
-        versionName = "3.0"
+        versionCode = 22
+        versionName = "3.1"
 
         testInstrumentationRunner = ("androidx.test.runner.AndroidJUnitRunner")
         vectorDrawables {
@@ -109,8 +109,8 @@ dependencies {
     //Dagger
     implementation("com.google.dagger:hilt-android:2.48")
     ksp("com.google.dagger:hilt-compiler:2.48")
-    implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
-    ksp("androidx.hilt:hilt-compiler:1.0.0")
+    implementation("androidx.hilt:hilt-navigation-compose:1.1.0-alpha01")
+    ksp("androidx.hilt:hilt-compiler:1.1.0-alpha01")
 
     // DataStore
     implementation("androidx.datastore:datastore-preferences:1.0.0")
@@ -123,7 +123,7 @@ dependencies {
 
     //WorkManager
     implementation("androidx.work:work-runtime-ktx:2.8.1")
-    implementation("androidx.hilt:hilt-work:1.0.0")
+    implementation("androidx.hilt:hilt-work:1.1.0-alpha01")
 
 
     //Testing hilt
