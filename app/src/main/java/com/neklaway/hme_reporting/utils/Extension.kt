@@ -1,6 +1,7 @@
 package com.neklaway.hme_reporting.utils
 
 import android.annotation.SuppressLint
+import com.neklaway.hme_reporting.common.domain.model.TimeSheet
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
@@ -112,4 +113,17 @@ fun String.toIntWithString(): ResourceWithString<Int> {
     }
 
     return ResourceWithString.Success(int, string)
+}
+
+
+fun List<TimeSheet>.updateTimesheetListWithOverlapping(): List<TimeSheet> {
+    val timeSheetCollectedByDate = this.groupBy { it.date }
+
+    this.forEach {
+        if ((timeSheetCollectedByDate[it.date]?.size ?: 1) > 1) {
+            it.overLap = true
+        }
+    }
+
+    return this
 }

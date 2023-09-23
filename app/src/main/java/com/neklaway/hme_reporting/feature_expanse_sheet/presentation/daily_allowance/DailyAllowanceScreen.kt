@@ -120,7 +120,7 @@ fun DailyAllowanceScreen(
                                     checked
                                 )
                             )
-                        }
+                        },
                     )
                 }
             }

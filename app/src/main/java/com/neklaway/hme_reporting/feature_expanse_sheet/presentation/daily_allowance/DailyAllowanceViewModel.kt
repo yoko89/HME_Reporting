@@ -18,6 +18,7 @@ import com.neklaway.hme_reporting.common.domain.use_cases.time_sheet_use_cases.U
 import com.neklaway.hme_reporting.common.domain.use_cases.time_sheet_use_cases.UpdateTimeSheetUseCase
 import com.neklaway.hme_reporting.utils.Resource
 import com.neklaway.hme_reporting.utils.toDate
+import com.neklaway.hme_reporting.utils.updateTimesheetListWithOverlapping
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -154,7 +155,7 @@ class DailyAllowanceViewModel @Inject constructor(
                         result.data?.let { timeSheetList ->
                             _state.update {
                                 it.copy(
-                                    timeSheetList = timeSheetList,
+                                    timeSheetList = timeSheetList.updateTimesheetListWithOverlapping(),
                                     loading = false,
                                 )
                             }

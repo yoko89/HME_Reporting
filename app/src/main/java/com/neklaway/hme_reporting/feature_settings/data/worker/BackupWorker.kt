@@ -41,7 +41,7 @@ import dagger.assisted.AssistedInject
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import java.io.IOException
-import java.util.*
+import java.util.Calendar
 
 private const val TAG = "BackupWorker"
 
@@ -54,7 +54,7 @@ class BackupWorker @AssistedInject constructor(
     val getAllIBAUCodesUseCase: GetAllIBAUCodesUseCase,
     val getAllTimeSheetUseCase: GetAllTimeSheetUseCase,
     val getAllVisasUseCase: GetAllVisasUseCase,
-    val getAllCarMileage:GetAllCarMileageUseCase,
+    val getAllCarMileage: GetAllCarMileageUseCase,
     val getAllCurrencyExchangeUseCase: GetAllCurrencyExchangeUseCase,
     val getAllExpansesUseCase: GetAllExpansesUseCase,
 ) : CoroutineWorker(appContext, workerParameters) {
@@ -222,6 +222,7 @@ class BackupWorker @AssistedInject constructor(
                 is Resource.Error -> resultError.add(
                     resource.message ?: "Can't load TimeSheet List"
                 )
+
                 is Resource.Loading -> Unit
                 is Resource.Success -> {
                     val serializedTimeSheet = Json.encodeToString(
@@ -311,7 +312,10 @@ class BackupWorker @AssistedInject constructor(
 
             Log.d(TAG, "getCarMileage: $resource")
             when (resource) {
-                is Resource.Error -> resultError.add(resource.message ?: "Can't load CarMileage List")
+                is Resource.Error -> resultError.add(
+                    resource.message ?: "Can't load CarMileage List"
+                )
+
                 is Resource.Loading -> Unit
                 is Resource.Success -> {
                     val serializedCarMileage = Json.encodeToString(
@@ -353,7 +357,10 @@ class BackupWorker @AssistedInject constructor(
 
             Log.d(TAG, "getExpanse: $resource")
             when (resource) {
-                is Resource.Error -> resultError.add(resource.message ?: "Can't load Currency Exchange List")
+                is Resource.Error -> resultError.add(
+                    resource.message ?: "Can't load Currency Exchange List"
+                )
+
                 is Resource.Loading -> Unit
                 is Resource.Success -> {
                     val serializedCurrencyExchange = Json.encodeToString(
@@ -374,7 +381,10 @@ class BackupWorker @AssistedInject constructor(
                                 appContext.contentResolver.openOutputStream(uri)
                                     .use { outputStream ->
                                         outputStream?.write(serializedCurrencyExchange.toByteArray())
-                                        Log.d(TAG, "Currency Exchange serialized: $serializedCurrencyExchange")
+                                        Log.d(
+                                            TAG,
+                                            "Currency Exchange serialized: $serializedCurrencyExchange"
+                                        )
                                         outputStream?.flush()
                                         outputStream?.close()
                                     }
@@ -488,7 +498,7 @@ class BackupWorker @AssistedInject constructor(
 
             }
 
-        //Backup rest of files
+        //Backup rest of files and folders
         internalStorageFiles?.filter {
             !it.name.equals(Constants.SIGNATURES_FOLDER) or !it.name.equals(
                 "datastore"
@@ -525,8 +535,7 @@ class BackupWorker @AssistedInject constructor(
                             resultError.add("File " + e.message)
                             Log.d(TAG, "File: failed ${file.name} ${e.message}")
                         }
-                    }
-                    else{
+                    } else {
                         file.listFiles()?.onEach { expanseFile ->
                             val contentValues = ContentValues().apply {
                                 put(MediaStore.Files.FileColumns.DISPLAY_NAME, expanseFile.name)
@@ -567,11 +576,11 @@ class BackupWorker @AssistedInject constructor(
         val notificationBuilder =
             NotificationCompat.Builder(appContext, Constants.BACKUP_CHANNEL_ID)
                 .setSmallIcon(R.drawable.hb_logo)
-                .setContentTitle("BackUp is done")
+                .setContentTitle("Backup is done")
                 .setAutoCancel(true)
 
         if (resultError.isNotEmpty()) {
-            notificationBuilder.setContentText(resultError.toString())
+            notificationBuilder.setStyle(NotificationCompat.BigTextStyle().bigText(resultError.toString()))
         } else {
             notificationBuilder.setContentText("Backup Successful")
 

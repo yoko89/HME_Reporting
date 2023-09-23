@@ -24,6 +24,7 @@ import com.neklaway.hme_reporting.feature_settings.domain.use_cases.is_ibau.GetI
 import com.neklaway.hme_reporting.feature_signature.domain.use_cases.bitmap_use_case.LoadBitmapUseCase
 import com.neklaway.hme_reporting.utils.Constants
 import com.neklaway.hme_reporting.utils.Resource
+import com.neklaway.hme_reporting.utils.updateTimesheetListWithOverlapping
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -225,7 +226,7 @@ class TimeSheetViewModel @Inject constructor(
                                 )
                                 Log.d(TAG, "get timesheet by HME: collect $timeSheetList ")
                                 val timeSheetListWithOverlapping =
-                                    updateTimesheetListWithOverlapping(timeSheetsListSorted)
+                                    timeSheetsListSorted.updateTimesheetListWithOverlapping()
 
                                 allCheckBoxSelected(timeSheetList)
                                 _state.update {
@@ -270,7 +271,7 @@ class TimeSheetViewModel @Inject constructor(
                             Log.d(TAG, "get timesheet by ibau: collect $timeSheetList ")
 
                             val timeSheetListWithOverlapping =
-                                updateTimesheetListWithOverlapping(timeSheetsListSorted)
+                                timeSheetsListSorted.updateTimesheetListWithOverlapping()
 
                             allCheckBoxSelected(timeSheetList)
 
@@ -401,18 +402,6 @@ class TimeSheetViewModel @Inject constructor(
 
     private fun fileSelectionCanceled() {
         _state.update { it.copy(showFileList = false) }
-    }
-
-    private fun updateTimesheetListWithOverlapping(timeSheetList: List<TimeSheet>): List<TimeSheet> {
-        val timeSheetCollectedByDate = timeSheetList.groupBy { it.date }
-
-        timeSheetList.forEach {
-            if ((timeSheetCollectedByDate[it.date]?.size ?: 1) > 1) {
-                it.overLap = true
-            }
-        }
-
-        return timeSheetList
     }
 
     private fun allCheckBoxSelected(timeSheetList: List<TimeSheet>) {
