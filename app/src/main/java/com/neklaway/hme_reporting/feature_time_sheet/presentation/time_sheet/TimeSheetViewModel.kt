@@ -400,6 +400,13 @@ class TimeSheetViewModel @Inject constructor(
         }
     }
 
+    private fun fileLongClicked(file: File){
+        file.delete()
+        _state.update {
+            it.copy(showFileList = false)
+        }
+    }
+
     private fun fileSelectionCanceled() {
         _state.update { it.copy(showFileList = false) }
     }
@@ -425,6 +432,7 @@ class TimeSheetViewModel @Inject constructor(
             is TimeSheetUserEvents.FileSelected -> fileSelected(event.file)
             TimeSheetUserEvents.FileSelectionCanceled -> fileSelectionCanceled()
             is TimeSheetUserEvents.TimesheetClicked -> timesheetClicked(event.timeSheet)
+            is TimeSheetUserEvents.FileLongClick -> fileLongClicked(event.file)
         }
     }
 

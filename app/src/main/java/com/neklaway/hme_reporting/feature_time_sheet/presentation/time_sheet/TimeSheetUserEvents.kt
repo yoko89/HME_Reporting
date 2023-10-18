@@ -20,7 +20,9 @@ sealed class TimeSheetUserEvents {
 
     class SignatureDone(val signerName: String?) : TimeSheetUserEvents()
     object SignatureCanceled : TimeSheetUserEvents()
-    class TimesheetClicked(val timeSheet: TimeSheet):TimeSheetUserEvents()
-    class FileSelected(val file: File):TimeSheetUserEvents()
-    object FileSelectionCanceled:TimeSheetUserEvents()
+    class TimesheetClicked(val timeSheet: TimeSheet) : TimeSheetUserEvents()
+    class FileSelected(val file: File) : TimeSheetUserEvents()
+    object FileSelectionCanceled : TimeSheetUserEvents()
+    class FileLongClick(val file: File) : TimeSheetUserEvents()
+
 }

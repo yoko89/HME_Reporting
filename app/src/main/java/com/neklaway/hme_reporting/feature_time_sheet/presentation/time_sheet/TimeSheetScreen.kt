@@ -263,6 +263,9 @@ fun TimeSheetScreen(
                 },
                 onCancel = {
                     userEvents(TimeSheetUserEvents.FileSelectionCanceled)
+                },
+                onLongClick = {
+                    userEvents(TimeSheetUserEvents.FileLongClick(it))
                 }
             )
         }

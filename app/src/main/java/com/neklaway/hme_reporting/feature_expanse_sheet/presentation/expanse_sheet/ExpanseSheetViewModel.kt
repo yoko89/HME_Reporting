@@ -316,6 +316,13 @@ class ExpanseSheetViewModel @Inject constructor(
         }
     }
 
+    private fun fileLongClicked(file: File){
+        file.delete()
+        _state.update {
+            it.copy(showFileList = false)
+        }
+    }
+
     private fun fileSelectionCanceled() {
         _state.update { it.copy(showFileList = false) }
     }
@@ -377,6 +384,7 @@ class ExpanseSheetViewModel @Inject constructor(
             is ExpanseSheetUserEvent.HmeSelected -> hmeSelected(event.hmeCode)
             ExpanseSheetUserEvent.OpenExpanseSheets -> openExpanseSheets()
             ExpanseSheetUserEvent.ShowMoreFABClicked -> showMoreFABClicked()
+            is ExpanseSheetUserEvent.FileLongClick -> fileLongClicked(event.file)
         }
     }
 

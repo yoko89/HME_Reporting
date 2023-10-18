@@ -1,5 +1,3 @@
-@file:Suppress("UnstableApiUsage")
-
 plugins {
     id("com.android.application")
     kotlin("android")
@@ -16,8 +14,8 @@ android {
         applicationId = "com.neklaway.hmereporting"
         minSdk = 29
         targetSdk = 34
-        versionCode = 22
-        versionName = "3.1"
+        versionCode = 23
+        versionName = "3.2"
 
         testInstrumentationRunner = ("androidx.test.runner.AndroidJUnitRunner")
         vectorDrawables {
@@ -42,11 +40,11 @@ android {
         }
     }
 
-        testOptions {
-            unitTests {
-                isIncludeAndroidResources = true
-            }
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
         }
+    }
 
     kotlinOptions {
         freeCompilerArgs = listOf(

@@ -15,5 +15,7 @@ sealed class ExpanseSheetUserEvent {
     class AccommodationChanged(val accommodation: Accommodation) : ExpanseSheetUserEvent()
     class ExpanseClicked(val expense:Expense) : ExpanseSheetUserEvent()
     class FileSelected(val file: File) : ExpanseSheetUserEvent()
+    class FileLongClick(val file: File) : ExpanseSheetUserEvent()
+
     object FileSelectionCanceled:ExpanseSheetUserEvent()
 }

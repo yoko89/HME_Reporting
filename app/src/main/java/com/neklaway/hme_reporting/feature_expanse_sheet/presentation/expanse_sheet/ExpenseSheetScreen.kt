@@ -70,7 +70,7 @@ fun ExpenseSheetScreen(
     state: ExpanseSheetState,
     uiEvents: Flow<ExpanseSheetUiEvents>,
     userEvent: (ExpanseSheetUserEvent) -> Unit,
-    getCurrencyExchange:(Long) ->Flow<String>,
+    getCurrencyExchange: (Long) -> Flow<String>,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     var requestPermission by remember {
@@ -107,7 +107,7 @@ fun ExpenseSheetScreen(
 
 
     val fabRotation = animateFloatAsState(
-        targetValue = if (state.fabVisible) 90f else 0f, animationSpec = tween(500)
+        targetValue = if (state.fabVisible) 90f else 0f, animationSpec = tween(500), label = ""
     )
 
 
@@ -183,7 +183,7 @@ fun ExpenseSheetScreen(
                 userEvent(ExpanseSheetUserEvent.HmeSelected(hmeCode))
             }
 
-            val infiniteTransition = rememberInfiniteTransition()
+            val infiniteTransition = rememberInfiniteTransition(label = "")
 
             DropDown(
                 dropDownList = Accommodation.values().toList(),
@@ -211,7 +211,7 @@ fun ExpenseSheetScreen(
                                         delayMillis = 1000,
                                         easing = LinearEasing
                                     ), repeatMode = RepeatMode.Reverse
-                                )
+                                ), label = ""
                             ).value
                         } else MaterialTheme.colorScheme.background
                     ),
@@ -296,7 +296,10 @@ fun ExpenseSheetScreen(
                 userEvent(ExpanseSheetUserEvent.FileSelected(it))
             }, onCancel = {
                 userEvent(ExpanseSheetUserEvent.FileSelectionCanceled)
-            })
+            },
+                onLongClick = {
+                    userEvent(ExpanseSheetUserEvent.FileLongClick(it))
+                })
         }
 
         if (requestPermission) {
