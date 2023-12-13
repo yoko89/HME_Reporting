@@ -2,10 +2,18 @@ package com.neklaway.hme_reporting.feature_expanse_sheet.presentation.main
 
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material3.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
@@ -26,8 +34,8 @@ import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.daily_allow
 import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.daily_allowance.DailyAllowanceViewModel
 import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.edit_expanse.EditExpanseScreen
 import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.edit_expanse.EditExpanseViewModel
-import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.expanse_sheet.ExpenseSheetScreen
 import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.expanse_sheet.ExpanseSheetViewModel
+import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.expanse_sheet.ExpenseSheetScreen
 import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.new_expense.NewExpanseScreen
 import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.new_expense.NewExpenseViewModel
 
@@ -70,8 +78,14 @@ fun ExpenseMainScreen(
                 screenList = screens, navController = navController
             ) {
                 userEvents(ExpenseSheetMainUserEvent.ScreenSelected(it.route))
-                navController.popBackStack()
-                navController.navigate(it.route)
+
+                navController.navigate(it.route) {
+                    popUpTo(navController.graph.startDestinationId) {
+                        saveState = true
+                    }
+                    launchSingleTop = true
+                    restoreState = true
+                }
             }
         }
     ) { paddingValues ->

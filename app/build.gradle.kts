@@ -14,8 +14,8 @@ android {
         applicationId = "com.neklaway.hmereporting"
         minSdk = 29
         targetSdk = 34
-        versionCode = 23
-        versionName = "3.2"
+        versionCode = 24
+        versionName = "3.3"
 
         testInstrumentationRunner = ("androidx.test.runner.AndroidJUnitRunner")
         vectorDrawables {
@@ -40,12 +40,6 @@ android {
         }
     }
 
-//    testOptions {
-//        unitTests {
-//            isIncludeAndroidResources = true
-//        }
-//    }
-
     kotlinOptions {
         freeCompilerArgs = listOf(
             ("-opt-in=androidx.compose.material3.ExperimentalMaterial3Api")
@@ -53,9 +47,10 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = ("1.5.4")
+        kotlinCompilerExtensionVersion = ("1.5.6")
     }
     packaging {
         resources {
@@ -96,9 +91,9 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.2")
 
     //Room Database
-    implementation("androidx.room:room-runtime:2.6.0")
-    ksp("androidx.room:room-compiler:2.6.0")
-    implementation("androidx.room:room-ktx:2.6.0")
+    implementation("androidx.room:room-runtime:2.6.1")
+    ksp("androidx.room:room-compiler:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
 
     // Kotlin coroutine
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1")
@@ -120,7 +115,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
 
     //WorkManager
-    implementation("androidx.work:work-runtime-ktx:2.8.1")
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
     implementation("androidx.hilt:hilt-work:1.1.0")
 
 

@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -74,8 +75,14 @@ fun TimeSheetMainScreen(
                 screenList = screens, navController = navController
             ) {
                 userEvents(TimeSheetMainUserEvent.ScreenSelected(it.route))
-                navController.popBackStack()
-                navController.navigate(it.route)
+                navController.navigate(it.route){
+                    popUpTo(navController.graph.findStartDestination().id){
+                        saveState = true
+                    }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+
             }
         }
     ) { paddingValues ->

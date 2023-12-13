@@ -113,7 +113,6 @@ class MainActivity @Inject constructor() : ComponentActivity() {
                                     onClick = {
                                         scope.launch { drawerState.close() }
                                         viewModel.setRoute(item.route)
-                                        navController.popBackStack()
                                         navController.navigate(item.route)
                                     },
                                     modifier = Modifier
