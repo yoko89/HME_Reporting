@@ -10,6 +10,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Test
 import java.util.Calendar
+import java.util.TimeZone
 
 class GetAllCarMileageFlowUseCaseTest {
     private val repo = TestCarMileageRepository()
@@ -19,6 +20,7 @@ class GetAllCarMileageFlowUseCaseTest {
     @Before
     fun setUp() {
         val dateTime = Calendar.getInstance()
+        dateTime.timeZone = TimeZone.getTimeZone("Asia/Dubai")
         carMileageList = mutableListOf(
             CarMileage(dateTime, dateTime, 100, dateTime, dateTime, 1000, 1),
             CarMileage(dateTime, dateTime, 100, dateTime, dateTime, 1000, 2),
