@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -63,7 +63,7 @@ fun TimeSheetHeader(
 
             }
 
-            Divider(
+            HorizontalDivider(
                 thickness = 1.dp,
                 color = MaterialTheme.colorScheme.onSurface
             )

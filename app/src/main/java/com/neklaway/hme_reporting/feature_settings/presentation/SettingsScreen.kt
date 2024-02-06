@@ -21,7 +21,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Button
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -153,10 +153,10 @@ fun SettingsScreen(
             }
 
             item {
-                Divider(modifier = Modifier.padding(vertical = 5.dp))
+                HorizontalDivider(modifier = Modifier.padding(vertical = 5.dp))
 
                 OutlinedTextField(
-                    value = state.visaReminder.string?:"",
+                    value = state.visaReminder.string ?: "",
                     onValueChange = {
                         userEvent(SettingsUserEvents.SetVisaReminder(it))
                     },
@@ -165,7 +165,7 @@ fun SettingsScreen(
                         .fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
-                    supportingText = { Text(text = state.visaReminder.message?:"")},
+                    supportingText = { Text(text = state.visaReminder.message ?: "") },
                     isError = state.visaReminder is ResourceWithString.Error
                 )
             }
@@ -173,10 +173,10 @@ fun SettingsScreen(
 
 
             item {
-                Divider(modifier = Modifier.padding(vertical = 5.dp))
+                HorizontalDivider(modifier = Modifier.padding(vertical = 5.dp))
 
                 OutlinedTextField(
-                    value = state.fullDayAllowance.string?:"",
+                    value = state.fullDayAllowance.string ?: "",
                     onValueChange = {
                         userEvent(SettingsUserEvents.SetFullDayAllowance(it))
                     },
@@ -185,7 +185,7 @@ fun SettingsScreen(
                         .fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
-                    supportingText = { Text(text = state.fullDayAllowance.message?:"")},
+                    supportingText = { Text(text = state.fullDayAllowance.message ?: "") },
                     isError = state.fullDayAllowance is ResourceWithString.Error
                 )
             }
@@ -222,10 +222,10 @@ fun SettingsScreen(
                 )
             }
             item {
-                Divider(modifier = Modifier.padding(vertical = 5.dp))
+                HorizontalDivider(modifier = Modifier.padding(vertical = 5.dp))
 
                 DropDown(
-                    dropDownList = Theme.values().toList(),
+                    dropDownList = Theme.entries,
                     selectedValue = state.theme.name,
                     label = "Theme Color",
                     dropDownContentDescription = "theme color selection",
@@ -236,7 +236,7 @@ fun SettingsScreen(
             }
             item {
                 DropDown(
-                    dropDownList = DarkTheme.values().toList(),
+                    dropDownList = DarkTheme.entries,
                     selectedValue = state.darkTheme.name,
                     label = "Dark Theme",
                     dropDownContentDescription = "dark theme color selection",
@@ -247,7 +247,7 @@ fun SettingsScreen(
             }
 
             item {
-                Divider(modifier = Modifier.padding(vertical = 5.dp))
+                HorizontalDivider(modifier = Modifier.padding(vertical = 5.dp))
 
                 state.signature?.let {
                     Spacer(modifier = Modifier.height(5.dp))
@@ -274,7 +274,7 @@ fun SettingsScreen(
 
             item {
 
-                Divider(modifier = Modifier.padding(vertical = 5.dp))
+                HorizontalDivider(modifier = Modifier.padding(vertical = 5.dp))
 
                 OutlinedButton(
                     onClick = {
