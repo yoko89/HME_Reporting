@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -14,19 +15,24 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.neklaway.hme_reporting.common.presentation.Screen
-import com.neklaway.hme_reporting.common.presentation.common.component.BottomNavigationBar
 import com.neklaway.hme_reporting.common.presentation.common.component.ComposableScreenAnimation
 import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.currency_exchange_rate.CurrencyExchangeScreen
 import com.neklaway.hme_reporting.feature_expanse_sheet.presentation.currency_exchange_rate.CurrencyExchangeViewModel
@@ -49,61 +55,91 @@ fun ExpenseMainScreen(
     showNavigationMenu: () -> Unit,
 ) {
     val navController = rememberNavController()
+    val backStackEntry = navController.currentBackStackEntryAsState()
+
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        topBar = {
-            TopAppBar(
-                title = { Text(text = "Expense Sheet") },
-                navigationIcon = {
-                    IconButton(onClick = showNavigationMenu) {
-                        Icon(Icons.Default.Menu, contentDescription = "Menu")
-                    }
-                },
-                scrollBehavior = scrollBehavior
-            )
-        },
-        bottomBar = {
-            val screens = mutableListOf(
-                Screen.ExpenseSheet,
-                Screen.DailyAllowance,
-                Screen.NewExpense,
-                Screen.CurrencyExchange
-            )
+            modifier = Modifier.fillMaxSize(),
+            topBar = {
+                TopAppBar(
+                    title = { Text(text = "Expense Sheet") },
+                    navigationIcon = {
+                        IconButton(onClick = showNavigationMenu) {
+                            Icon(Icons.Default.Menu, contentDescription = "Menu")
+                        }
+                    },
+                    scrollBehavior = scrollBehavior
+                )
+            },
+        ) { paddingValues ->
+        NavigationSuiteScaffold(
+            navigationSuiteItems = {
+                val screens = mutableListOf(
+                    Screen.ExpenseSheet,
+                    Screen.DailyAllowance,
+                    Screen.NewExpense,
+                    Screen.CurrencyExchange
+                )
 
-            Log.d(TAG, "ExpanseMainScreen: Screens are $screens")
+                Log.d(TAG, "ExpanseMainScreen: Screens are $screens")
 
-            BottomNavigationBar(
-                screenList = screens, navController = navController
-            ) {
-                userEvents(ExpenseSheetMainUserEvent.ScreenSelected(it.route))
+                screens.forEach { screen ->
+                    val selected =
+                        screen.route == backStackEntry.value?.destination?.route?.split("?")?.get(0)
 
-                navController.navigate(it.route) {
-                    popUpTo(navController.graph.startDestinationId) {
-                        saveState = true
-                    }
-                    launchSingleTop = true
-                    restoreState = true
+
+                    item(
+                        selected = selected,
+                        onClick = {
+                            if (!selected) {
+                                userEvents(ExpenseSheetMainUserEvent.ScreenSelected(screen.route))
+
+                                navController.navigate(screen.route) {
+                                    popUpTo(navController.graph.startDestinationId) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            }
+                        },
+                        icon = {
+                            screen.imageVector?.let { image ->
+                                Icon(imageVector = image, contentDescription = screen.name)
+                            }
+                            screen.imageId?.let {
+                                Icon(
+                                    imageVector = ImageVector.vectorResource(id = it),
+                                    contentDescription = screen.name,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                        },
+                        label = {
+                            Text(text = screen.name, textAlign = TextAlign.Center)
+                        },
+                        alwaysShowLabel = false,
+                    )
                 }
             }
-        }
-    ) { paddingValues ->
-        Surface(
-            modifier = Modifier
-                .padding(paddingValues)
-                .fillMaxSize()
-                .nestedScroll(scrollBehavior.nestedScrollConnection)
         ) {
-            AnimatedVisibility(visible = state.startupRoute != null) {
+            Surface(
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .fillMaxSize()
+                    .nestedScroll(scrollBehavior.nestedScrollConnection)
+            ) {
+                AnimatedVisibility(visible = state.startupRoute != null) {
 
-                Navigation(
-                    navController = navController,
-                    state.startupRoute!!
-                )
+                    Navigation(
+                        navController = navController,
+                        state.startupRoute!!
+                    )
+                }
             }
-        }
 
+        }
     }
 }
 

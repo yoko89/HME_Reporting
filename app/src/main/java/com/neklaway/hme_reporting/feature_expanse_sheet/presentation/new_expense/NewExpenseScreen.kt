@@ -8,10 +8,12 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -23,9 +25,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toFile
@@ -62,6 +69,10 @@ fun NewExpanseScreen(
             userEvent(NewExpenseUserEvent.PhotoPicked(context, uri))
         }
     )
+
+    val focusRequester = remember { FocusRequester() }
+
+    val focusManager = LocalFocusManager.current
 
     LaunchedEffect(key1 = uiEvent) {
         uiEvent.collect { event ->
@@ -153,7 +164,7 @@ fun NewExpanseScreen(
                 label = "Customer",
                 dropDownContentDescription = "Select Customer",
                 modifier = Modifier.padding(vertical = 5.dp)
-            ) { customer ->
+                ) { customer ->
                 userEvent(NewExpenseUserEvent.CustomerSelected(customer))
             }
 
@@ -181,9 +192,18 @@ fun NewExpanseScreen(
                 onValueChange = {},
                 label = { Text(text = "Date") },
                 modifier = Modifier
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .focusRequester(focusRequester),
                 readOnly = true,
-                interactionSource = dateInteractionSource
+                interactionSource = dateInteractionSource,
+                keyboardOptions = KeyboardOptions(
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = {
+                        focusManager.moveFocus(FocusDirection.Down)
+                    }
+                )
             )
 
             OutlinedTextField(
@@ -193,7 +213,16 @@ fun NewExpanseScreen(
                 },
                 label = { Text(text = "Invoice Number") },
                 modifier = Modifier
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .focusRequester(focusRequester),
+                keyboardOptions = KeyboardOptions(
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = {
+                        focusManager.moveFocus(FocusDirection.Down)
+                    }
+                )
             )
 
             OutlinedTextField(
@@ -203,8 +232,17 @@ fun NewExpanseScreen(
                 },
                 label = { Text(text = "Description") },
                 modifier = Modifier
-                    .fillMaxWidth(),
-            )
+                    .fillMaxWidth()
+                    .focusRequester(focusRequester),
+                keyboardOptions = KeyboardOptions(
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = {
+                        focusManager.moveFocus(FocusDirection.Down)
+                    }
+                )
+                )
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -228,8 +266,15 @@ fun NewExpanseScreen(
                 },
                 label = { Text(text = "Amount") },
                 modifier = Modifier
-                    .fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    .fillMaxWidth()
+                    .focusRequester(focusRequester),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Next),
+                keyboardActions = KeyboardActions(
+                    onNext = {
+                        focusManager.moveFocus(FocusDirection.Down)
+                    }
+                ),
                 supportingText = {
                     Text(text = state.amount.message?:"")
                 },
@@ -243,7 +288,8 @@ fun NewExpanseScreen(
                 dropDownContentDescription = "Currency",
                 onSelect = {
                     userEvent(NewExpenseUserEvent.CurrencySelected(it))
-                }
+                },
+                modifier = Modifier.focusable(false)
             )
 
             OutlinedTextField(
@@ -253,8 +299,16 @@ fun NewExpanseScreen(
                 },
                 label = { Text(text = "Amount in AED") },
                 modifier = Modifier
-                    .fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    .fillMaxWidth()
+                    .focusRequester(focusRequester),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        focusManager.clearFocus()
+                    }
+                ),
                 supportingText = {
                     Text(text = state.amountAED.message?:"")
                 },

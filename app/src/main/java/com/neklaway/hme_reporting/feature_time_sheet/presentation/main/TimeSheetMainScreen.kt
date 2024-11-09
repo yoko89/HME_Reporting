@@ -2,15 +2,30 @@ package com.neklaway.hme_reporting.feature_time_sheet.presentation.main
 
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material3.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -18,10 +33,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.neklaway.hme_reporting.common.presentation.Screen
-import com.neklaway.hme_reporting.common.presentation.common.component.BottomNavigationBar
 import com.neklaway.hme_reporting.common.presentation.common.component.ComposableScreenAnimation
 import com.neklaway.hme_reporting.feature_time_sheet.presentation.customer.CustomerScreen
 import com.neklaway.hme_reporting.feature_time_sheet.presentation.customer.CustomerViewModel
@@ -46,20 +61,13 @@ fun TimeSheetMainScreen(
     showNavigationMenu: () -> Unit,
 ) {
     val navController = rememberNavController()
+    val backStackEntry = navController.currentBackStackEntryAsState()
+
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        topBar = {
-            TopAppBar(title = { Text(text = "Time Sheet") },
-                navigationIcon = {
-                    IconButton(onClick = showNavigationMenu) {
-                        Icon(Icons.Default.Menu, contentDescription = "Menu")
-                    }
-                },
-                scrollBehavior = scrollBehavior)
-        },
-        bottomBar = {
+    NavigationSuiteScaffold(
+        navigationSuiteItems = {
+
             val screens = mutableListOf(
                 Screen.TimeSheet,
                 Screen.NewTimeSheet,
@@ -71,46 +79,87 @@ fun TimeSheetMainScreen(
 
             Log.d(TAG, "TimeSheetMainScreen: Screens are $screens")
 
-            BottomNavigationBar(
-                screenList = screens, navController = navController
-            ) {
-                userEvents(TimeSheetMainUserEvent.ScreenSelected(it.route))
-                navController.navigate(it.route){
-                    popUpTo(navController.graph.findStartDestination().id){
-                        saveState = true
-                    }
-                    launchSingleTop = true
-                    restoreState = true
-                }
 
+            screens.forEach { screen ->
+                val selected =
+                    screen.route == backStackEntry.value?.destination?.route?.split("?")?.get(0)
+
+                item(
+                    selected = selected,
+                    onClick = {
+
+                        if (!selected) {
+                            userEvents(TimeSheetMainUserEvent.ScreenSelected(screen.route))
+                            navController.navigate(screen.route) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    },
+                    icon = {
+                        screen.imageVector?.let { image ->
+                            Icon(imageVector = image, contentDescription = screen.name)
+                        }
+                        screen.imageId?.let {
+                            Icon(
+                                imageVector = ImageVector.vectorResource(id = it),
+                                contentDescription = screen.name,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    },
+                    label = {
+                        Text(text = screen.name, textAlign = TextAlign.Center)
+                    },
+                    alwaysShowLabel = false,
+                )
             }
         }
-    ) { paddingValues ->
-        Surface(
-            modifier = Modifier
-                .padding(paddingValues)
-                .fillMaxSize()
-                .nestedScroll(scrollBehavior.nestedScrollConnection)
-        ) {
-            AnimatedVisibility(visible = state.startupRoute == null) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    CircularProgressIndicator(
-                        modifier = Modifier
-                            .size(50.dp)
-                            .align(Alignment.Center)
+    ) {
+
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            topBar = {
+                TopAppBar(
+                    title = { Text(text = "Time Sheet") },
+                    navigationIcon = {
+                        IconButton(onClick = showNavigationMenu) {
+                            Icon(Icons.Default.Menu, contentDescription = "Menu")
+                        }
+                    },
+                    scrollBehavior = scrollBehavior
+                )
+            },
+        ) { paddingValues ->
+            Surface(
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .fillMaxSize()
+                    .nestedScroll(scrollBehavior.nestedScrollConnection)
+            ) {
+                AnimatedVisibility(visible = state.startupRoute == null) {
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .size(50.dp)
+                                .align(Alignment.Center)
+                        )
+                    }
+                }
+
+                AnimatedVisibility(visible = state.startupRoute != null) {
+
+                    Navigation(
+                        navController = navController,
+                        state.startupRoute!!
                     )
                 }
             }
 
-            AnimatedVisibility(visible = state.startupRoute != null) {
-
-                Navigation(
-                    navController = navController,
-                    state.startupRoute!!
-                )
-            }
         }
-
     }
 }
 

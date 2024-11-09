@@ -42,6 +42,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.input.KeyboardType
@@ -67,7 +68,6 @@ fun CarMileageScreen(
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
-
 
     val startDateInteractionSource = remember { MutableInteractionSource() }
     val startTimeInteractionSource = remember { MutableInteractionSource() }
@@ -217,7 +217,7 @@ fun CarMileageScreen(
                 label = { Text(text = "Start Date") },
                 modifier = Modifier.fillMaxWidth(),
                 readOnly = true,
-                interactionSource = startDateInteractionSource
+                interactionSource = startDateInteractionSource,
             )
 
             OutlinedTextField(
