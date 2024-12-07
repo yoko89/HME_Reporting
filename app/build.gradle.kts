@@ -4,7 +4,7 @@ plugins {
     id("dagger.hilt.android.plugin")
     id("kotlinx-serialization")
     id("com.google.devtools.ksp")
-    id("org.jetbrains.kotlin.plugin.compose") version "2.0.21"
+    id("org.jetbrains.kotlin.plugin.compose") version "2.1.0"
 }
 
 android {
@@ -15,8 +15,8 @@ android {
         applicationId = "com.neklaway.hmereporting"
         minSdk = 29
         targetSdk = 35
-        versionCode = 25
-        versionName = "3.4"
+        versionCode = 27
+        versionName = "3.6"
 
         testInstrumentationRunner = ("androidx.test.runner.AndroidJUnitRunner")
         vectorDrawables {
@@ -74,7 +74,7 @@ composeCompiler {
 dependencies {
 
     implementation("androidx.exifinterface:exifinterface:1.3.7")
-    platform("androidx.compose:compose-bom:2024.10.01")
+    platform("androidx.compose:compose-bom:2024.11.00")
     implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.material3:material3:1.3.1")
@@ -93,7 +93,7 @@ dependencies {
     // Compose dependencies
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
     implementation("androidx.compose.runtime:runtime-livedata")
-    implementation("androidx.navigation:navigation-compose:2.8.3")
+    implementation("androidx.navigation:navigation-compose:2.8.4")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
 
     //Adaptive navigation
@@ -109,8 +109,8 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
 
     //Dagger
-    implementation("com.google.dagger:hilt-android:2.52")
-    ksp("com.google.dagger:hilt-compiler:2.52")
+    implementation("com.google.dagger:hilt-android:2.53")
+    ksp("com.google.dagger:hilt-compiler:2.53")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
     ksp("androidx.hilt:hilt-compiler:1.2.0")
 
