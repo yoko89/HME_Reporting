@@ -35,28 +35,28 @@ fun TimeSheetHeader(
             ) {
 
                 Text(
-                    text = "Travel\nStart",
+                    text = "Travel Start",
                     textAlign = TextAlign.Center,
                     modifier = Modifier.weight(1f)
                 )
                 Text(
-                    text = "Work\nStart",
+                    text = "Work Start",
                     textAlign = TextAlign.Center,
                     modifier = Modifier.weight(1f)
                 )
                 Text(
-                    text = "Work\nEnd",
+                    text = "Work End",
                     textAlign = TextAlign.Center,
                     modifier = Modifier.weight(1f)
                 )
                 Text(
-                    text = "Travel\nEnd",
+                    text = "Travel End",
                     textAlign = TextAlign.Center,
                     modifier = Modifier.weight(1f)
                 )
 
                 Text(
-                    text = "Travel\nDist.",
+                    text = "Travel Dist.",
                     textAlign = TextAlign.Center,
                     modifier = Modifier.weight(1f)
                 )
@@ -70,25 +70,25 @@ fun TimeSheetHeader(
 
             Row {
                 Text(
-                    text = "Travel\nTime",
+                    text = "Travel Time",
                     textAlign = TextAlign.Center,
                     modifier = Modifier.weight(1f)
                 )
 
                 Text(
-                    text = "Work\nTime",
+                    text = "Work Time",
                     textAlign = TextAlign.Center,
                     modifier = Modifier.weight(1f)
                 )
 
                 Text(
-                    text = "Over\nTime",
+                    text = "Over Time",
                     textAlign = TextAlign.Center,
                     modifier = Modifier.weight(1f)
                 )
 
                 Text(
-                    text = "Break\nTime",
+                    text = "Break Time",
                     textAlign = TextAlign.Center,
                     modifier = Modifier.weight(1f)
                 )
